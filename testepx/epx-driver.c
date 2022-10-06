@@ -53,7 +53,7 @@ static bool	epx_rstartpage(pappl_job_t *job, pappl_pr_options_t *options, pappl_
 static bool	epx_rwriteline(pappl_job_t *job, pappl_pr_options_t *options, pappl_device_t *device, unsigned y, const unsigned char *line);
 static bool	epx_status(pappl_printer_t *printer);
 static const char *epx_testpage(pappl_printer_t *printer, char *buffer, size_t bufsize);
-
+static const char *epx_get_make_and_model_string(char *buffer, size_t bufsize);
 
 //
 // 'pwg_autoadd()' - Auto-add callback.
@@ -135,7 +135,11 @@ epx_pappl_driver_cb(
     driver_data->testpage_cb        = epx_testpage;
 
     // Printer attributes and information
-    strncpy(driver_data->make_and_model, "PWG EPX Printer", sizeof(driver_data->make_and_model) - 1); // TODO: Extract from 1284 Device ID string
+    char makeAndModelString[256];
+    if (NULL == epx_get_make_and_model_string(makeAndModelString, sizeof(makeAndModelString)))
+        snprintf(makeAndModelString, sizeof(makeAndModelString), "UNKNOWN DON'T KNOW WHAT");
+    strncpy(driver_data->make_and_model, makeAndModelString, sizeof(driver_data->make_and_model) - 1);
+    
     driver_data->format             = "image/pwg-raster";
     driver_data->orient_default     = IPP_ORIENT_NONE;
     driver_data->quality_default    = IPP_QUALITY_NORMAL;
@@ -639,4 +643,27 @@ epx_testpage(
     {
         return (buffer);
     }
+}
+
+// TODO: Move this into pappl
+static const char *                                         // Make and Model string
+epx_get_make_and_model_string(char            *buffer,      // I - Buffer
+                              size_t          bufsize       // I - Buffer size
+                              )
+{
+    int kvpCount;
+    cups_option_t *deviceIdKVPs;
+    const char *mfg, *mdl;
+    
+    memset(buffer, 0, bufsize);  // Zero the buffer out
+    kvpCount = papplDeviceParseID(epx_drivers[0].device_id, &deviceIdKVPs);
+    if (0 == kvpCount)
+        return NULL;
+
+    mfg = cupsGetOption("MFG", (size_t)kvpCount, deviceIdKVPs);
+    mdl = cupsGetOption("MDL", (size_t)kvpCount, deviceIdKVPs);
+    
+    snprintf(buffer, bufsize, "%s %s", mfg, mdl);
+    
+    return buffer;
 }
