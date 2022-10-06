@@ -14,13 +14,24 @@
 
 
 #include "testepx.h"
+#include "testpappl.h" // to see if using the driver callback from there works better
+
 #include <pappl/base-private.h>
 #include <config.h>
 #include <libgen.h>
+#include <errno.h> // for checking the result of creating firstPrinter in the system callback
 
-#define FOOTER_HTML         "Copyright © 2022 Printer Working Group."
-#define VERSION_STRING      "0.1.0.1"
 
+#define FOOTER_HTML             "Copyright © 2022 Printer Working Group."
+#define EPX_VERSION_STRING          "0.1.0.1"
+#define EPX_VERSION_L1_MAJOR    0
+#define EPX_VERSION_L2_MINOR    1
+#define EPX_VERSION_L3_PATCH    0
+#define EPX_VERSION_L4_BUILD    1
+
+
+#define USE_SYSTEM_CB
+#define USE_TEST_DRIVERS
 
 static pappl_system_t *epx_system_cb(int optionCount, cups_option_t *options, void *data);
 
@@ -32,42 +43,57 @@ int main(int  argc, char *argv[])
     int result = 0;
     char *whoami = basename(argv[0]);
     
+#ifdef USE_TEST_DRIVERS
+    int                     drivercount = (int)(sizeof(pwg_drivers) / sizeof(pwg_drivers[0]));
+    pappl_pr_driver_t       *drivers = pwg_drivers;
+    pappl_pr_autoadd_cb_t   autoadd_callback = NULL;
+    pappl_pr_driver_cb_t    driver_callback = pwg_callback;
+#else
+    int                     drivercount = EPX_DRIVER_COUNT;
+    pappl_pr_driver_t       *drivers = epx_drivers;
+    pappl_pr_autoadd_cb_t   autoadd_callback = epx_pappl_autoadd_cb;
+    pappl_pr_driver_cb_t    driver_callback = epx_pappl_driver_cb;
+#endif
+    
     printf("%s - Starting papplMainLoop\n", whoami);
-//    result = papplMainloop(argc,                                                // I - Number of command line arguments
-//                           argv,                                                // I - Command line arguments
-//                           VERSION_STRING,                                      // I - Version number
-//                           FOOTER_HTML,                                         // I - Footer HTML or `NULL` for none
-//                           (int)(sizeof(epx_drivers) / sizeof(epx_drivers[0])), // I - Number of drivers
-//                           epx_drivers,                                         // I - Drivers
-//                           NULL,                                                // I - Auto-add callback or `NULL` for none
-//                           epx_pappl_driver_cb,                                 // I - Driver callback
-//                           NULL,                                                // I - Sub-command name or `NULL` for none
-//                           NULL,                                                // I - Sub-command callback or `NULL` for none
-//                           epx_system_cb,                                       // I - System callback or `NULL` for default
-//                           NULL,                                                // I - Usage callback or `NULL` for default
-//                           whoami);                                             // I - Context pointer
-
+    
+#ifdef USE_SYSTEM_CB
     result = papplMainloop(argc,                                                // I - Number of command line arguments
                            argv,                                                // I - Command line arguments
-                           VERSION_STRING,                                      // I - Version number
+                           EPX_VERSION_STRING,                                  // I - Version number
                            FOOTER_HTML,                                         // I - Footer HTML or `NULL` for none
-                           0,                                                   // I - Number of drivers
-                           NULL,                                                // I - Drivers
-                           epx_pappl_autoadd_cb,                                // I - Auto-add callback or `NULL` for none
-                           epx_pappl_driver_cb,                                 // I - Driver callback
+                           drivercount,                                         // I - Number of drivers
+                           drivers,                                             // I - Drivers
+                           autoadd_callback,                                    // I - Auto-add callback or `NULL` for none
+                           driver_callback,                                     // I - Driver callback
                            NULL,                                                // I - Sub-command name or `NULL` for none
                            NULL,                                                // I - Sub-command callback or `NULL` for none
                            epx_system_cb,                                       // I - System callback or `NULL` for default
                            NULL,                                                // I - Usage callback or `NULL` for default
                            whoami);                                             // I - Context pointer
-
+#else
+    result = papplMainloop(argc,                                                // I - Number of command line arguments
+                           argv,                                                // I - Command line arguments
+                           EPX_VERSION_STRING,                                  // I - Version number
+                           FOOTER_HTML,                                         // I - Footer HTML or `NULL` for none
+                           drivercount,                                         // I - Number of drivers
+                           drivers,                                             // I - Drivers
+                           autoadd_callback,                                    // I - Auto-add callback or `NULL` for none
+                           driver_callback,                                     // I - Driver callback
+                           NULL,                                                // I - Sub-command name or `NULL` for none
+                           NULL,                                                // I - Sub-command callback or `NULL` for none
+                           NULL,                                       // I - System callback or `NULL` for default
+                           NULL,                                                // I - Usage callback or `NULL` for default
+                           whoami);                                             // I - Context pointer
+#endif
+    
     printf("%s - papplMainLoop stopped with result %d\n", whoami, result);
 
     return result;
 }
 
 //---------------------------------------------------------------------------------------------------
-// 'epx_system_cb()' - System callback.
+// 'epx_system_cb()' - System callback to set up the system.
 
 pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of options
                               cups_option_t *options,      // I - Options
@@ -81,6 +107,8 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
     pappl_loglevel_t    loglevel;           // Log level
     int                 port = 0;           // Port number, if any
     char                *whoami = (char*)data;
+    pappl_printer_t     *firstPrinter;
+    
     
     // System options
     static pappl_contact_t contact =    // Contact information
@@ -89,17 +117,17 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
         "epx@pwg.org",
         "+1-208-555-1212"
     };
-    static pappl_version_t versions[1] =    // Firmware version info
+    static pappl_version_t versions[1] =    // "Firmware" version info
     {
         {
             "Test Application",             // "xxx-firmware-name" value
             "",                             // "xxx-firmware-patches" value
-            VERSION_STRING,                 // "xxx-firmware-string-version" value
+            EPX_VERSION_STRING,             // "xxx-firmware-string-version" value
             {                               // "xxx-firmware-version" value (short[4])
-                0,
-                1,
-                0,
-                1
+                EPX_VERSION_L1_MAJOR,
+                EPX_VERSION_L2_MINOR,
+                EPX_VERSION_L3_PATCH,
+                EPX_VERSION_L4_BUILD
             }
             
         }
@@ -150,12 +178,17 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
             return (NULL);
         }
         else
+        {
             port = atoi(val);
+        }
     }
     
-    system = papplSystemCreate(PAPPL_SOPTIONS_WEB_INTERFACE | PAPPL_SOPTIONS_WEB_LOG |
-                               PAPPL_SOPTIONS_WEB_NETWORK | PAPPL_SOPTIONS_WEB_SECURITY |
-                               PAPPL_SOPTIONS_WEB_TLS,                                              // I - Server options
+    system = papplSystemCreate(PAPPL_SOPTIONS_MULTI_QUEUE |                                         // Web interface won't work without this option...
+                               PAPPL_SOPTIONS_WEB_LOG |
+                               PAPPL_SOPTIONS_WEB_NETWORK |
+                               PAPPL_SOPTIONS_WEB_SECURITY |
+                               PAPPL_SOPTIONS_WEB_TLS |
+                               PAPPL_SOPTIONS_WEB_INTERFACE,                                        // I - Server options (bitfield)
                                system_name ? system_name : "NoSystemName",                          // I - System name
                                port,                                                                // I - Port number or `0` for auto
                                "_print,_universal",                                                 // I - DNS-SD sub-types or `NULL` for none
@@ -171,20 +204,26 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
     papplSystemAddListeners(system, NULL);
     papplSystemSetHostName(system, hostname); // TODO: Why is this even needed?
     
-    papplSystemSetPrinterDrivers(system, (int)(sizeof(epx_drivers) / sizeof(epx_drivers[0])), epx_drivers, epx_pappl_autoadd_cb, /*create_cb*/NULL, epx_pappl_driver_cb, "testmainloop");
+    papplSystemSetPrinterDrivers(system, (int)(sizeof(epx_drivers) / sizeof(epx_drivers[0])), epx_drivers, epx_pappl_autoadd_cb, /*create_cb*/NULL, epx_pappl_driver_cb, whoami);
     
     papplSystemSetFooterHTML(system, FOOTER_HTML);
-    papplSystemSetSaveCallback(system, (pappl_save_cb_t)papplSystemSaveState, (void *)"/tmp/testmainloop.state");
+    papplSystemSetSaveCallback(system, (pappl_save_cb_t)papplSystemSaveState, (void *)"/tmp/testepx.state");
     papplSystemSetVersions(system, (int)(sizeof(versions) / sizeof(versions[0])), versions);
     
-    if (!papplSystemLoadState(system, "/tmp/testmainloop.state"))
+    if (!papplSystemLoadState(system, "/tmp/testepx.state"))
     {
         papplSystemSetContact(system, &contact);
-        papplSystemSetDNSSDName(system, system_name ? system_name : "Test Mainloop");
-        papplSystemSetGeoLocation(system, "geo:46.4707,-80.9961");
+        papplSystemSetDNSSDName(system, system_name ? system_name : "TestEPX System");
+        papplSystemSetGeoLocation(system, "geo:43.617697,-116.199614"); // Idaho State Capitol in Boise
         papplSystemSetLocation(system, "Test Lab 42");
-        papplSystemSetOrganization(system, "Example Company");
+        papplSystemSetOrganization(system, "PWG");
     }
+    
+    // Make a printer so that I don't have to do that in the web interface
+    firstPrinter = papplPrinterCreate(system, 0, "EPX Test Printer", epx_drivers[0].name, epx_drivers[0].device_id, "/ipp/epx");
+    if (NULL == firstPrinter)
+        fprintf(stderr, "%s - epx_system_cb: Could not create firstPrinter - ERRNO = %d.\n", whoami, errno);
+
     
     return (system);
 }

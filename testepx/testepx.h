@@ -18,21 +18,15 @@
 
 #include <pappl/pappl.h>
 
+#define EPX_DRIVER_COUNT 1
+extern pappl_pr_driver_t epx_drivers[EPX_DRIVER_COUNT];
 
-extern pappl_pr_driver_t epx_drivers[11];
-
-#ifdef PWG_DRIVER
-pappl_pr_driver_t epx_drivers[11] =
-{     /* name */                            /* description */                       /* device ID */ /* extension */
-    { "pwg_common-300dpi-black_1",	        "EPX Office 300DPI Black",		            NULL,	        NULL },
-    { "pwg_common-300dpi-sgray_8",	        "EPX Office 300DPI sGray 8-bit",		    NULL,	        NULL },
-    { "pwg_common-300dpi-srgb_8",		    "EPX Office 300DPI sRGB 8-bit",		        NULL,	        NULL },
-    { "pwg_common-300dpi-600dpi-black_1",	"EPX Office 300DPI 600DPI Black",		    NULL,	        NULL },
-    { "pwg_common-300dpi-600dpi-sgray_8",	"EPX Office 300DPI 600DPI sGray 8-bit",	    NULL,	        NULL },
-    { "pwg_common-300dpi-600dpi-srgb_8",	"EPX Office 300DPI 600DPI sRGB 8-bit",	    NULL,	        NULL },
-    { "pwg_fail-300dpi-black_1",	        "EPX Always Fails 300DPI Black",		    NULL,	        NULL }
+#ifdef EPX_DRIVER
+pappl_pr_driver_t epx_drivers[EPX_DRIVER_COUNT] =
+{     /* name */        /* description */       /* device ID */                                         /* extension */
+    { "epx-driver",     "EPX Driver",           "MFG:PWG;MDL:EPX Test Model;CMD:PWGRaster,PDF;",        NULL },
 };
-#endif // PWG_DRIVER
+#endif // EPX_DRIVER
 
 
 extern const char *epx_pappl_autoadd_cb(const char *device_info, const char *device_uri, const char *device_id, void *data);
