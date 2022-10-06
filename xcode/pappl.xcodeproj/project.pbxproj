@@ -283,6 +283,7 @@
 		3B14054628E6198200A7B7B4 /* testmainloop.c in Sources */ = {isa = PBXBuildFile; fileRef = 274AD666253F52E30033CAAB /* testmainloop.c */; };
 		3B14054728E6199500A7B7B4 /* testepx.c in Sources */ = {isa = PBXBuildFile; fileRef = 3B1404F028E4C41C00A7B7B4 /* testepx.c */; };
 		3B14054828E619A800A7B7B4 /* epx-driver.c in Sources */ = {isa = PBXBuildFile; fileRef = 3B1404EF28E4C41C00A7B7B4 /* epx-driver.c */; };
+		3B14054928EE238D00A7B7B4 /* pwg-driver.c in Sources */ = {isa = PBXBuildFile; fileRef = 274A1ED7242E7E1300DE387E /* pwg-driver.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1229,6 +1230,7 @@
 			files = (
 				3B14054828E619A800A7B7B4 /* epx-driver.c in Sources */,
 				3B14054728E6199500A7B7B4 /* testepx.c in Sources */,
+				3B14054928EE238D00A7B7B4 /* pwg-driver.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
