@@ -58,7 +58,7 @@ void
 _papplPrinterCopyAttributes(
                             pappl_printer_t *printer,		// I - Printer
                             pappl_client_t  *client,		// I - Client
-                            cups_array_t    *ra,		// I - Requested attributes
+                            cups_array_t    *ra,		    // I - Requested attributes
                             const char      *format)		// I - "document-format" value, if any
 {
     cups_len_t	i,			// Looping var
@@ -71,11 +71,13 @@ _papplPrinterCopyAttributes(
     const char	*webscheme = (httpAddrIsLocalhost(httpGetAddress(client->http)) || !papplSystemGetTLSOnly(client->system)) ? "http" : "https";
     // URL scheme for resources
     
-    
+    // Copy values that are relatively static
+    // No need to manually copy static already defined attributes - this quick copy takes care of it
     _papplCopyAttributes(client->response, printer->attrs, ra, IPP_TAG_ZERO, IPP_TAG_CUPS_CONST);
     _papplCopyAttributes(client->response, printer->driver_attrs, ra, IPP_TAG_ZERO, IPP_TAG_CUPS_CONST);
     _papplPrinterCopyState(printer, IPP_TAG_PRINTER, client->response, client, ra);
     
+    // Copy values that are more dynamic
     if (!ra || cupsArrayFind(ra, "copies-supported"))
     {
         // Filter copies-supported value based on the document format...
@@ -596,83 +598,7 @@ _papplPrinterCopyAttributes(
         }
     }
     
-    
-    //-----------------------------------------------------------------------------------------
-    // EPX Extensions
-    if (!ra || cupsArrayFind(ra, "job-cancel-after-default"))
-    {
-        long jobCancelAfterDefault = 3600; // 24 hours -- where can I look this up?
-        ippAddInteger(client->response, IPP_TAG_PRINTER, IPP_TAG_INTEGER, "queued-job-count", (int)jobCancelAfterDefault);
-    }
-    if (!ra || cupsArrayFind(ra, "job-cancel-after-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-password-encryption-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-password-length-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-password-repertoire-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-password-repertoire-configured"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-password-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-release-action-default"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-release-action-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-storage-access-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-storage-disposition-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-storage-group-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "job-storage-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "printer-detailed-status-messages "))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "proof-copies-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "proof-print-copies-supported"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "proof-print-default"))
-    {
-    
-    }
-    if (!ra || cupsArrayFind(ra, "proof-print-supported"))
-    {
-    
-    }
-
+    // No need to manually copy static already defined attributes - already copied via quick copy at start of function
 }
 
 

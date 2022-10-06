@@ -753,7 +753,7 @@ papplPrinterCreate(
     ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-supported", (int)(sizeof(job_storage) / sizeof(job_storage[0])), NULL, job_storage);
 
     // printer-detailed-status-messages  - EPX 2.0
-    ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-detailed-status-messages", NULL, "TODO: HOOK ME UP TO SOMETHING"); // TODO: Hook this up to something that reports the detailed status
+    ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_TEXT), "printer-detailed-status-messages", NULL, "TODO: HOOK ME UP TO SOMETHING"); // TODO: Hook this up to something that reports the detailed status
 
     // proof-copies-supported - EPX 2.0
     ippAddRange(printer->attrs, IPP_TAG_PRINTER, "proof-copies-supported", 1, INT_MAX);
