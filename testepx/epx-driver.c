@@ -100,7 +100,7 @@ epx_pappl_driver_cb(
                     ipp_t                  **driver_attrs,  // O - Driver attributes
                     void                   *data)	        // I - Callback data
 {
-    
+    int i; // used in for loops later in the function
     (void)device_id; // Statement to make the compiler ignore that this isn't used
     
     if (!driver_name || !device_uri || !driver_data || !driver_attrs)
@@ -121,6 +121,7 @@ epx_pappl_driver_cb(
         return (false);
     }
     
+    // Callbacks
     driver_data->identify_cb        = epx_identify;
     driver_data->identify_default   = PAPPL_IDENTIFY_ACTIONS_SOUND;
     driver_data->identify_supported = PAPPL_IDENTIFY_ACTIONS_DISPLAY | PAPPL_IDENTIFY_ACTIONS_SOUND;
@@ -132,10 +133,105 @@ epx_pappl_driver_cb(
     driver_data->rwriteline_cb      = epx_rwriteline;
     driver_data->status_cb          = epx_status;
     driver_data->testpage_cb        = epx_testpage;
+
+    // Printer attributes and information
+    strncpy(driver_data->make_and_model, "PWG EPX Printer", sizeof(driver_data->make_and_model) - 1); // TODO: Extract from 1284 Device ID string
     driver_data->format             = "image/pwg-raster";
     driver_data->orient_default     = IPP_ORIENT_NONE;
     driver_data->quality_default    = IPP_QUALITY_NORMAL;
+    driver_data->x_resolution[driver_data->num_resolution   ] = 300;
+    driver_data->y_resolution[driver_data->num_resolution ++] = 300;
+    driver_data->x_default = driver_data->y_default           = 300;
+    /* Four color spaces - black (1-bit and 8-bit), grayscale, and sRGB */
+    driver_data->raster_types = PAPPL_PWG_RASTER_TYPE_BLACK_1 | PAPPL_PWG_RASTER_TYPE_BLACK_8 | PAPPL_PWG_RASTER_TYPE_SGRAY_8 | PAPPL_PWG_RASTER_TYPE_SRGB_8;
+
+    /* Color modes: auto (default), monochrome, and color */
+    driver_data->color_supported = PAPPL_COLOR_MODE_AUTO | PAPPL_COLOR_MODE_AUTO_MONOCHROME | PAPPL_COLOR_MODE_COLOR | PAPPL_COLOR_MODE_MONOCHROME;
+    driver_data->color_default   = PAPPL_COLOR_MODE_AUTO;
     
+    driver_data->has_supplies = true;
+    driver_data->kind         = PAPPL_KIND_DOCUMENT;
+    driver_data->ppm          = 15;    // 5 mono pages per minute
+    driver_data->ppm_color    = 12;    // 2 color pages per minute
+    driver_data->left_right   = 423;    // 1/6" left and right
+    driver_data->bottom_top   = 423;    // 1/6" top and bottom
+    driver_data->borderless   = false;    // Also borderless sizes
+
+    driver_data->finishings = PAPPL_FINISHINGS_NONE;
+
+    // Media (media and media-col as well as sources and types)
+    /* Three paper trays (MSN names) */
+    driver_data->num_source = 3;
+    driver_data->source[0]  = "tray-1";
+    driver_data->source[1]  = "manual";
+    driver_data->source[2]  = "envelope";
+//    driver_data->num_source = 4;
+//    driver_data->source[0]  = "main";
+//    driver_data->source[1]  = "alternate";
+//    driver_data->source[2]  = "manual";
+//    driver_data->source[3]  = "by-pass-tray";
+
+    /* Five media types (MSN names) */
+    driver_data->num_type = 5;
+    driver_data->type[0] = "stationery";
+    driver_data->type[1] = "bond";
+    driver_data->type[2] = "special";
+    driver_data->type[3] = "transparency";
+    driver_data->type[4] = "photographic-glossy";
+    
+
+
+    driver_data->num_media = (int)(sizeof(pwg_common_media) / sizeof(pwg_common_media[0]));
+    memcpy((void *)driver_data->media, pwg_common_media, sizeof(pwg_common_media));
+    
+    // Fill out ready and default media (default == ready media from the first source)
+    // NOTE: sources and types must be defined BEFORE this loop is run
+    for (i = 0; i < driver_data->num_source; i ++)
+    {
+        pwg_media_t *pwg;                   /* Media size information */
+
+        /* Use US Letter for regular trays, #10 envelope for the envelope tray */
+        if (!strcmp(driver_data->source[i], "envelope"))
+            strncpy(driver_data->media_ready[i].size_name, "env_10_4.125x9.5in", sizeof(driver_data->media_ready[i].size_name) - 1);
+        else
+            strncpy(driver_data->media_ready[i].size_name, "na_letter_8.5x11in", sizeof(driver_data->media_ready[i].size_name) - 1);
+        
+        /* Set margin and size information */
+        if ((pwg = pwgMediaForPWG(driver_data->media_ready[i].size_name)) != NULL)
+        {
+            driver_data->media_ready[i].bottom_margin = driver_data->bottom_top;
+            driver_data->media_ready[i].left_margin   = driver_data->left_right;
+            driver_data->media_ready[i].right_margin  = driver_data->left_right;
+            driver_data->media_ready[i].size_width    = pwg->width;
+            driver_data->media_ready[i].size_length   = pwg->length;
+            driver_data->media_ready[i].top_margin    = driver_data->bottom_top;
+            strncpy(driver_data->media_ready[i].source, driver_data->source[i], sizeof(driver_data->media_ready[i].source) - 1);
+            strncpy(driver_data->media_ready[i].type, driver_data->type[0],  sizeof(driver_data->media_ready[i].type) - 1);
+        }
+    }
+    driver_data->media_default = driver_data->media_ready[0];
+
+
+    if (driver_data->raster_types & PAPPL_PWG_RASTER_TYPE_SRGB_8)
+    {
+      // Color office printer gets two output bins...
+      driver_data->num_bin = 2;
+      driver_data->bin[0]  = "center";
+      driver_data->bin[1]  = "rear";
+    }
+    else
+    {
+      // B&W office printer gets one output bin...
+      driver_data->num_bin = 1;
+      driver_data->bin[0]  = "center";
+    }
+
+    papplCopyString(driver_data->media_ready[0].size_name, "na_letter_8.5x11in", sizeof(driver_data->media_ready[0].size_name));
+    papplCopyString(driver_data->media_ready[1].size_name, "iso_a4_210x297mm", sizeof(driver_data->media_ready[1].size_name));
+
+    driver_data->sides_supported = PAPPL_SIDES_ONE_SIDED | PAPPL_SIDES_TWO_SIDED_LONG_EDGE | PAPPL_SIDES_TWO_SIDED_SHORT_EDGE;
+    driver_data->sides_default   = PAPPL_SIDES_TWO_SIDED_LONG_EDGE;
+
     return (true);
 }
 
