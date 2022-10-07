@@ -235,6 +235,13 @@ epx_pappl_driver_cb(
 
     driver_data->sides_supported = PAPPL_SIDES_ONE_SIDED | PAPPL_SIDES_TWO_SIDED_LONG_EDGE | PAPPL_SIDES_TWO_SIDED_SHORT_EDGE;
     driver_data->sides_default   = PAPPL_SIDES_TWO_SIDED_LONG_EDGE;
+    
+    // Enable all new non-deprecated EPX features
+    driver_data->features[driver_data->num_features++] = "job-release";
+    driver_data->features[driver_data->num_features++] = "job-storage";
+    driver_data->features[driver_data->num_features++] = "print-policy";
+    driver_data->features[driver_data->num_features++] = "proof-and-suspend";
+    // driver_data->features[driver_data->num_features++] = "proof-print";
 
     return (true);
 }
@@ -663,7 +670,10 @@ epx_get_make_and_model_string(char            *buffer,      // I - Buffer
     mfg = cupsGetOption("MFG", (size_t)kvpCount, deviceIdKVPs);
     mdl = cupsGetOption("MDL", (size_t)kvpCount, deviceIdKVPs);
     
-    snprintf(buffer, bufsize, "%s %s", mfg, mdl);
+    if (NULL != mfg && NULL != mdl)
+        snprintf(buffer, bufsize, "%s %s", mfg, mdl);
     
+    cupsFreeOptions((size_t)kvpCount, deviceIdKVPs); // Need to manually free what was returned by papplDeviceParseID()
+
     return buffer;
 }
