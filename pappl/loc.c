@@ -145,6 +145,57 @@ papplLocFormatString(
 
 
 //
+// 'papplLocGetDefaultMediaSizeName()' - Get the default media size name
+//                                       associated with a locale.
+//
+// This function returns the default PWG media size name corresponding to the
+// current locale.  Currently only "na_letter_8.5x11in" or "iso_a4_210x297mm"
+// are returned.
+//
+
+const char *				// O - PWG media size name
+papplLocGetDefaultMediaSizeName(void)
+{
+  cups_lang_t	*lang;			// Default language
+  const char	*country;		// Country in language...
+
+
+  // Range check input...
+  if ((lang = cupsLangDefault()) != NULL)
+  {
+    // Look at locale name for country or language to map to a size...
+    const char *name = cupsLangGetName(lang);
+					// Locale name...
+
+    if ((country = strchr(name, '_')) != NULL)
+    {
+      // Based on:
+      //
+      // <https://unicode-org.github.io/cldr-staging/charts/latest/supplemental/territory_information.html>
+      //
+      // Belize	(BZ), Canada (CA), Chile (CL), Colombia (CO), Costa Ricka (CR),
+      // El Salvador (SV), Guatemala (GT), Mexico (MX), Nicaragua (NI),
+      // Panama (PA), Phillippines (PH), Puerto Rico (PR), United States (US),
+      // and Venezuela (VE) all use US Letter these days, everyone else uses
+      // A4...
+      country ++;
+
+      if (!strcmp(country, "BZ") || !strcmp(country, "CA") || !strcmp(country, "CL") || !strcmp(country, "CO") || !strcmp(country, "CR") || !strcmp(country, "SV") || !strcmp(country, "GT") || !strcmp(country, "MX") || !strcmp(country, "NI") || !strcmp(country, "PA") || !strcmp(country, "PH") || !strcmp(country, "PR") || !strcmp(country, "US") || !strcmp(country, "VE"))
+	return ("na_letter_8.5x11in");
+    }
+    else if (!strcmp(name, "C") || !strcmp(name, "en"))
+    {
+      // POSIX and generic English are treated as US English locales with US media...
+      return ("na_letter_8.5x11in");
+    }
+  }
+
+  // If we get here then it is A4...
+  return ("iso_a4_210x297mm");
+}
+
+
+//
 // 'papplLocGetString()' - Get a localized version of a key string.
 //
 // This function looks up the specified key string in the localization data and
