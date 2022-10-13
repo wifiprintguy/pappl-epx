@@ -1,4 +1,4 @@
-//
+//-----------------------------------------------------------------------------------------------------
 // EPX driver for the Printer Application Framework
 //
 // Copyright © 2022 Printer Working Group
@@ -13,9 +13,8 @@
 #include <cups/dir.h>
 
 
-//
+//-----------------------------------------------------------------------------------------------------
 // Driver types...
-//
 
 typedef struct pwg_s
 {
@@ -24,9 +23,8 @@ typedef struct pwg_s
 } pwg_job_data_t;
 
 
-//
+//-----------------------------------------------------------------------------------------------------
 // Local globals...
-//
 
 static const char * const pwg_common_media[] =
 {					// Supported media sizes for common printer
@@ -40,9 +38,8 @@ static const char * const pwg_common_media[] =
 };
 
 
-//
+//-----------------------------------------------------------------------------------------------------
 // Local functions...
-//
 
 static void	epx_identify(pappl_printer_t *printer, pappl_identify_actions_t actions, const char *message);
 static bool	epx_print(pappl_job_t *job, pappl_pr_options_t *options, pappl_device_t *device);
@@ -55,10 +52,8 @@ static bool	epx_status(pappl_printer_t *printer);
 static const char *epx_testpage(pappl_printer_t *printer, char *buffer, size_t bufsize);
 static const char *epx_get_make_and_model_string(char *buffer, size_t bufsize);
 
-//
-// 'pwg_autoadd()' - Auto-add callback.
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_pappl_autoadd_cb()' - Auto-add callback.
 const char *				                    // O - Driver name or `NULL` for none
 epx_pappl_autoadd_cb(const char *device_info,	// I - Device information string (not used)
                      const char *device_uri,	// I - Device URI (not used)
@@ -86,10 +81,8 @@ epx_pappl_autoadd_cb(const char *device_info,	// I - Device information string (
 }
 
 
-//
-// 'epx_driver_cb()' - Driver callback for EPX.
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_pappl_driver_cb()' - Driver callback for EPX.
 bool					// O - `true` on success, `false` on failure
 epx_pappl_driver_cb(
                     pappl_system_t         *system,	        // I - System
@@ -105,19 +98,19 @@ epx_pappl_driver_cb(
     
     if (!driver_name || !device_uri || !driver_data || !driver_attrs)
     {
-        papplLog(system, PAPPL_LOGLEVEL_ERROR, "Driver callback called without required information.");
+        papplLog(system, PAPPL_LOGLEVEL_ERROR, "EPX Driver: Driver callback called without required information.");
         return (false);
     }
     
     if (!data || strcmp((const char *)data, "testepx"))
     {
-        papplLog(system, PAPPL_LOGLEVEL_ERROR, "Driver callback called with bad data pointer.");
+        papplLog(system, PAPPL_LOGLEVEL_ERROR, "EPX Driver: Driver callback called with bad data pointer.");
         return (false);
     }
         
     if (strcmp(driver_name, "epx-driver"))
     {
-        papplLog(system, PAPPL_LOGLEVEL_ERROR, "Unsupported driver name '%s'.", driver_name);
+        papplLog(system, PAPPL_LOGLEVEL_ERROR, "EPX Driver: Unsupported driver name '%s'.", driver_name);
         return (false);
     }
     
@@ -243,14 +236,13 @@ epx_pappl_driver_cb(
     driver_data->features[driver_data->num_features++] = "proof-and-suspend";
     // driver_data->features[driver_data->num_features++] = "proof-print";
 
+    papplLog(system, PAPPL_LOGLEVEL_INFO, "EPX Driver: epx_pappl_driver_cb() - completed successfully");
     return (true);
 }
 
 
-//
-// 'pwg_identify()' - Identify the printer.
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_identify()' - Identify the printer.
 static void
 epx_identify(
              pappl_printer_t          *printer,	// I - Printer
@@ -260,6 +252,8 @@ epx_identify(
     (void)printer;
     (void)actions;
     
+    papplLogPrinter(printer, PAPPL_LOGLEVEL_INFO, "EPX Driver: Identify Printer for Printer '%s'", papplPrinterGetName(printer));
+
     // TODO: Open console and send BEL character and message to it instead...
     putchar(7);
     if (message)
@@ -269,10 +263,8 @@ epx_identify(
 }
 
 
-//
-// 'pwg_print()' - Print a file.
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_print()' - Print a file.
 static bool				                // O - `true` on success, `false` on failure
 epx_print(
           pappl_job_t        *job,		// I - Job
@@ -285,12 +277,13 @@ epx_print(
     
     
     (void)options;
-    
+    papplLogJob(job, PAPPL_LOGLEVEL_INFO, "EPX Driver: Printing Job '%s': %s", papplJobGetName(job), papplJobGetFilename(job));
+
     papplJobSetImpressions(job, 1);
     
     if ((fd  = open(papplJobGetFilename(job), O_RDONLY)) < 0)
     {
-        papplLogJob(job, PAPPL_LOGLEVEL_ERROR, "Unable to open print file '%s': %s", papplJobGetFilename(job), strerror(errno));
+        papplLogJob(job, PAPPL_LOGLEVEL_ERROR, "EPX Driver: Unable to open print file '%s': %s", papplJobGetFilename(job), strerror(errno));
         return (false);
     }
     
@@ -305,10 +298,8 @@ epx_print(
 }
 
 
-//
-// 'pwg_rendjob()' - End a job.
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_rendjob()' - End a job.
 static bool				// O - `true` on success, `false` on failure
 epx_rendjob(
             pappl_job_t        *job,		// I - Job
@@ -320,7 +311,9 @@ epx_rendjob(
     
     (void)options;
     (void)device;
-    
+
+    papplLogJob(job, PAPPL_LOGLEVEL_INFO, "EPX Driver: Ending Job '%s': %s", papplJobGetName(job), papplJobGetFilename(job));
+
     cupsRasterClose(pwg->ras);
     
     free(pwg);
@@ -330,10 +323,8 @@ epx_rendjob(
 }
 
 
-//
-// 'pwg_rendpage()' - End a page.
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_rendpage()' - End a page.
 static bool				// O - `true` on success, `false` on failure
 epx_rendpage(
              pappl_job_t        *job,		// I - Job
@@ -351,6 +342,9 @@ epx_rendpage(
     (void)device;
     (void)page;
     
+    papplLogJob(job, PAPPL_LOGLEVEL_INFO, "EPX Driver: Ending page for Job '%s': page %d", papplJobGetName(job), page);
+
+    
     if (papplPrinterGetSupplies(printer, 5, supplies) == 5)
     {
         // Calculate ink usage from coverage - figure 100 pages at 10% for black,
@@ -360,7 +354,7 @@ epx_rendpage(
         pappl_preason_t reasons = PAPPL_PREASON_NONE;
         // "printer-state-reasons" values
         
-        papplLogJob(job, PAPPL_LOGLEVEL_DEBUG, "Calculating ink usage (%u,%u,%u,%u)", (unsigned)pwg->colorants[0], (unsigned)pwg->colorants[1], (unsigned)pwg->colorants[2], (unsigned)pwg->colorants[3]);
+        papplLogJob(job, PAPPL_LOGLEVEL_DEBUG, "EPX Driver: Calculating ink usage (%u,%u,%u,%u)", (unsigned)pwg->colorants[0], (unsigned)pwg->colorants[1], (unsigned)pwg->colorants[2], (unsigned)pwg->colorants[3]);
         
         c = (int)(pwg->colorants[0] / options->header.cupsWidth / options->header.cupsHeight / 5);
         m = (int)(pwg->colorants[1] / options->header.cupsWidth / options->header.cupsHeight / 5);
@@ -402,10 +396,8 @@ epx_rendpage(
 }
 
 
-//
-// 'pwg_rstartjob()' - Start a job.
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_rstartjob()' - Start a job.
 static bool				// O - `true` on success, `false` on failure
 epx_rstartjob(
               pappl_job_t        *job,		// I - Job
@@ -418,6 +410,9 @@ epx_rstartjob(
     
     (void)options;
     
+    papplLogJob(job, PAPPL_LOGLEVEL_INFO, "EPX Driver: Starting Job '%s': %s", papplJobGetName(job), papplJobGetFilename(job));
+
+    
     papplJobSetData(job, pwg);
     
     pwg->ras = cupsRasterOpenIO((cups_raster_cb_t)papplDeviceWrite, device, CUPS_RASTER_WRITE_PWG);
@@ -426,10 +421,8 @@ epx_rstartjob(
 }
 
 
-//
-// 'pwg_rstartpage()' - Start a page.
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_rstartpage()' - Start a page.
 static bool				// O - `true` on success, `false` on failure
 epx_rstartpage(
                pappl_job_t        *job,		// I - Job
@@ -442,17 +435,17 @@ epx_rstartpage(
     
     (void)device;
     (void)page;
-    
+ 
+    papplLogJob(job, PAPPL_LOGLEVEL_INFO, "EPX Driver: Starting page for Job '%s': page %d", papplJobGetName(job), page);
+
     memset(pwg->colorants, 0, sizeof(pwg->colorants));
     
     return (cupsRasterWriteHeader(pwg->ras, &options->header) != 0);
 }
 
 
-//
-// 'pwg_rwriteline()' - Write a raster line.
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_rwriteline()' - Write a raster line.
 static bool				// O - `true` on success, `false` on failure
 epx_rwriteline(
                pappl_job_t         *job,		// I - Job
@@ -468,6 +461,9 @@ epx_rwriteline(
     
     (void)device;
     (void)y;
+    
+    papplLogJob(job, PAPPL_LOGLEVEL_INFO, "Writing line for Job '%s': line number %d", papplJobGetName(job), y);
+
     
     // Add the colorant usage for this line (for simulation purposes - normally
     // this is tracked by the printer/ink cartridge...)
@@ -580,14 +576,15 @@ epx_rwriteline(
 }
 
 
-//
-// 'pwg_status()' - Get current printer status.
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_status()' - Get current printer status.
 static bool				// O - `true` on success, `false` on failure
 epx_status(
            pappl_printer_t *printer)		// I - Printer
 {
+    
+    papplLogPrinter(printer, PAPPL_LOGLEVEL_INFO, "EPX Driver: Status for Printer '%s'", papplPrinterGetName(printer));
+
     if (!strncmp(papplPrinterGetDriverName(printer), "pwg_common-", 11))
     {
         // Supply levels...
@@ -614,10 +611,8 @@ epx_status(
 }
 
 
-//
-// 'pwg_testpage()' - Return a test page file to print
-//
-
+//-----------------------------------------------------------------------------------------------------
+// 'epx_testpage()' - Return a test page file to print
 static const char *			                // O - Filename or `NULL`
 epx_testpage(
              pappl_printer_t *printer,		// I - Printer
@@ -627,7 +622,8 @@ epx_testpage(
     const char		*testfile;	// Test File
     pappl_pr_driver_data_t data;		// Driver data
     
-    
+    papplLogPrinter(printer, PAPPL_LOGLEVEL_INFO, "EPX Driver: Test page for Printer '%s'", papplPrinterGetName(printer));
+
     // Get the printer capabilities...
     papplPrinterGetDriverData(printer, &data);
     
@@ -652,6 +648,9 @@ epx_testpage(
     }
 }
 
+//-----------------------------------------------------------------------------------------------------
+// epx_get_make_and_model_string() - Return a "printer-make-and-model" string from the 1284 DeviceID
+//
 // TODO: Move this into pappl
 static const char *                                         // Make and Model string
 epx_get_make_and_model_string(char            *buffer,      // I - Buffer
@@ -662,11 +661,8 @@ epx_get_make_and_model_string(char            *buffer,      // I - Buffer
     cups_option_t *deviceIdKVPs;
     const char *mfg, *mdl;
     
-    memset(buffer, 0, bufsize);  // Zero the buffer out
+    memset(buffer, 0, bufsize);  // Zero out the provided buffer
     kvpCount = papplDeviceParseID(epx_drivers[0].device_id, &deviceIdKVPs);
-    if (0 == kvpCount)
-        return NULL;
-
     mfg = cupsGetOption("MFG", (size_t)kvpCount, deviceIdKVPs);
     mdl = cupsGetOption("MDL", (size_t)kvpCount, deviceIdKVPs);
     
