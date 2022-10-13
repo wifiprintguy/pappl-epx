@@ -173,3 +173,32 @@ Obsolete Attribute Values
     * 'job-saving'
 * which-jobs:
     * 'saved'
+
+
+Other Feedback
+-------------------------------------
+
+### Questions and answers
+
+1. How does a "file device" work? Not that clear in the documentation, and there is no way to set a file URL in the web interface (that I can discern).
+
+    Right, providing unlimited remote file access seems like a bad idea to me, so the web interface will only report "discovered" paths.
+
+    In lieu of official documentation, here is what the current code supports:
+
+    1. Character device files: Character device files are opened write-only (no back-channel support), and file:///dev/null is mapped to "NUL:" on Windows.
+    2. Directories: The job name passed to papplDeviceOpen is used to name a file under the directory. If the URI contains the "ext" parameter (file:///some/directory?ext=foo) then the value is used as the filename extension, otherwise "prn" is used.
+    3. Regular/new files: Regular files are created in append mode, so "file:///some/file.prn" will continue to grow as new jobs are printed.
+
+    Any other kind of file is not supported and will yield an open error.
+
+    The testpappl PWG raster driver doesn't use the file device interface, opting instead to manage its file output separately so that the printer and job ID information is preserved.
+
+2. How / who manages the spool file before it gets sent to processing? Is it the Printer object? Need to understand that before I can start doing things like Job Release and Proof Print and Job Storage.
+
+    The job object manages the file, but uses the printer object's spool directory.
+
+3. Need to figure out how all the authentication plumbing works and figure out how to write a per-user policy document so that I can test Get-User-Printer-Attributes
+
+    The easiest thing for prototyping is to use the built-in PAM support ("-A cups" on macOS will work for any local user).
+
