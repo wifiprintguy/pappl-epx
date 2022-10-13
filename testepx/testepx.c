@@ -14,12 +14,12 @@
 
 
 #include "testepx.h"
-#include "testpappl.h" // to see if using the driver callback from there works better
 
 #include <pappl/base-private.h>
 #include <config.h>
 #include <libgen.h>
 #include <errno.h> // for checking the result of creating firstPrinter in the system callback
+#include <sys/stat.h> // for making ;the OUTPUT_LOCATION programmatically
 
 
 #define FOOTER_HTML             "Copyright © 2022 Printer Working Group."
@@ -29,11 +29,16 @@
 #define EPX_VERSION_L3_PATCH    0
 #define EPX_VERSION_L4_BUILD    1
 
+#define PRINTER_NAME "EPX Test Printer"
+
+#define OUTPUT_LOCATION "/tmp/epx"
 
 #define USE_SYSTEM_CB
-#define USE_TEST_DRIVERS
 
 static pappl_system_t *epx_system_cb(int optionCount, cups_option_t *options, void *data);
+static const char *get_device_uri(void);
+static const char *get_timestamp(void);
+void epx_delete_printer_from_system(pappl_printer_t *printer, void *data);
 
 //---------------------------------------------------------------------------------------------------
 // main()
@@ -43,18 +48,22 @@ int main(int  argc, char *argv[])
     int result = 0;
     char *whoami = basename(argv[0]);
     
-#ifdef USE_TEST_DRIVERS
-    int                     drivercount = (int)(sizeof(pwg_drivers) / sizeof(pwg_drivers[0]));
-    pappl_pr_driver_t       *drivers = pwg_drivers;
-    pappl_pr_autoadd_cb_t   autoadd_callback = NULL;
-    pappl_pr_driver_cb_t    driver_callback = pwg_callback;
-#else
     int                     drivercount = EPX_DRIVER_COUNT;
     pappl_pr_driver_t       *drivers = epx_drivers;
     pappl_pr_autoadd_cb_t   autoadd_callback = epx_pappl_autoadd_cb;
     pappl_pr_driver_cb_t    driver_callback = epx_pappl_driver_cb;
-#endif
-    
+
+    // Make the output location if it is missing; ignore if already there, otherwise bail
+    // This is constantly making it with read only permissions so I need to figure out what I'm doing wrong
+//    mode_t mask = umask(S_IRWXU & S_IRWXG & S_IRWXO);
+//    result = mkdir(OUTPUT_LOCATION, mask);
+//    if (-1 == result && (EEXIST != errno || ENOENT != errno))
+//    {
+//        perror(argv[0]);
+//        fprintf(stderr, "%s - papplMainLoop(): mkdir failed with errno = %d \n", whoami, errno);
+//        exit(EXIT_FAILURE);
+//    }
+
     printf("%s - Starting papplMainLoop\n", whoami);
     
 #ifdef USE_SYSTEM_CB
@@ -82,7 +91,7 @@ int main(int  argc, char *argv[])
                            driver_callback,                                     // I - Driver callback
                            NULL,                                                // I - Sub-command name or `NULL` for none
                            NULL,                                                // I - Sub-command callback or `NULL` for none
-                           NULL,                                       // I - System callback or `NULL` for default
+                           NULL,                                                // I - System callback or `NULL` for default
                            NULL,                                                // I - Usage callback or `NULL` for default
                            whoami);                                             // I - Context pointer
 #endif
@@ -209,6 +218,12 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
     papplSystemSetFooterHTML(system, FOOTER_HTML);
     papplSystemSetSaveCallback(system, (pappl_save_cb_t)papplSystemSaveState, (void *)"/tmp/testepx.state");
     papplSystemSetVersions(system, (int)(sizeof(versions) / sizeof(versions[0])), versions);
+
+    // Make all the earlier printers go away
+    papplLog(system, PAPPL_LOGLEVEL_INFO, "Iterating on any existing printers that need to be cleaned up...");
+    papplSystemIteratePrinters(system, epx_delete_printer_from_system, system);
+    papplLog(system, PAPPL_LOGLEVEL_INFO, "Printer cleanup complete");
+
     
     if (!papplSystemLoadState(system, "/tmp/testepx.state"))
     {
@@ -220,10 +235,60 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
     }
     
     // Make a printer so that I don't have to do that in the web interface
-    firstPrinter = papplPrinterCreate(system, 0, "EPX Test Printer", epx_drivers[0].name, epx_drivers[0].device_id, "/ipp/epx");
+    firstPrinter = papplSystemFindPrinter(system, NULL, 0, OUTPUT_LOCATION);
     if (NULL == firstPrinter)
-        fprintf(stderr, "%s - epx_system_cb: Could not create firstPrinter - ERRNO = %d.\n", whoami, errno);
+    {
+        papplLog(system, PAPPL_LOGLEVEL_INFO, "Printer \"%s\" NOT found - making a new printer...\n", PRINTER_NAME);
+        firstPrinter = papplPrinterCreate(system, 0, PRINTER_NAME, epx_drivers[0].name, epx_drivers[0].device_id, OUTPUT_LOCATION);
+        if (NULL == firstPrinter)
+            papplLog(system, PAPPL_LOGLEVEL_ERROR, "Printer \"%s\" NOT created - ERRNO = %d.\n", PRINTER_NAME, errno);
+        else
+            papplLog(system, PAPPL_LOGLEVEL_INFO, "Printer \"%s\" created.\n", PRINTER_NAME);
+
+    }
+    else
+    {
+        papplLog(system, PAPPL_LOGLEVEL_INFO, "Printer \"%s\" found.\n", PRINTER_NAME);
+    }
 
     
     return (system);
+}
+
+static const char *
+get_device_uri()
+{
+    static char outputUri[256];
+    memset(outputUri, 0, sizeof(outputUri));
+    snprintf(outputUri, sizeof(outputUri), "%s-%s/", OUTPUT_LOCATION, get_timestamp());
+    return outputUri;
+}
+
+static const char *
+get_timestamp()
+{
+    static char outstr[200];
+    time_t t;
+    struct tm *tmp;
+
+    t = time(NULL);
+    tmp = localtime(&t);
+    if (tmp == NULL)
+        return NULL;
+
+   if (strftime(outstr, sizeof(outstr), "%Y-%m-%d-%H-%M", tmp) == 0)
+       return NULL;
+
+    return outstr;
+}
+
+void
+epx_delete_printer_from_system(pappl_printer_t *printer, void *data)
+{
+    char printerName[256];
+    strncpy(printerName, papplPrinterGetName(printer), sizeof(printerName));
+    papplLog((pappl_system_t *)data, PAPPL_LOGLEVEL_INFO, "DELETING PRINTER: '%s'", printerName);
+    papplPrinterDisable(printer);
+    papplPrinterDelete(printer);
+    papplLog((pappl_system_t *)data, PAPPL_LOGLEVEL_INFO, "PRINTER DELETED: '%s'", printerName);
 }
