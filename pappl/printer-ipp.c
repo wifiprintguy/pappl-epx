@@ -71,13 +71,11 @@ _papplPrinterCopyAttributes(
     const char	*webscheme = (httpAddrIsLocalhost(httpGetAddress(client->http)) || !papplSystemGetTLSOnly(client->system)) ? "http" : "https";
     // URL scheme for resources
     
-    // Copy values that are relatively static
-    // No need to manually copy static already defined attributes - this quick copy takes care of it
+
     _papplCopyAttributes(client->response, printer->attrs, ra, IPP_TAG_ZERO, IPP_TAG_CUPS_CONST);
     _papplCopyAttributes(client->response, printer->driver_attrs, ra, IPP_TAG_ZERO, IPP_TAG_CUPS_CONST);
     _papplPrinterCopyState(printer, IPP_TAG_PRINTER, client->response, client, ra);
     
-    // Copy values that are more dynamic
     if (!ra || cupsArrayFind(ra, "copies-supported"))
     {
         // Filter copies-supported value based on the document format...
@@ -600,8 +598,6 @@ _papplPrinterCopyAttributes(
             ippAddStrings(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "uri-authentication-supported", 2, NULL, uri_authentication_none);
         }
     }
-    
-    // No need to manually copy static already defined attributes - already copied via quick copy at start of function
 }
 
 
