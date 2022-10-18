@@ -59,19 +59,19 @@ static void	usage(const char *base_name, bool with_autoadd);
 
 int					// O - Exit status
 papplMainloop(
-    int                   argc,		    // I - Number of command line arguments
-    char                  *argv[],	    // I - Command line arguments
-    const char            *version,	    // I - Version number
+    int                   argc,		// I - Number of command line arguments
+    char                  *argv[],	// I - Command line arguments
+    const char            *version,	// I - Version number
     const char            *footer_html,	// I - Footer HTML or `NULL` for none
     int                   num_drivers,	// I - Number of drivers
-    pappl_pr_driver_t     *drivers,	    // I - Drivers
+    pappl_pr_driver_t     *drivers,	// I - Drivers
     pappl_pr_autoadd_cb_t autoadd_cb,	// I - Auto-add callback or `NULL` for none
     pappl_pr_driver_cb_t  driver_cb,	// I - Driver callback
     const char            *subcmd_name,	// I - Sub-command name or `NULL` for none
     pappl_ml_subcmd_cb_t  subcmd_cb,	// I - Sub-command callback or `NULL` for none
     pappl_ml_system_cb_t  system_cb,	// I - System callback or `NULL` for default
-    pappl_ml_usage_cb_t   usage_cb,	    // I - Usage callback or `NULL` for default
-    void                  *data)	    // I - Context pointer
+    pappl_ml_usage_cb_t   usage_cb,	// I - Usage callback or `NULL` for default
+    void                  *data)	// I - Context pointer
 {
   const char	*base_name;		// Base Name
   int		i, j;			// Looping vars
