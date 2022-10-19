@@ -8,16 +8,16 @@ EPX Prototyping Development Plan
 Xcode project Setup
 -------------------------------------
 
-Build dependencies in the \_DEPENDENCIES\_ directory and update the references to the static libraries
+Download static tarballs from the folowing dependencies into the \_DEPENDENCIES\_ directory, unpack, build, and update the references to the static libraries
 - openssl
 - libpng
 - libjpeg
 - libusb
 
-Header search paths (keep /usr/local/ at the end):
+Header search paths (keep /usr/local/ at the end so that older SDK versions don't get selected first):
 . .. /opt/homebrew/Cellar/openssl@3/3.0.5/include /opt/homebrew/Cellar/libpng/1.6.37/include /opt/homebrew/Cellar/jpeg/9e/include /opt/homebrew/Cellar/libusb/1.0.26/include/** /usr/local/include
 
-Library search paths:
+Library search paths (keep /usr/local/ at the end so that older SDK versions don't get selected first):
 /opt/homebrew/Cellar/openssl@3/3.0.5/lib /opt/homebrew/Cellar/libpng/1.6.37/lib /opt/homebrew/Cellar/jpeg/9e/lib /opt/homebrew/Cellar/libusb/1.0.26/lib /Users/smitty/source/GitHub/openprinting/libcups /usr/local/lib
 
 Libraries and Frameworks:
