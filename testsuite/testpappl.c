@@ -216,7 +216,7 @@ main(int  argc,				// I - Number of command-line arguments
   };
   static pappl_version_t versions[1] =	// Software versions
   {
-    { "Test System", "", "1.2 build 42", { 1, 2, 0, 42 } }
+    { "Test System", "", "1.3 build 42", { 1, 3, 0, 42 } }
   };
 
 
@@ -622,6 +622,10 @@ main(int  argc,				// I - Number of command-line arguments
     }
   }
 
+  // Clean the log if necessary
+  if (clean && log && strcmp(log, "-") && strcmp(log, "syslog"))
+    unlink(log);
+
   // Initialize the system and any printers...
   system = papplSystemCreate(soptions, name ? name : "Test System", port, "_print,_universal", spool, log, level, auth, tls_only);
   papplSystemAddListeners(system, NULL);
@@ -636,6 +640,7 @@ main(int  argc,				// I - Number of command-line arguments
   papplSystemSetNetworkCallbacks(system, test_network_get_cb, test_network_set_cb, (void *)"testnetwork");
   papplSystemSetSaveCallback(system, (pappl_save_cb_t)papplSystemSaveState, (void *)"testpappl.state");
   papplSystemSetVersions(system, (int)(sizeof(versions) / sizeof(versions[0])), versions);
+  papplSystemAddStringsData(system, "/en.strings", "en", "\"/\" = \"This is a localized header for the system home page.\";\n\"/network\" = \"This is a localized header for the network configuration page.\";\n\"/printing\" = \"This is a localized header for all printing defaults pages.\";\n\"/Label_Printer/printing\" = \"This is a localized header for the label printer defaults page.\";\n");
 
   if (access(outdir, 0))
     mkdir(outdir, 0777);
@@ -2096,9 +2101,9 @@ test_api(pappl_system_t *system)	// I - System
     testEndMessage(false, "got %d versions, expected 1", get_nvers);
     pass = false;
   }
-  else if (strcmp(get_vers[0].name, "Test System") || strcmp(get_vers[0].sversion, "1.2 build 42"))
+  else if (strcmp(get_vers[0].name, "Test System") || strcmp(get_vers[0].sversion, "1.3 build 42"))
   {
-    testEndMessage(false, "got '%s v%s', expected 'Test System v1.2 build 42'", get_vers[0].name, get_vers[0].sversion);
+    testEndMessage(false, "got '%s v%s', expected 'Test System v1.3 build 42'", get_vers[0].name, get_vers[0].sversion);
     pass = false;
   }
   else
@@ -3036,6 +3041,68 @@ test_client(pappl_system_t *system)	// I - System
   {
     testEnd(true);
   }
+
+  // PAPPL-Find-Devices
+  testBegin("client: PAPPL-Find-Devices");
+  request = ippNewRequest(IPP_OP_PAPPL_FIND_DEVICES);
+  ippAddString(request, IPP_TAG_OPERATION, IPP_CONST_TAG(IPP_TAG_URI), "system-uri", NULL, "ipp://localhost/ipp/system");
+
+  response = cupsDoRequest(http, request, "/ipp/system");
+
+  if ((attr = ippFindAttribute(response, "smi55357-device-col", IPP_TAG_BEGIN_COLLECTION)) != NULL)
+    testEndMessage(true, "%u devices found", (unsigned)ippGetCount(attr));
+  else if (cupsLastError() == IPP_STATUS_ERROR_NOT_FOUND)
+    testEndMessage(true, "no devices found");
+  else
+    testEndMessage(false, "failed: %s", cupsLastErrorString());
+
+  ippDelete(response);
+
+  // PAPPL-Find-Drivers
+  testBegin("client: PAPPL-Find-Drivers");
+  request = ippNewRequest(IPP_OP_PAPPL_FIND_DRIVERS);
+  ippAddString(request, IPP_TAG_OPERATION, IPP_CONST_TAG(IPP_TAG_URI), "system-uri", NULL, "ipp://localhost/ipp/system");
+
+  response = cupsDoRequest(http, request, "/ipp/system");
+
+  if ((attr = ippFindAttribute(response, "smi55357-driver-col", IPP_TAG_BEGIN_COLLECTION)) != NULL)
+    testEndMessage(true, "%u drivers found", (unsigned)ippGetCount(attr));
+  else
+    testEndMessage(false, "failed: %s", cupsLastErrorString());
+
+  ippDelete(response);
+
+  // PAPPL-Find-Drivers (good device-id)
+  testBegin("client: PAPPL-Find-Drivers (good device-id)");
+  request = ippNewRequest(IPP_OP_PAPPL_FIND_DRIVERS);
+  ippAddString(request, IPP_TAG_OPERATION, IPP_CONST_TAG(IPP_TAG_URI), "system-uri", NULL, "ipp://localhost/ipp/system");
+  ippAddString(request, IPP_TAG_OPERATION, IPP_CONST_TAG(IPP_TAG_TEXT), "smi55357-device-id", NULL, "MFG:Example;MDL:Printer;CMD:PWGRaster;");
+
+  response = cupsDoRequest(http, request, "/ipp/system");
+
+  if ((attr = ippFindAttribute(response, "smi55357-driver-col", IPP_TAG_BEGIN_COLLECTION)) != NULL)
+    testEndMessage(true, "%u drivers found", (unsigned)ippGetCount(attr));
+  else
+    testEndMessage(false, "failed: %s", cupsLastErrorString());
+
+  ippDelete(response);
+
+  // PAPPL-Find-Drivers (bad device-id)
+  testBegin("client: PAPPL-Find-Drivers (bad device-id)");
+  request = ippNewRequest(IPP_OP_PAPPL_FIND_DRIVERS);
+  ippAddString(request, IPP_TAG_OPERATION, IPP_CONST_TAG(IPP_TAG_URI), "system-uri", NULL, "ipp://localhost/ipp/system");
+  ippAddString(request, IPP_TAG_OPERATION, IPP_CONST_TAG(IPP_TAG_TEXT), "smi55357-device-id", NULL, "MFG:Example;MDL:Printer;CMD:PCL;");
+
+  response = cupsDoRequest(http, request, "/ipp/system");
+
+  if ((attr = ippFindAttribute(response, "smi55357-driver-col", IPP_TAG_BEGIN_COLLECTION)) != NULL)
+    testEndMessage(false, "%u drivers found", (unsigned)ippGetCount(attr));
+  else if (cupsLastError() == IPP_STATUS_ERROR_NOT_FOUND)
+    testEndMessage(true, "no drivers found");
+  else
+    testEndMessage(false, "failed: %s", cupsLastErrorString());
+
+  ippDelete(response);
 
   // Verify that the subscription expires...
   testBegin("client: Get-Subscription-Attributes(expiration)");
