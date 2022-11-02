@@ -474,8 +474,8 @@
 		279D377324119E39008AECA4 /* system-accessors.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "system-accessors.c"; path = "../pappl/system-accessors.c"; sourceTree = "<group>"; };
 		279D377424119E3A008AECA4 /* printer-support.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "printer-support.c"; path = "../pappl/printer-support.c"; sourceTree = "<group>"; };
 		279D377524119E3A008AECA4 /* job-accessors.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "job-accessors.c"; path = "../pappl/job-accessors.c"; sourceTree = "<group>"; };
-		279EC3D027FA4B930079A47D /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "/opt/homebrew/Cellar/openssl@3/3.0.5/lib/libcrypto.a"; sourceTree = "<absolute>"; };
-		279EC3D127FA4B930079A47D /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "/opt/homebrew/Cellar/openssl@3/3.0.5/lib/libssl.a"; sourceTree = "<absolute>"; };
+		279EC3D027FA4B930079A47D /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = "../_DEPENDENCIES_/openssl-3.0.5/libcrypto.a"; sourceTree = SOURCE_ROOT; };
+		279EC3D127FA4B930079A47D /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = "../_DEPENDENCIES_/openssl-3.0.5/libssl.a"; sourceTree = SOURCE_ROOT; };
 		27A56490256769A9009501BD /* printer-ipp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "printer-ipp.c"; path = "../pappl/printer-ipp.c"; sourceTree = "<group>"; };
 		27A56491256769A9009501BD /* system-ipp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "system-ipp.c"; path = "../pappl/system-ipp.c"; sourceTree = "<group>"; };
 		27A564A525676AE3009501BD /* client-ipp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "client-ipp.c"; path = "../pappl/client-ipp.c"; sourceTree = "<group>"; };
@@ -517,7 +517,7 @@
 		27FFF30824329AAF003C0B8F /* libpappl_static.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpappl_static.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		27FFF31324329B2D003C0B8F /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		27FFF31424329B2D003C0B8F /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		27FFF31824329B4A003C0B8F /* libpng16.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng16.a; path = /opt/homebrew/Cellar/libpng/1.6.37/lib/libpng16.a; sourceTree = "<absolute>"; };
+		27FFF31824329B4A003C0B8F /* libpng16.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng16.a; path = "../_DEPENDENCIES_/libpng-1.6.38/.libs/libpng16.a"; sourceTree = SOURCE_ROOT; };
 		27FFF39324329C9E003C0B8F /* libpappl.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpappl.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B1404ED28E4C41C00A7B7B4 /* epx-dev-plan.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "epx-dev-plan.md"; sourceTree = "<group>"; };
 		3B1404EE28E4C41C00A7B7B4 /* testepx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = testepx.h; sourceTree = "<group>"; };
@@ -1358,19 +1358,19 @@
 				HEADER_SEARCH_PATHS = (
 					.,
 					..,
-					"/opt/homebrew/Cellar/openssl@3/3.0.5/include",
-					/opt/homebrew/Cellar/libpng/1.6.37/include,
-					/opt/homebrew/Cellar/jpeg/9e/include,
-					"/opt/homebrew/Cellar/libusb/1.0.26/include/**",
-					/Users/smitty/source/GitHub/openprinting/libcups,
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/openssl-3.0.5/include",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/libpng-1.6.38",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/jpeg-9e",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/libusb-1.0.26/libusb",
+					"$(PROJECT_DIR)/../../../openprinting/libcups",
 					/usr/local/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"/opt/homebrew/Cellar/openssl@3/3.0.5/lib",
-					/opt/homebrew/Cellar/libpng/1.6.37/lib,
-					/opt/homebrew/Cellar/jpeg/9e/lib,
-					/opt/homebrew/Cellar/libusb/1.0.26/lib,
-					/Users/smitty/source/GitHub/openprinting/libcups,
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/openssl-3.0.5",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/libpng-1.6.38/.libs",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/jpeg-9e",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/libusb-1.0.26/libusb/.libs",
+					"$(PROJECT_DIR)/../../../openprinting/libcups",
 					/usr/local/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
@@ -1459,19 +1459,19 @@
 				HEADER_SEARCH_PATHS = (
 					.,
 					..,
-					"/opt/homebrew/Cellar/openssl@3/3.0.5/include",
-					/opt/homebrew/Cellar/libpng/1.6.37/include,
-					/opt/homebrew/Cellar/jpeg/9e/include,
-					"/opt/homebrew/Cellar/libusb/1.0.26/include/**",
-					/Users/smitty/source/GitHub/openprinting/libcups,
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/openssl-3.0.5/include",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/libpng-1.6.38",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/jpeg-9e",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/libusb-1.0.26/libusb",
+					"$(PROJECT_DIR)/../../../openprinting/libcups",
 					/usr/local/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
-					"/opt/homebrew/Cellar/openssl@3/3.0.5/lib",
-					/opt/homebrew/Cellar/libpng/1.6.37/lib,
-					/opt/homebrew/Cellar/jpeg/9e/lib,
-					/opt/homebrew/Cellar/libusb/1.0.26/lib,
-					/Users/smitty/source/GitHub/openprinting/libcups,
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/openssl-3.0.5",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/libpng-1.6.38/.libs",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/jpeg-9e",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/libusb-1.0.26/libusb/.libs",
+					"$(PROJECT_DIR)/../../../openprinting/libcups",
 					/usr/local/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
