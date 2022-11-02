@@ -1,4 +1,4 @@
-.TH pappl-system 3 "pappl system functions" "2022-10-23" "pappl system functions"
+.TH pappl-system 3 "pappl system functions" "2022-11-01" "pappl system functions"
 .SH NAME
 pappl-system \- pappl system functions
 .SH LIBRARY
@@ -1520,7 +1520,8 @@ struct pappl_network_s
 {
   http_addr_t addr4;
   http_addr_t addr6;
-  pappl_netconf_t config;
+  pappl_netconf_t config4;
+  pappl_netconf_t config6;
   http_addr_t dns[2];
   char domain[64];
   http_addr_t gateway4;

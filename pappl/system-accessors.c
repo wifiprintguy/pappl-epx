@@ -254,7 +254,7 @@ papplSystemAddTimerCallback(
   if ((newt = calloc(1, sizeof(_pappl_timer_t))) == NULL)
     return (false);
 
-  pthread_rwlock_wrlock(&system->rwlock);
+  _papplRWLockWrite(system);
 
   if (!system->timers)
     system->timers = cupsArrayNew((cups_array_cb_t)compare_timers, NULL, NULL, 0, NULL, NULL);
@@ -266,7 +266,7 @@ papplSystemAddTimerCallback(
 
   cupsArrayAdd(system->timers, newt);
 
-  pthread_rwlock_unlock(&system->rwlock);
+  _papplRWUnlock(system);
 
   return (true);
 }
@@ -420,14 +420,14 @@ _papplSystemFindMIMEFilter(
   if (!system || !srctype || !dsttype)
     return (NULL);
 
-  pthread_rwlock_rdlock(&system->rwlock);
+  _papplRWLockRead(system);
 
   key.src = srctype;
   key.dst = dsttype;
 
   match = (_pappl_mime_filter_t *)cupsArrayFind(system->filters, &key);
 
-  pthread_rwlock_unlock(&system->rwlock);
+  _papplRWUnlock(system);
 
   return (match);
 }
@@ -451,7 +451,7 @@ papplSystemGetAdminGroup(
 
   if (system && buffer && bufsize > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     if (system->admin_group)
     {
@@ -461,7 +461,7 @@ papplSystemGetAdminGroup(
     else
       *buffer = '\0';
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
   else if (buffer)
     *buffer = '\0';
@@ -505,11 +505,11 @@ papplSystemGetContact(
     return (contact);
   }
 
-  pthread_rwlock_rdlock(&system->rwlock);
+  _papplRWLockRead(system);
 
   *contact = system->contact;
 
-  pthread_rwlock_unlock(&system->rwlock);
+  _papplRWUnlock(system);
 
   return (contact);
 }
@@ -548,7 +548,7 @@ papplSystemGetDefaultPrintGroup(
 
   if (system && buffer && bufsize > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     if (system->default_print_group)
     {
@@ -558,7 +558,7 @@ papplSystemGetDefaultPrintGroup(
     else
       *buffer = '\0';
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
   else if (buffer)
     *buffer = '\0';
@@ -585,7 +585,7 @@ papplSystemGetDNSSDName(
 
   if (system && buffer && bufsize > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     if (system->dns_sd_name)
     {
@@ -595,7 +595,7 @@ papplSystemGetDNSSDName(
     else
       *buffer = '\0';
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
   else if (buffer)
     *buffer = '\0';
@@ -637,7 +637,7 @@ papplSystemGetGeoLocation(
 
   if (system && buffer && bufsize > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     if (system->geo_location)
     {
@@ -647,7 +647,7 @@ papplSystemGetGeoLocation(
     else
       *buffer = '\0';
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
   else if (buffer)
     *buffer = '\0';
@@ -692,7 +692,7 @@ papplSystemGetHostName(
 
   if (system && buffer && bufsize > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     if (system->hostname)
     {
@@ -702,7 +702,7 @@ papplSystemGetHostName(
     else
       *buffer = '\0';
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
   else if (buffer)
     *buffer = '\0';
@@ -745,7 +745,7 @@ papplSystemGetLocation(
 
   if (system && buffer && bufsize > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     if (system->location)
     {
@@ -755,7 +755,7 @@ papplSystemGetLocation(
     else
       *buffer = '\0';
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
   else if (buffer)
     *buffer = '\0';
@@ -821,7 +821,7 @@ papplSystemGetMaxImageSize(
   }
 
   // Grab a snapshot of the limits...
-  pthread_rwlock_rdlock(&system->rwlock);
+  _papplRWLockRead(system);
 
   max_size = system->max_image_size;
 
@@ -831,7 +831,7 @@ papplSystemGetMaxImageSize(
   if (max_height)
     *max_height = system->max_image_height;
 
-  pthread_rwlock_unlock(&system->rwlock);
+  _papplRWUnlock(system);
 
   return (max_size);
 }
@@ -890,7 +890,7 @@ papplSystemGetName(
 
   if (system && buffer && bufsize > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     if (system->name)
     {
@@ -900,7 +900,7 @@ papplSystemGetName(
     else
       *buffer = '\0';
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
   else if (buffer)
     *buffer = '\0';
@@ -956,7 +956,7 @@ papplSystemGetOrganization(
 
   if (system && buffer && bufsize > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     if (system->organization)
     {
@@ -966,7 +966,7 @@ papplSystemGetOrganization(
     else
       *buffer = '\0';
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
   else if (buffer)
     *buffer = '\0';
@@ -993,7 +993,7 @@ papplSystemGetOrganizationalUnit(
 
   if (system && buffer && bufsize > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     if (system->org_unit)
     {
@@ -1003,7 +1003,7 @@ papplSystemGetOrganizationalUnit(
     else
       *buffer = '\0';
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
   else if (buffer)
     *buffer = '\0';
@@ -1030,11 +1030,11 @@ papplSystemGetPassword(
 {
   if (system && buffer && bufsize > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     papplCopyString(buffer, system->password_hash, bufsize);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
   else if (buffer)
     *buffer = '\0';
@@ -1169,14 +1169,14 @@ papplSystemGetVersions(
 
   if (system && versions && system->num_versions > 0)
   {
-    pthread_rwlock_rdlock(&system->rwlock);
+    _papplRWLockRead(system);
 
     if (max_versions > (int)system->num_versions)
       memcpy(versions, system->versions, (size_t)system->num_versions * sizeof(pappl_version_t));
     else
       memcpy(versions, system->versions, (size_t)max_versions * sizeof(pappl_version_t));
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 
   return (system ? (int)system->num_versions : 0);
@@ -1246,7 +1246,17 @@ bool					// O - `true` if the system is running, `false` otherwise
 papplSystemIsRunning(
     pappl_system_t *system)		// I - System
 {
-  return (system ? system->is_running : false);
+  bool	is_running;			// Return value
+
+  // Range check input
+  if (!system)
+    return (false);
+
+  _papplRWLockRead(system);
+  is_running = system->is_running;
+  _papplRWUnlock(system);
+
+  return (is_running);
 }
 
 
@@ -1290,10 +1300,10 @@ papplSystemIteratePrinters(
   // Note: Cannot use cupsArrayGetFirst/Last since other threads might be
   // enumerating the printers array.
 
-  pthread_rwlock_rdlock(&system->rwlock);
+  _papplRWLockRead(system);
   for (i = 0, count = cupsArrayGetCount(system->printers); i < count; i ++)
     (cb)((pappl_printer_t *)cupsArrayGetElement(system->printers, i), data);
-  pthread_rwlock_unlock(&system->rwlock);
+  _papplRWUnlock(system);
 }
 
 
@@ -1379,6 +1389,21 @@ papplSystemMatchDriver(
 
 
 //
+// '_papplSystemNeedClean()' - Mark the system needing cleaning.
+//
+
+void
+_papplSystemNeedClean(
+    pappl_system_t *system)		// I - System
+{
+  _papplRWLockWrite(system);
+  if (!system->clean_time)
+    system->clean_time = time(NULL) + 60;
+  _papplRWUnlock(system);
+}
+
+
+//
 // 'papplSystemRemoveTimerCallback()' - Remove a timer callback.
 //
 // This function removes all matching timer callbacks from the specified system.
@@ -1399,7 +1424,7 @@ papplSystemRemoveTimerCallback(
     return;
 
   // Loop through the timers and remove any matches...
-  pthread_rwlock_wrlock(&system->rwlock);
+  _papplRWLockWrite(system);
 
   for (t = (_pappl_timer_t *)cupsArrayGetFirst(system->timers); t; t = (_pappl_timer_t *)cupsArrayGetNext(system->timers))
   {
@@ -1410,7 +1435,7 @@ papplSystemRemoveTimerCallback(
     }
   }
 
-  pthread_rwlock_unlock(&system->rwlock);
+  _papplRWUnlock(system);
 }
 
 
@@ -1431,7 +1456,7 @@ papplSystemSetAdminGroup(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     free(system->admin_group);
     system->admin_group = value ? strdup(value) : NULL;
@@ -1454,7 +1479,7 @@ papplSystemSetAdminGroup(
 
     _papplSystemConfigChanged(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1482,14 +1507,14 @@ papplSystemSetAuthCallback(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     free(system->auth_scheme);
     system->auth_scheme = auth_scheme ? strdup(auth_scheme) : NULL;
     system->auth_cb     = auth_cb;
     system->auth_cbdata = auth_cbdata;
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1507,13 +1532,13 @@ papplSystemSetContact(
   if (!system || !contact)
     return;
 
-  pthread_rwlock_wrlock(&system->rwlock);
+  _papplRWLockWrite(system);
 
   system->contact = *contact;
 
   _papplSystemConfigChanged(system);
 
-  pthread_rwlock_unlock(&system->rwlock);
+  _papplRWUnlock(system);
 }
 
 
@@ -1531,13 +1556,13 @@ papplSystemSetDefaultPrinterID(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     system->default_printer_id = default_printer_id;
 
     _papplSystemConfigChanged(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1558,14 +1583,14 @@ papplSystemSetDefaultPrintGroup(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     free(system->default_print_group);
     system->default_print_group = value ? strdup(value) : NULL;
 
     _papplSystemConfigChanged(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1584,7 +1609,7 @@ papplSystemSetDNSSDName(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     free(system->dns_sd_name);
     system->dns_sd_name      = value ? strdup(value) : NULL;
@@ -1598,7 +1623,7 @@ papplSystemSetDNSSDName(
     else
       _papplSystemRegisterDNSSDNoLock(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1618,12 +1643,12 @@ papplSystemSetEventCallback(
 {
   if (system && event_cb)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     system->event_cb   = event_cb;
     system->event_data = event_data;
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1644,12 +1669,12 @@ papplSystemSetFooterHTML(
 {
   if (system && html && !system->is_running)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     free(system->footer_html);
     system->footer_html = strdup(html);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1675,7 +1700,7 @@ papplSystemSetGeoLocation(
 
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     free(system->geo_location);
     system->geo_location = value ? strdup(value) : NULL;
@@ -1684,7 +1709,7 @@ papplSystemSetGeoLocation(
 
     _papplSystemRegisterDNSSDNoLock(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1708,6 +1733,90 @@ papplSystemSetHostname(
 
 
 //
+// '_papplSystemSetHostNameNoLock()' - Set the system hostname without locking.
+//
+// This function sets the system hostname.  If `NULL`, the default hostname
+// is used.
+//
+
+void
+_papplSystemSetHostNameNoLock(
+    pappl_system_t *system,		// I - System
+    const char     *value)		// I - Hostname or `NULL` for default
+{
+  char	temp[1024],			// Temporary hostname string
+	*ptr;				// Pointer in temporary hostname
+
+
+  if (value)
+  {
+#if !defined(__APPLE__) && !_WIN32
+    cups_file_t	*fp;			// Hostname file
+
+    if ((fp = cupsFileOpen("/etc/hostname", "w")) != NULL)
+    {
+      cupsFilePrintf(fp, "%s\n", value);
+      cupsFileClose(fp);
+    }
+#endif // !__APPLE__ && !_WIN32
+
+#ifdef HAVE_AVAHI
+    _pappl_dns_sd_t	master = _papplDNSSDInit(system);
+					// DNS-SD master reference
+
+    if (master)
+      avahi_client_set_host_name(master, value);
+#endif // HAVE_AVAHI
+
+#if !_WIN32
+    sethostname(value, (int)strlen(value));
+#endif // !_WIN32
+  }
+  else
+  {
+#ifdef HAVE_AVAHI
+    _pappl_dns_sd_t	master = _papplDNSSDInit(system);
+					// DNS-SD master reference
+    const char *avahi_name = master ? avahi_client_get_host_name_fqdn(master) : NULL;
+					// mDNS hostname
+
+    if (avahi_name)
+      papplCopyString(temp, avahi_name, sizeof(temp));
+    else
+#endif /* HAVE_AVAHI */
+    httpGetHostname(NULL, temp, sizeof(temp));
+
+    if ((ptr = strstr(temp, ".lan")) != NULL && !ptr[4])
+    {
+      // Replace hostname.lan with hostname.local
+      papplCopyString(ptr, ".local", sizeof(temp) - (size_t)(ptr - temp));
+    }
+    else if (!strrchr(temp, '.'))
+    {
+      // No domain information, so append .local to hostname...
+      ptr = temp + strlen(temp);
+      papplCopyString(ptr, ".local", sizeof(temp) - (size_t)(ptr - temp));
+    }
+
+    value = temp;
+  }
+
+  if (system->hostname && strcasecmp(system->hostname, value) && system->is_running)
+  {
+    // Force an update of all DNS-SD registrations...
+    system->dns_sd_host_changes = -1;
+  }
+
+  // Save the new hostname value
+  free(system->hostname);
+  system->hostname = strdup(value);
+
+  // Set the system TLS credentials...
+  cupsSetServerCredentials(NULL, system->hostname, 1);
+}
+
+
+//
 // 'papplSystemSetHostName()' - Set the system hostname.
 //
 // This function sets the system hostname.  If `NULL`, the default hostname
@@ -1721,78 +1830,9 @@ papplSystemSetHostName(
 {
   if (system)
   {
-    char	temp[1024],		// Temporary hostname string
-		*ptr;			// Pointer in temporary hostname
-
-    pthread_rwlock_wrlock(&system->rwlock);
-
-    if (value)
-    {
-#if !defined(__APPLE__) && !_WIN32
-      cups_file_t	*fp;		// Hostname file
-
-      if ((fp = cupsFileOpen("/etc/hostname", "w")) != NULL)
-      {
-        cupsFilePrintf(fp, "%s\n", value);
-        cupsFileClose(fp);
-      }
-#endif // !__APPLE__ && !_WIN32
-
-#ifdef HAVE_AVAHI
-      _pappl_dns_sd_t	master = _papplDNSSDInit(system);
-					  // DNS-SD master reference
-
-      if (master)
-        avahi_client_set_host_name(master, value);
-#endif // HAVE_AVAHI
-
-#if !_WIN32
-      sethostname(value, (int)strlen(value));
-#endif // !_WIN32
-    }
-    else
-    {
-#ifdef HAVE_AVAHI
-      _pappl_dns_sd_t	master = _papplDNSSDInit(system);
-					  // DNS-SD master reference
-      const char *avahi_name = master ? avahi_client_get_host_name_fqdn(master) : NULL;
-					  // mDNS hostname
-
-      if (avahi_name)
-	papplCopyString(temp, avahi_name, sizeof(temp));
-      else
-#endif /* HAVE_AVAHI */
-      httpGetHostname(NULL, temp, sizeof(temp));
-
-      if ((ptr = strstr(temp, ".lan")) != NULL && !ptr[4])
-      {
-        // Replace hostname.lan with hostname.local
-        papplCopyString(ptr, ".local", sizeof(temp) - (size_t)(ptr - temp));
-      }
-      else if (!strrchr(temp, '.'))
-      {
-        // No domain information, so append .local to hostname...
-        ptr = temp + strlen(temp);
-        papplCopyString(ptr, ".local", sizeof(temp) - (size_t)(ptr - temp));
-      }
-
-      value = temp;
-    }
-
-    if (system->hostname && strcasecmp(system->hostname, value) && system->is_running)
-    {
-      // Force an update of all DNS-SD registrations...
-      system->dns_sd_host_changes = -1;
-    }
-
-    // Save the new hostname value
-    free(system->hostname);
-    system->hostname = strdup(value);
-
-    // Set the system TLS credentials...
-    cupsSetServerCredentials(NULL, system->hostname, 1);
-
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWLockWrite(system);
+    _papplSystemSetHostNameNoLock(system, value);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1811,7 +1851,7 @@ papplSystemSetLocation(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     free(system->location);
     system->location    = value ? strdup(value) : NULL;
@@ -1820,7 +1860,7 @@ papplSystemSetLocation(
 
     _papplSystemRegisterDNSSDNoLock(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1838,13 +1878,13 @@ papplSystemSetLogLevel(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     system->loglevel = loglevel;
 
     _papplSystemConfigChanged(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -1922,13 +1962,13 @@ papplSystemSetMaxClients(
     max_clients = 32768;
 
   // Set the new value...
-  pthread_rwlock_wrlock(&system->rwlock);
+  _papplRWLockWrite(system);
 
   system->max_clients = max_clients;
 
   _papplSystemConfigChanged(system);
 
-  pthread_rwlock_unlock(&system->rwlock);
+  _papplRWUnlock(system);
 }
 
 
@@ -1958,7 +1998,7 @@ papplSystemSetMaxImageSize(
     MEMORYSTATUSEX	statex;		// Memory status
 
     if (GlobalMemoryStatusEx(&statex))
-      max_size = (size_t)ullTotalPhys / 10;
+      max_size = (size_t)statex.ullTotalPhys / 10;
     else
       max_size = 16 * 1024 * 1024;
 
@@ -1981,7 +2021,7 @@ papplSystemSetMaxImageSize(
     max_height = 65535;
 
   // Update values
-  pthread_rwlock_wrlock(&system->rwlock);
+  _papplRWLockWrite(system);
 
   system->max_image_size   = max_size;
   system->max_image_width  = max_width == 0 ? 16384 : max_width;
@@ -1989,7 +2029,7 @@ papplSystemSetMaxImageSize(
 
   _papplSystemConfigChanged(system);
 
-  pthread_rwlock_unlock(&system->rwlock);
+  _papplRWUnlock(system);
 }
 
 
@@ -2011,13 +2051,13 @@ papplSystemSetMaxLogSize(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     system->logmaxsize = maxsize;
 
     _papplSystemConfigChanged(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2038,13 +2078,13 @@ papplSystemSetMaxSubscriptions(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     system->max_subscriptions = max_subscriptions;
 
     _papplSystemConfigChanged(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2071,12 +2111,12 @@ papplSystemSetMIMECallback(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     system->mime_cb     = cb;
     system->mime_cbdata = data;
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2102,13 +2142,13 @@ papplSystemSetNetworkCallbacks(
   // Range check input...
   if (system && (get_cb != NULL) == (set_cb != NULL))
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     system->network_get_cb = get_cb;
     system->network_set_cb = set_cb;
     system->network_cbdata = cb_data;
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2131,13 +2171,13 @@ papplSystemSetNextPrinterID(
 {
   if (system && !system->is_running)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     system->next_printer_id = next_printer_id;
 
     _papplSystemConfigChanged(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2161,10 +2201,10 @@ papplSystemSetOperationCallback(
 {
   if (system && !system->is_running)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
     system->op_cb     = cb;
     system->op_cbdata = data;
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2183,14 +2223,14 @@ papplSystemSetOrganization(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     free(system->organization);
     system->organization = value ? strdup(value) : NULL;
 
     _papplSystemConfigChanged(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2210,14 +2250,14 @@ papplSystemSetOrganizationalUnit(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     free(system->org_unit);
     system->org_unit = value ? strdup(value) : NULL;
 
     _papplSystemConfigChanged(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2239,13 +2279,13 @@ papplSystemSetPassword(
 {
   if (system && hash)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     papplCopyString(system->password_hash, hash, sizeof(system->password_hash));
 
     _papplSystemConfigChanged(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2284,7 +2324,7 @@ papplSystemSetPrinterDrivers(
 {
   if (system)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     system->num_drivers   = (cups_len_t)num_drivers;
     system->drivers       = drivers;
@@ -2293,7 +2333,7 @@ papplSystemSetPrinterDrivers(
     system->driver_cb     = driver_cb;
     system->driver_cbdata = data;
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2323,10 +2363,10 @@ papplSystemSetSaveCallback(
 {
   if (system && !system->is_running)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
     system->save_cb     = cb;
     system->save_cbdata = data;
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2348,7 +2388,7 @@ papplSystemSetUUID(
 {
   if (system && !system->is_running)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     free(system->uuid);
 
@@ -2366,7 +2406,7 @@ papplSystemSetUUID(
 
     _papplSystemRegisterDNSSDNoLock(system);
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2386,7 +2426,7 @@ papplSystemSetVersions(
 {
   if (system && num_versions && versions)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
 
     if (num_versions > (int)(sizeof(system->versions) / sizeof(system->versions[0])))
       system->num_versions = sizeof(system->versions) / sizeof(system->versions[0]);
@@ -2395,7 +2435,7 @@ papplSystemSetVersions(
 
     memcpy(system->versions, versions, (size_t)system->num_versions * sizeof(pappl_version_t));
 
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 
@@ -2426,12 +2466,12 @@ papplSystemSetWiFiCallbacks(
 {
   if (system && !system->is_running && join_cb && status_cb)
   {
-    pthread_rwlock_wrlock(&system->rwlock);
+    _papplRWLockWrite(system);
     system->wifi_join_cb   = join_cb;
     system->wifi_list_cb   = list_cb;
     system->wifi_status_cb = status_cb;
     system->wifi_cbdata    = data;
-    pthread_rwlock_unlock(&system->rwlock);
+    _papplRWUnlock(system);
   }
 }
 

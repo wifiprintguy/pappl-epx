@@ -42,7 +42,7 @@ papplPrinterCancelAllJobs(
   // Loop through all jobs and cancel them.
   //
   // Since we have a writer lock, it is safe to use cupsArrayGetFirst/Last...
-  pthread_rwlock_wrlock(&printer->rwlock);
+  _papplRWLockWrite(printer);
 
   for (job = (pappl_job_t *)cupsArrayGetFirst(printer->active_jobs); job; job = (pappl_job_t *)cupsArrayGetNext(printer->active_jobs))
   {
@@ -63,7 +63,7 @@ papplPrinterCancelAllJobs(
     }
   }
 
-  pthread_rwlock_unlock(&printer->rwlock);
+  _papplRWUnlock(printer);
 
   if (!printer->system->clean_time)
     printer->system->clean_time = time(NULL) + 60;
@@ -155,7 +155,11 @@ papplPrinterCreate(
     IPP_OP_CANCEL_MY_JOBS,
     IPP_OP_CLOSE_JOB,
     IPP_OP_IDENTIFY_PRINTER,
-      IPP_OP_GET_USER_PRINTER_ATTRIBUTES
+    IPP_OP_GET_USER_PRINTER_ATTRIBUTES,
+    IPP_OP_HOLD_JOB,
+    IPP_OP_RELEASE_JOB,
+    IPP_OP_HOLD_NEW_JOBS,
+    IPP_OP_RELEASE_HELD_NEW_JOBS
   };
   static const char * const charset[] =	// charset-supported values
   {
@@ -225,6 +229,17 @@ papplPrinterCreate(
     "job-storage-group"
   };
 
+  static const char * const job_hold_until[] =
+  {					// job-hold-until-supported values
+    "day-time",
+    "evening",
+    "indefinite",
+    "night",
+    "no-hold",
+    "second-shift",
+    "third-shift",
+    "weekend"
+  };
   static const char * const multiple_document_handling[] =
   {					// multiple-document-handling-supported values
     "separate-documents-uncollated-copies",
@@ -383,30 +398,30 @@ papplPrinterCreate(
   // Initialize printer structure and attributes...
   pthread_rwlock_init(&printer->rwlock, NULL);
 
-  printer->system                     = system;
-  printer->name                       = strdup(printer_name);
-  printer->dns_sd_name                = strdup(printer_name);
-  printer->resource                   = strdup(resource);
-  printer->resourcelen                = strlen(resource);
-  printer->uriname                    = printer->resource + 10; // Skip "/ipp/print" in resource
-  printer->device_id                  = device_id ? strdup(device_id) : NULL;
-  printer->device_uri                 = strdup(device_uri);
-  printer->driver_name                = strdup(driver_name);
-  printer->attrs                      = ippNew();
-  printer->start_time                 = time(NULL);
-  printer->config_time                = printer->start_time;
-  printer->state                      = IPP_PSTATE_IDLE;
-  printer->state_reasons              = PAPPL_PREASON_NONE;
-  printer->state_time                 = printer->start_time;
-  printer->is_accepting               = true;
-  printer->all_jobs                   = cupsArrayNew((cups_array_cb_t)compare_all_jobs, NULL, NULL, 0, NULL, (cups_afree_cb_t)_papplJobDelete);
-  printer->active_jobs                = cupsArrayNew((cups_array_cb_t)compare_active_jobs, NULL, NULL, 0, NULL, NULL);
-  printer->completed_jobs             = cupsArrayNew((cups_array_cb_t)compare_completed_jobs, NULL, NULL, 0, NULL, NULL);
-  printer->next_job_id                = 1;
-  printer->max_active_jobs            = (system->options & PAPPL_SOPTIONS_MULTI_QUEUE) ? 0 : 1;
-  printer->max_completed_jobs         = 100;
-  printer->usb_vendor_id              = 0x1209;	// See <pid.codes>
-  printer->usb_product_id             = 0x8011;
+  printer->system             = system;
+  printer->name               = strdup(printer_name);
+  printer->dns_sd_name        = strdup(printer_name);
+  printer->resource           = strdup(resource);
+  printer->resourcelen        = strlen(resource);
+  printer->uriname            = printer->resource + 10; // Skip "/ipp/print" in resource
+  printer->device_id          = device_id ? strdup(device_id) : NULL;
+  printer->device_uri         = strdup(device_uri);
+  printer->driver_name        = strdup(driver_name);
+  printer->attrs              = ippNew();
+  printer->start_time         = time(NULL);
+  printer->config_time        = printer->start_time;
+  printer->state              = IPP_PSTATE_IDLE;
+  printer->state_reasons      = PAPPL_PREASON_NONE;
+  printer->state_time         = printer->start_time;
+  printer->is_accepting       = true;
+  printer->all_jobs           = cupsArrayNew((cups_array_cb_t)compare_all_jobs, NULL, NULL, 0, NULL, (cups_afree_cb_t)_papplJobDelete);
+  printer->active_jobs        = cupsArrayNew((cups_array_cb_t)compare_active_jobs, NULL, NULL, 0, NULL, NULL);
+  printer->completed_jobs     = cupsArrayNew((cups_array_cb_t)compare_completed_jobs, NULL, NULL, 0, NULL, NULL);
+  printer->next_job_id        = 1;
+  printer->max_active_jobs    = (system->options & PAPPL_SOPTIONS_MULTI_QUEUE) ? 0 : 1;
+  printer->max_completed_jobs = 100;
+  printer->usb_vendor_id      = 0x1209;	// See <https://pid.codes>
+  printer->usb_product_id     = 0x8011;
   printer->cancel_after_time          = INT_MAX; // initial "job-cancel-after-default" value
   printer->pw_repertoire_configured   = PAPPL_PW_REPERTOIRE_IANA_UTF_8_ANY; // initial "job-password-repertoire-configured" value
   printer->release_action_default     = PAPPL_RELEASE_ACTION_NONE;
@@ -497,6 +512,8 @@ papplPrinterCreate(
         format = "PS";
       else if (!strcmp(format, "application/vnd.hp-postscript"))
         format = "PCL";
+      else if (!strcmp(format, "application/vnd.zebra-epl"))
+        format = "EPL";
       else if (!strcmp(format, "application/vnd.zebra-zpl"))
         format = "ZPL";
       else if (!strcmp(format, "image/jpeg"))
@@ -504,7 +521,7 @@ papplPrinterCreate(
       else if (!strcmp(format, "image/png"))
         format = "PNG";
       else if (!strcmp(format, "image/pwg-raster"))
-        format = "PWG";
+        format = "PWGRaster";
       else if (!strcmp(format, "image/urf"))
         format = "URF";
       else if (!strcmp(format, "text/plain"))
@@ -555,7 +572,16 @@ papplPrinterCreate(
   ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_LANGUAGE), "generated-natural-language-supported", NULL, "en");
 
   // ipp-versions-supported
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "ipp-versions-supported", (int)(sizeof(ipp_versions) / sizeof(ipp_versions[0])), NULL, ipp_versions);
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "ipp-versions-supported", (cups_len_t)(sizeof(ipp_versions) / sizeof(ipp_versions[0])), NULL, ipp_versions);
+
+  // job-hold-until-default
+  ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-hold-until-default", NULL, "no-hold");
+
+  // job-hold-until-supported
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-hold-until-supported", (cups_len_t)(sizeof(job_hold_until) / sizeof(job_hold_until[0])), NULL, job_hold_until);
+
+  // job-hold-until-time-supported
+  ippAddBoolean(printer->attrs, IPP_TAG_PRINTER, "job-hold-until-time-supported", 1);
 
   // job-cancel-after-supported
   ippAddRange(printer->attrs, IPP_TAG_PRINTER, "job-cancel-after-supported", 30, INT_MAX); // 30 seconds minimum
@@ -742,8 +768,14 @@ papplPrinterCreate(
 	// Detach the main thread from the raw thread to prevent hangs...
 	pthread_detach(tid);
 
+        _papplRWLockRead(printer);
 	while (!printer->raw_active)
+	{
+	  _papplRWUnlock(printer);
 	  usleep(1000);			// Wait for raw thread to start
+	  _papplRWLockRead(printer);
+	}
+	_papplRWUnlock(printer);
       }
     }
   }
@@ -756,9 +788,6 @@ papplPrinterCreate(
   {
     snprintf(path, sizeof(path), "%s/", printer->uriname);
     papplSystemAddResourceCallback(system, path, "text/html", (pappl_resource_cb_t)_papplPrinterWebHome, printer);
-
-    snprintf(path, sizeof(path), "%s/cancel", printer->uriname);
-    papplSystemAddResourceCallback(system, path, "text/html", (pappl_resource_cb_t)_papplPrinterWebCancelJob, printer);
 
     snprintf(path, sizeof(path), "%s/cancelall", printer->uriname);
     papplSystemAddResourceCallback(system, path, "text/html", (pappl_resource_cb_t)_papplPrinterWebCancelAllJobs, printer);
@@ -782,9 +811,6 @@ papplPrinterCreate(
     snprintf(path, sizeof(path), "%s/printing", printer->uriname);
     papplSystemAddResourceCallback(system, path, "text/html", (pappl_resource_cb_t)_papplPrinterWebDefaults, printer);
     papplPrinterAddLink(printer, _PAPPL_LOC("Printing Defaults"), path, PAPPL_LOPTIONS_NAVIGATION | PAPPL_LOPTIONS_STATUS);
-
-    snprintf(path, sizeof(path), "%s/reprint", printer->uriname);
-    papplSystemAddResourceCallback(system, path, "text/html", (pappl_resource_cb_t)_papplPrinterWebReprintJob, printer);
 
     if (printer->driver_data.has_supplies)
     {
@@ -816,13 +842,17 @@ _papplPrinterDelete(
 
 
   // Let USB/raw printing threads know to exit
+  _papplRWLockWrite(printer);
   printer->is_deleted = true;
 
   while (printer->raw_active || printer->usb_active)
   {
     // Wait for threads to finish
+    _papplRWUnlock(printer);
     usleep(100000);
+    _papplRWLockRead(printer);
   }
+  _papplRWUnlock(printer);
 
   // Close raw listener sockets...
   for (i = 0; i < printer->num_raw_listeners; i ++)
@@ -903,9 +933,9 @@ papplPrinterDelete(
   papplSystemAddEvent(system, printer, NULL, PAPPL_EVENT_PRINTER_DELETED | PAPPL_EVENT_SYSTEM_CONFIG_CHANGED, NULL);
 
   // Remove the printer from the system object...
-  pthread_rwlock_wrlock(&system->rwlock);
+  _papplRWLockWrite(system);
   cupsArrayRemove(system->printers, printer);
-  pthread_rwlock_unlock(&system->rwlock);
+  _papplRWUnlock(system);
 
   _papplSystemConfigChanged(system);
 }
