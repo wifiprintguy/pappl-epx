@@ -33,8 +33,6 @@
 
 #define OUTPUT_LOCATION "/tmp/epx"
 
-#define USE_SYSTEM_CB
-
 static pappl_system_t *epx_system_cb(int optionCount, cups_option_t *options, void *data);
 static const char *get_device_uri(void);
 static const char *get_timestamp(void);
@@ -66,35 +64,19 @@ int main(int  argc, char *argv[])
 
     printf("%s - Starting papplMainLoop\n", whoami);
     
-#ifdef USE_SYSTEM_CB
-    result = papplMainloop(argc,                                                // I - Number of command line arguments
-                           argv,                                                // I - Command line arguments
-                           EPX_VERSION_STRING,                                  // I - Version number
-                           FOOTER_HTML,                                         // I - Footer HTML or `NULL` for none
-                           drivercount,                                         // I - Number of drivers
-                           drivers,                                             // I - Drivers
-                           autoadd_callback,                                    // I - Auto-add callback or `NULL` for none
-                           driver_callback,                                     // I - Driver callback
-                           NULL,                                                // I - Sub-command name or `NULL` for none
-                           NULL,                                                // I - Sub-command callback or `NULL` for none
-                           epx_system_cb,                                       // I - System callback or `NULL` for default
-                           NULL,                                                // I - Usage callback or `NULL` for default
-                           whoami);                                             // I - Context pointer
-#else
-    result = papplMainloop(argc,                                                // I - Number of command line arguments
-                           argv,                                                // I - Command line arguments
-                           EPX_VERSION_STRING,                                  // I - Version number
-                           FOOTER_HTML,                                         // I - Footer HTML or `NULL` for none
-                           drivercount,                                         // I - Number of drivers
-                           drivers,                                             // I - Drivers
-                           autoadd_callback,                                    // I - Auto-add callback or `NULL` for none
-                           driver_callback,                                     // I - Driver callback
-                           NULL,                                                // I - Sub-command name or `NULL` for none
-                           NULL,                                                // I - Sub-command callback or `NULL` for none
-                           NULL,                                                // I - System callback or `NULL` for default
-                           NULL,                                                // I - Usage callback or `NULL` for default
-                           whoami);                                             // I - Context pointer
-#endif
+    result = papplMainloop(argc,                // I - Number of command line arguments
+                           argv,                // I - Command line arguments
+                           EPX_VERSION_STRING,  // I - Version number
+                           FOOTER_HTML,         // I - Footer HTML or `NULL` for none
+                           drivercount,         // I - Number of drivers
+                           drivers,             // I - Drivers
+                           autoadd_callback,    // I - Auto-add callback or `NULL` for none
+                           driver_callback,     // I - Driver callback
+                           NULL,                // I - Sub-command name or `NULL` for none
+                           NULL,                // I - Sub-command callback or `NULL` for none
+                           epx_system_cb,       // I - System callback or `NULL` for default
+                           NULL,                // I - Usage callback or `NULL` for default
+                           whoami);             // I - Context pointer
     
     printf("%s - papplMainLoop stopped with result %d\n", whoami, result);
 
@@ -108,15 +90,15 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
                               cups_option_t *options,      // I - Options
                               void          *data)         // I - Callback data
 {
-    pappl_system_t      *system;            // System object
-    const char          *val,               // Current option value
-                        *hostname,          // Hostname, if any
-                        *logfile,           // Log file, if any
-                        *system_name;       // System name, if any
-    pappl_loglevel_t    loglevel;           // Log level
-    int                 port = 0;           // Port number, if any
-    char                *whoami = (char*)data;
-    pappl_printer_t     *firstPrinter;
+    pappl_system_t      *system;                // System object
+    const char          *val,                   // Current option value
+                        *hostname,              // Hostname, if any
+                        *logfile,               // Log file, if any
+                        *system_name;           // System name, if any
+    pappl_loglevel_t    loglevel;               // Log level
+    int                 port = 0;               // Port number, if any
+    char                *whoami = (char*)data;  // Name of program
+    pappl_printer_t     *firstPrinter;          // Default printer creation
     
     
     // System options
@@ -234,7 +216,8 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
         papplSystemSetOrganization(system, "PWG");
     }
     
-    // Make a printer so that I don't have to do that in the web interface
+    //--------------------------------------------------------------------------------
+    // Make a printer so that one doesn't have to be made manually 
     firstPrinter = papplSystemFindPrinter(system, NULL, 0, OUTPUT_LOCATION);
     if (NULL == firstPrinter)
     {
