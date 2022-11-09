@@ -62,8 +62,6 @@
 		2767F4362797AD5800BE323A /* subscription.h in Headers */ = {isa = PBXBuildFile; fileRef = 2767F4342797AD5800BE323A /* subscription.h */; };
 		2767F4382799F0C200BE323A /* subscription-private.h in Headers */ = {isa = PBXBuildFile; fileRef = 2767F4372799F0C200BE323A /* subscription-private.h */; };
 		2767F4392799F0C200BE323A /* subscription-private.h in Headers */ = {isa = PBXBuildFile; fileRef = 2767F4372799F0C200BE323A /* subscription-private.h */; };
-		276EED8227AC7BEA007F9AC1 /* system-status-macos.m in Sources */ = {isa = PBXBuildFile; fileRef = 276EED7E27AC7BE9007F9AC1 /* system-status-macos.m */; };
-		276EED8327AC7BEA007F9AC1 /* system-status-macos.m in Sources */ = {isa = PBXBuildFile; fileRef = 276EED7E27AC7BE9007F9AC1 /* system-status-macos.m */; };
 		2774C75227DBCECE00A7C96D /* system-loc.c in Sources */ = {isa = PBXBuildFile; fileRef = 2774C74D27DBCECE00A7C96D /* system-loc.c */; };
 		2774C75327DBCECE00A7C96D /* system-loc.c in Sources */ = {isa = PBXBuildFile; fileRef = 2774C74D27DBCECE00A7C96D /* system-loc.c */; };
 		2774C75427DBCECE00A7C96D /* loc.c in Sources */ = {isa = PBXBuildFile; fileRef = 2774C74E27DBCECE00A7C96D /* loc.c */; };
@@ -284,6 +282,8 @@
 		3B14054728E6199500A7B7B4 /* testepx.c in Sources */ = {isa = PBXBuildFile; fileRef = 3B1404F028E4C41C00A7B7B4 /* testepx.c */; };
 		3B14054828E619A800A7B7B4 /* epx-driver.c in Sources */ = {isa = PBXBuildFile; fileRef = 3B1404EF28E4C41C00A7B7B4 /* epx-driver.c */; };
 		3B14054928EE238D00A7B7B4 /* pwg-driver.c in Sources */ = {isa = PBXBuildFile; fileRef = 274A1ED7242E7E1300DE387E /* pwg-driver.c */; };
+		3BB85624291388BA005A6D44 /* system-status-macos.m in Sources */ = {isa = PBXBuildFile; fileRef = 276EED7E27AC7BE9007F9AC1 /* system-status-macos.m */; };
+		3BB85625291388BB005A6D44 /* system-status-macos.m in Sources */ = {isa = PBXBuildFile; fileRef = 276EED7E27AC7BE9007F9AC1 /* system-status-macos.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1108,11 +1108,11 @@
 				27DF62F22450992D00501447 /* job-filter.c in Sources */,
 				27BFDDCB279EF534000D073A /* subscription-ipp.c in Sources */,
 				27FFF32924329B61003C0B8F /* job.h in Sources */,
-				276EED8327AC7BEA007F9AC1 /* system-status-macos.m in Sources */,
 				27FFF32A24329B61003C0B8F /* job-private.h in Sources */,
 				27FFF32B24329B61003C0B8F /* job.c in Sources */,
 				27FFF32C24329B61003C0B8F /* job-accessors.c in Sources */,
 				27FFF32D24329B61003C0B8F /* job-process.c in Sources */,
+				3BB85625291388BB005A6D44 /* system-status-macos.m in Sources */,
 				27FFF32E24329B61003C0B8F /* log.h in Sources */,
 				2774C75527DBCECE00A7C96D /* loc.c in Sources */,
 				27214FA624ED72B400E36FFC /* device-network.c in Sources */,
@@ -1178,11 +1178,11 @@
 				27DF62F12450992D00501447 /* job-filter.c in Sources */,
 				27BFDDCA279EF534000D073A /* subscription-ipp.c in Sources */,
 				27FFF37524329C9E003C0B8F /* job.h in Sources */,
-				276EED8227AC7BEA007F9AC1 /* system-status-macos.m in Sources */,
 				27FFF37624329C9E003C0B8F /* job-private.h in Sources */,
 				27FFF37724329C9E003C0B8F /* job.c in Sources */,
 				27FFF37824329C9E003C0B8F /* job-accessors.c in Sources */,
 				27FFF37924329C9E003C0B8F /* job-process.c in Sources */,
+				3BB85624291388BA005A6D44 /* system-status-macos.m in Sources */,
 				27FFF37A24329C9E003C0B8F /* log.h in Sources */,
 				2774C75427DBCECE00A7C96D /* loc.c in Sources */,
 				27214FA524ED72B400E36FFC /* device-network.c in Sources */,
@@ -1368,7 +1368,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../_DEPENDENCIES_/openssl-3.0.5",
 					"$(PROJECT_DIR)/../_DEPENDENCIES_/libpng-1.6.38/.libs",
-					"$(PROJECT_DIR)/../_DEPENDENCIES_/jpeg-9e",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/jpeg-9e/.libs",
 					"$(PROJECT_DIR)/../_DEPENDENCIES_/libusb-1.0.26/libusb/.libs",
 					"$(PROJECT_DIR)/../../../openprinting/libcups",
 					/usr/local/lib,
@@ -1469,7 +1469,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/../_DEPENDENCIES_/openssl-3.0.5",
 					"$(PROJECT_DIR)/../_DEPENDENCIES_/libpng-1.6.38/.libs",
-					"$(PROJECT_DIR)/../_DEPENDENCIES_/jpeg-9e",
+					"$(PROJECT_DIR)/../_DEPENDENCIES_/jpeg-9e/.libs",
 					"$(PROJECT_DIR)/../_DEPENDENCIES_/libusb-1.0.26/libusb/.libs",
 					"$(PROJECT_DIR)/../../../openprinting/libcups",
 					/usr/local/lib,
