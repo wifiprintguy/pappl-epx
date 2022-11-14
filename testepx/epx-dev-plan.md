@@ -15,10 +15,10 @@ Download static tarballs from the folowing dependencies into the \_DEPENDENCIES\
 - libusb
 
 Header search paths (keep /usr/local/ at the end so that older SDK versions don't get selected first):
-. .. /opt/homebrew/Cellar/openssl@3/3.0.5/include /opt/homebrew/Cellar/libpng/1.6.37/include /opt/homebrew/Cellar/jpeg/9e/include /opt/homebrew/Cellar/libusb/1.0.26/include/** /usr/local/include
+. .. ../libcups /opt/homebrew/Cellar/openssl@3/3.0.7/include /opt/homebrew/Cellar/libpng/1.6.38/include /opt/homebrew/Cellar/jpeg/9e/include /opt/homebrew/Cellar/libusb/1.0.26/include/** /usr/local/include
 
 Library search paths (keep /usr/local/ at the end so that older SDK versions don't get selected first):
-/opt/homebrew/Cellar/openssl@3/3.0.5/lib /opt/homebrew/Cellar/libpng/1.6.37/lib /opt/homebrew/Cellar/jpeg/9e/lib /opt/homebrew/Cellar/libusb/1.0.26/lib /Users/smitty/source/GitHub/openprinting/libcups /usr/local/lib
+../libcups /opt/homebrew/Cellar/openssl@3/3.0.7/lib /opt/homebrew/Cellar/libpng/1.6.38/lib /opt/homebrew/Cellar/jpeg/9e/lib /opt/homebrew/Cellar/libusb/1.0.26/lib /usr/local/lib
 
 Libraries and Frameworks:
 - Remove the TBD reference to libcups.dylib and libcupsimage.dylib, and add a reference to /Users/smitty/source/GitHub/openprinting/libcups/cups/libcups.3.3.dylib
