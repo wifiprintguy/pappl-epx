@@ -102,6 +102,15 @@ _papplPrinterCopyAttributes(
       ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "identify-actions-default", NULL, "none");
   }
 
+  if (!ra || cupsArrayFind(ra, "job-cancel-after-default"))
+    ippAddInteger(client->response, IPP_TAG_PRINTER, IPP_TAG_INTEGER, "job-cancel-after-default", (int)printer->cancel_after_time);
+
+  if (!ra || cupsArrayFind(ra, "job-password-repertoire-configured"))
+    ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-password-repertoire-configured", NULL, _papplPasswordRepertoireString(printer->pw_repertoire_configured));
+
+  if (!ra || cupsArrayFind(ra, "job-release-action-default"))
+    ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-release-action-default", NULL, _papplReleaseActionString(printer->release_action_default));
+
   if (!ra || cupsArrayFind(ra, "job-spooling-supported"))
     ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-spooling-supported", NULL, printer->max_active_jobs == 1 ? "stream" : "spool");
 
@@ -322,6 +331,9 @@ _papplPrinterCopyAttributes(
   if ((!ra || cupsArrayFind(ra, "printer-darkness-configured")) && data->darkness_supported > 0)
     ippAddInteger(client->response, IPP_TAG_PRINTER, IPP_TAG_INTEGER, "printer-darkness-configured", data->darkness_configured);
 
+//   if (!ra || cupsArrayFind(ra, "printer-detailed-status-messages"))
+//     ippAddString(client->response, IPP_TAG_PRINTER, IPP_TAG_NAME, "printer-detailed-status-messages", NULL, "TODO: HOOK ME UP TO SOMETHING"); // TODO: Hook this up to something that reports the detailed status
+
   if (!ra || cupsArrayFind(ra, "printer-dns-sd-name"))
     ippAddString(client->response, IPP_TAG_PRINTER, IPP_TAG_NAME, "printer-dns-sd-name", NULL, printer->dns_sd_name ? printer->dns_sd_name : "");
 
@@ -405,6 +417,19 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "printer-resolution-default"))
     ippAddResolution(client->response, IPP_TAG_PRINTER, "printer-resolution-default", IPP_RES_PER_INCH, data->x_default, data->y_default);
+
+  if (!ra || cupsArrayFind(ra, "printer-service-contact-col"))
+  {
+    ipp_t *col = _papplContactExport(&printer->service_contact);
+    ipp_attribute_t *service_contact_name = ippFindAttribute(col, "contact-name", IPP_TAG_NAME);
+    const char *nameVal = ippGetString(service_contact_name, 0, NULL);
+    if (NULL == nameVal || 0 == strlen(nameVal))
+      ippAddOutOfBand(client->response, IPP_TAG_PRINTER, IPP_TAG_UNKNOWN, "printer-service-contact-col");
+    else
+      ippAddCollection(client->response, IPP_TAG_PRINTER, "printer-service-contact-col", col);
+
+    ippDelete(col);
+  }
 
   if (!ra || cupsArrayFind(ra, "printer-speed-default"))
     ippAddInteger(client->response, IPP_TAG_PRINTER, IPP_TAG_INTEGER, "printer-speed-default", data->speed_default);
@@ -550,6 +575,16 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "printer-xri-supported"))
     _papplPrinterCopyXRI(printer, client->response, client);
+
+  if (!ra || cupsArrayFind(ra, "proof-copies-supported"))
+  {
+    // Filter proof-copies-supported value based on the document format...
+    // (no copy support for streaming raster formats)
+    if (format && (!strcmp(format, "image/pwg-raster") || !strcmp(format, "image/urf")))
+      ippAddRange(client->response, IPP_TAG_PRINTER, "proof-copies-supported", 1, 1);
+    else
+      ippAddRange(client->response, IPP_TAG_PRINTER, "proof-copies-supported", 1, 999); // Make sure upper bounds is <= upper bounds for "copies-supported"
+  }
 
   if (!ra || cupsArrayFind(ra, "queued-job-count"))
     ippAddInteger(client->response, IPP_TAG_PRINTER, IPP_TAG_INTEGER, "queued-job-count", (int)cupsArrayGetCount(printer->active_jobs));
@@ -917,6 +952,8 @@ _papplPrinterSetAttributes(
   cups_option_t		*vendor = NULL;	// Vendor defaults
   pappl_contact_t	contact;	// printer-contact value
   bool			do_contact = false;
+  pappl_contact_t service_contact;            // printer-service-contact-col value (EPX)
+  bool            do_service_contact = false; // Update service contact?
 					// Update contact?
   const char		*geo_location = NULL,
 					// printer-geo-location value
@@ -946,6 +983,7 @@ _papplPrinterSetAttributes(
     { "print-quality-default",		IPP_TAG_ENUM,		1 },
     { "print-speed-default",		IPP_TAG_INTEGER,	1 },
     { "printer-contact-col",		IPP_TAG_BEGIN_COLLECTION, 1 },
+    { "printer-service-contact-col",		IPP_TAG_BEGIN_COLLECTION, 1 },
     { "printer-darkness-configured",	IPP_TAG_INTEGER,	1 },
     { "printer-geo-location",		IPP_TAG_URI,		1 },
     { "printer-location",		IPP_TAG_TEXT,		1 },
@@ -1156,6 +1194,11 @@ _papplPrinterSetAttributes(
       driver_data.x_default = ippGetResolution(rattr, 0, &driver_data.y_default, &units);
       do_defaults = true;
     }
+    else if (!strcmp(name, "printer-service-contact-col"))
+    {
+      _papplContactImport(ippGetCollection(rattr, 0), &service_contact);
+      do_service_contact = true;
+    }
     else if (!strcmp(name, "printer-wifi-password"))
     {
       void		*data;		// Password
@@ -1214,6 +1257,9 @@ _papplPrinterSetAttributes(
   if (do_contact)
     papplPrinterSetContact(printer, &contact);
 
+    if (do_service_contact)
+        papplPrinterSetServiceContact(printer, &service_contact);
+    
   if (geo_location)
     papplPrinterSetGeoLocation(printer, geo_location);
 

@@ -155,6 +155,7 @@ papplPrinterCreate(
     IPP_OP_CANCEL_MY_JOBS,
     IPP_OP_CLOSE_JOB,
     IPP_OP_IDENTIFY_PRINTER,
+    IPP_OP_GET_USER_PRINTER_ATTRIBUTES,
     IPP_OP_HOLD_JOB,
     IPP_OP_RELEASE_JOB,
     IPP_OP_HOLD_NEW_JOBS,
@@ -178,6 +179,56 @@ papplPrinterCreate(
     "gzip",
     "none"
   };
+  static const char * const job_password_encryption[] =
+  {                    // job-password-encryption-supported values
+    "none",
+    "sha2-256",
+    "sha2-384",
+    "sha2-512",
+    // Other values from EPX not yet supported by libcups
+  };
+  static const char * const job_password_repertoire[] =
+  {                    // job-password-repertoire-supported values
+    "iana_us-ascii_digits",
+    "iana_us-ascii_letters",
+    "iana_us-ascii_complex",
+    "iana_us-ascii_any",
+    "iana_utf-8_digits",
+    "iana_utf-8_letters",
+    "iana_utf-8_any"
+  };
+  static const char * const job_release_action[] =
+  {                    // job-release-action-supported values
+    "none",
+    "button-press",
+    "job-password",
+    "owner-authorized"
+  };
+  static const char * const job_storage_access[] =
+  {                    // job-storage-access-supported values
+    "group",
+    "owner",
+    "public"
+  };
+  static const char * const job_storage_disposition[] =
+  {                    // job-storage-disposition-supported values
+    "print-and-store",
+    "store-only"
+  };
+  static const char * const job_storage_group[] =
+  {                    // job-storage-group-supported values
+    "admin",
+    "faculty",
+    "students",
+    "guests"
+  };
+  static const char * const job_storage[] =
+  {                    // job-storage-supported values
+    "job-storage-access",
+    "job-storage-disposition",
+    "job-storage-group"
+  };
+
   static const char * const job_hold_until[] =
   {					// job-hold-until-supported values
     "day-time",
@@ -371,6 +422,9 @@ papplPrinterCreate(
   printer->max_completed_jobs = 100;
   printer->usb_vendor_id      = 0x1209;	// See <https://pid.codes>
   printer->usb_product_id     = 0x8011;
+  printer->cancel_after_time          = INT_MAX; // initial "job-cancel-after-default" value
+  printer->pw_repertoire_configured   = PAPPL_PW_REPERTOIRE_IANA_UTF_8_ANY; // initial "job-password-repertoire-configured" value
+  printer->release_action_default     = PAPPL_RELEASE_ACTION_NONE;
 
   if (!printer->name || !printer->dns_sd_name || !printer->resource || (device_id && !printer->device_id) || !printer->device_uri || !printer->driver_name || !printer->attrs)
   {
@@ -529,11 +583,26 @@ papplPrinterCreate(
   // job-hold-until-time-supported
   ippAddBoolean(printer->attrs, IPP_TAG_PRINTER, "job-hold-until-time-supported", 1);
 
+  // job-cancel-after-supported
+  ippAddRange(printer->attrs, IPP_TAG_PRINTER, "job-cancel-after-supported", 30, INT_MAX); // 30 seconds minimum
+
   // job-ids-supported
   ippAddBoolean(printer->attrs, IPP_TAG_PRINTER, "job-ids-supported", 1);
 
   // job-k-octets-supported
   ippAddRange(printer->attrs, IPP_TAG_PRINTER, "job-k-octets-supported", 0, k_supported);
+
+  // job-password-encryption-supported
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-password-encryption-supported", (cups_len_t)(sizeof(job_password_encryption) / sizeof(job_password_encryption[0])), NULL, job_password_encryption);
+
+  // job-password-length-supported
+  ippAddRange(printer->attrs, IPP_TAG_PRINTER, "job-password-length-supported", 4, 1020); // 4 digit PIN up to 255 characters UTF-8 with 4 octets / character
+
+  // job-password-repertoire-supported
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-password-repertoire-supported", (cups_len_t)(sizeof(job_password_repertoire) / sizeof(job_password_repertoire[0])), NULL, job_password_repertoire);
+
+  // job-password-supported
+  ippAddInteger(printer->attrs, IPP_TAG_PRINTER, IPP_TAG_INTEGER, "job-password-supported", 255);
 
   // job-priority-default
   ippAddInteger(printer->attrs, IPP_TAG_PRINTER, IPP_TAG_INTEGER, "job-priority-default", 50);
@@ -541,11 +610,48 @@ papplPrinterCreate(
   // job-priority-supported
   ippAddInteger(printer->attrs, IPP_TAG_PRINTER, IPP_TAG_INTEGER, "job-priority-supported", 1);
 
+  // job-release-action-supported
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-release-action-supported", (cups_len_t)(sizeof(job_release_action) / sizeof(job_release_action[0])), NULL, job_release_action);
+
   // job-sheets-default
   ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_NAME), "job-sheets-default", NULL, "none");
 
   // job-sheets-supported
   ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_NAME), "job-sheets-supported", NULL, "none");
+
+  // job-storage-access-supported
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-access-supported", (cups_len_t)(sizeof(job_storage_access) / sizeof(job_storage_access[0])), NULL, job_storage_access);
+
+  // job-storage-disposition-supported
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-disposition-supported", (cups_len_t)(sizeof(job_storage_disposition) / sizeof(job_storage_disposition[0])), NULL, job_storage_disposition);
+
+  // job-storage-group-supported
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-group-supported", (cups_len_t)(sizeof(job_storage_group) / sizeof(job_storage_group[0])), NULL, job_storage_group);
+
+  // job-storage-supported
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-supported", (cups_len_t)(sizeof(job_storage) / sizeof(job_storage[0])), NULL, job_storage);
+
+  if (_papplSystemFindMIMEFilter(system, "image/jpeg", "image/pwg-raster"))
+  {
+    static const char * const jpeg_features_supported[] =
+    {					// "jpeg-features-supported" values
+      "arithmetic",
+      "cmyk",
+      "progressive"
+    };
+
+    // jpeg-features-supported
+    ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "jpeg-features-supported", (int)(sizeof(jpeg_features_supported) / sizeof(jpeg_features_supported[0])), NULL, jpeg_features_supported);
+
+    // jpeg-k-octets-supported
+    ippAddRange(printer->attrs, IPP_TAG_PRINTER, "jpeg-k-octets-supported", 0, k_supported);
+
+    // jpeg-x-dimension-supported
+    ippAddRange(printer->attrs, IPP_TAG_PRINTER, "jpeg-x-dimension-supported", 0, system->max_image_width);
+
+    // jpeg-y-dimension-supported
+    ippAddRange(printer->attrs, IPP_TAG_PRINTER, "jpeg-y-dimension-supported", 1, system->max_image_height);
+  }
 
   // multiple-document-handling-supported
   ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "multiple-document-handling-supported", sizeof(multiple_document_handling) / sizeof(multiple_document_handling[0]), NULL, multiple_document_handling);
@@ -620,6 +726,9 @@ papplPrinterCreate(
   // printer-uuid
   ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_TAG_URI, "printer-uuid", NULL, uuid);
 
+  // proof-copies-supported
+  ippAddRange(printer->attrs, IPP_TAG_PRINTER, "proof-copies-supported", 1, INT_MAX);
+
   // requesting-user-uri-supported
   ippAddBoolean(printer->attrs, IPP_TAG_PRINTER, "requesting-user-uri-supported", 1);
 
@@ -633,6 +742,7 @@ papplPrinterCreate(
 
   // which-jobs-supported
   ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "which-jobs-supported", sizeof(which_jobs) / sizeof(which_jobs[0]), NULL, which_jobs);
+
 
   // Add the printer to the system...
   _papplSystemAddPrinter(system, printer, printer_id);
