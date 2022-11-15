@@ -1,11 +1,11 @@
+#########################################################
 #
-#Check a printer for conformance with PWG 5100.11 (EPX)
+# Test a printer for conformance with PWG 5100.11 (EPX)
 #
-#
-#Usage:
-#
+# Usage:
 #   ./ipptool -f FILENAME printer-uri pwg5100.11.test
 #
+#########################################################
 
 #########################################################
 {
