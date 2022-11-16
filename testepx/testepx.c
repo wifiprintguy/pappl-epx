@@ -34,7 +34,7 @@
 #define OUTPUT_LOCATION "/tmp/epx"
 
 static pappl_system_t *epx_system_cb(int optionCount, cups_option_t *options, void *data);
-static const char *get_device_uri(void);
+//static const char *get_device_uri(void);
 static const char *get_timestamp(void);
 void epx_delete_printer_from_system(pappl_printer_t *printer, void *data);
 
@@ -238,14 +238,14 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
     return (system);
 }
 
-static const char *
-get_device_uri()
-{
-    static char outputUri[256];
-    memset(outputUri, 0, sizeof(outputUri));
-    snprintf(outputUri, sizeof(outputUri), "%s-%s/", OUTPUT_LOCATION, get_timestamp());
-    return outputUri;
-}
+//static const char *
+//get_device_uri()
+//{
+//    static char outputUri[256];
+//    memset(outputUri, 0, sizeof(outputUri));
+//    snprintf(outputUri, sizeof(outputUri), "%s-%s/", OUTPUT_LOCATION, get_timestamp());
+//    return outputUri;
+//}
 
 static const char *
 get_timestamp()
