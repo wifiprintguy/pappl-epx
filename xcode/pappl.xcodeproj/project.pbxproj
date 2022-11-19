@@ -52,7 +52,6 @@
 		274AD64C253F52B10033CAAB /* libpam.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5F5241E72AE0082CEA3 /* libpam.tbd */; };
 		274AD64D253F52B10033CAAB /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5DD2415EB8A0082CEA3 /* libz.tbd */; };
 		274AD64E253F52B10033CAAB /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5D92415EB6C0082CEA3 /* SystemConfiguration.framework */; };
-		274AD667253F52E30033CAAB /* testmainloop.c in Sources */ = {isa = PBXBuildFile; fileRef = 274AD666253F52E30033CAAB /* testmainloop.c */; };
 		274B78B42913D9D5001F6833 /* libcups3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 274B78B32913D9D5001F6833 /* libcups3.dylib */; };
 		274B78B62913D9E5001F6833 /* libcups_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 274B78B52913D9E5001F6833 /* libcups_static.a */; };
 		274B78B82913D9EC001F6833 /* libcups_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 274B78B72913D9EC001F6833 /* libcups_static.a */; };
@@ -264,7 +263,6 @@
 		27FFF39C24329D30003C0B8F /* libusb-1.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5E52415EBD70082CEA3 /* libusb-1.0.a */; };
 		27FFF3A124329E59003C0B8F /* libusb-1.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5E52415EBD70082CEA3 /* libusb-1.0.a */; };
 		27FFF3A224329E6F003C0B8F /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5DB2415EB740082CEA3 /* CoreFoundation.framework */; };
-		3B1CD1DC2923C7A60095F889 /* libcups_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 274B78B52913D9E5001F6833 /* libcups_static.a */; };
 		3B1CD1DD2923C7A60095F889 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 27FF08FA282EE89A00DAFC7D /* libresolv.tbd */; };
 		3B1CD1DE2923C7A60095F889 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 27FF08F8282EE88A00DAFC7D /* libiconv.tbd */; };
 		3B1CD1DF2923C7A60095F889 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 279EC3D027FA4B930079A47D /* libcrypto.a */; };
@@ -274,13 +272,16 @@
 		3B1CD1E32923C7A60095F889 /* libpng16.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 27FFF31824329B4A003C0B8F /* libpng16.a */; };
 		3B1CD1E42923C7A60095F889 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5E62415EBD70082CEA3 /* libjpeg.a */; };
 		3B1CD1E52923C7A60095F889 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27FFF31324329B2D003C0B8F /* Security.framework */; };
-		3B1CD1E62923C7A60095F889 /* libpappl_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 27FFF30824329AAF003C0B8F /* libpappl_static.a */; };
 		3B1CD1E72923C7A60095F889 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5E32415EBA80082CEA3 /* IOKit.framework */; };
 		3B1CD1E82923C7A60095F889 /* libpam.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5F5241E72AE0082CEA3 /* libpam.tbd */; };
 		3B1CD1E92923C7A60095F889 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5DD2415EB8A0082CEA3 /* libz.tbd */; };
 		3B1CD1EA2923C7A60095F889 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27EFC5D92415EB6C0082CEA3 /* SystemConfiguration.framework */; };
 		3B1CD1F02923C7D80095F889 /* epx-driver.c in Sources */ = {isa = PBXBuildFile; fileRef = 3B1CD1D22923C6DD0095F889 /* epx-driver.c */; };
 		3B1CD1F12923C7D80095F889 /* testepx.c in Sources */ = {isa = PBXBuildFile; fileRef = 3B1CD1D32923C6DD0095F889 /* testepx.c */; };
+		3BD8327E29283E3C0091251D /* libcups_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B1CD2172923C89B0095F889 /* libcups_static.a */; };
+		3BD8327F29283E490091251D /* libpappl_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 27FFF30824329AAF003C0B8F /* libpappl_static.a */; };
+		3BD8328229283F450091251D /* system-status-macos.m in Sources */ = {isa = PBXBuildFile; fileRef = 276EED7E27AC7BE9007F9AC1 /* system-status-macos.m */; };
+		3BD8328329283F460091251D /* system-status-macos.m in Sources */ = {isa = PBXBuildFile; fileRef = 276EED7E27AC7BE9007F9AC1 /* system-status-macos.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -339,13 +340,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 27FFF30724329AAF003C0B8F;
 			remoteInfo = libpappl_static;
-		};
-		3B1CD1D72923C7A60095F889 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 273C6EEC240D8729000F85E7 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 27FFF30724329AAF003C0B8F;
-			remoteInfo = libpappl;
 		};
 		3B1CD2122923C89B0095F889 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -535,6 +529,27 @@
 			proxyType = 2;
 			remoteGlobalIDString = 271286671CC1309000E517C7;
 			remoteInfo = tlscheck;
+		};
+		3BD8327A29283D800091251D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 273C6EEC240D8729000F85E7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27FFF30724329AAF003C0B8F;
+			remoteInfo = libpappl_static;
+		};
+		3BD8327C29283DA60091251D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3B1CD1F22923C89B0095F889 /* libcups.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 274FF6891333B1C400317ECB;
+			remoteInfo = libcups3_static;
+		};
+		3BD8328029283E630091251D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3B1CD1F22923C89B0095F889 /* libcups.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 274FF6891333B1C400317ECB;
+			remoteInfo = libcups3_static;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -733,7 +748,6 @@
 				27FFF31924329B4A003C0B8F /* libpng16.a in Frameworks */,
 				27FFF31724329B4A003C0B8F /* libjpeg.a in Frameworks */,
 				27FFF31524329B2D003C0B8F /* Security.framework in Frameworks */,
-				3B1404F528E55BA300A7B7B4 /* libcups3.3.dylib in Frameworks */,
 				27FFF30E24329B2D003C0B8F /* libpappl_static.a in Frameworks */,
 				27FFF30F24329B2D003C0B8F /* IOKit.framework in Frameworks */,
 				27FFF31024329B2D003C0B8F /* libpam.tbd in Frameworks */,
@@ -756,7 +770,6 @@
 				274AD647253F52B10033CAAB /* libpng16.a in Frameworks */,
 				274AD648253F52B10033CAAB /* libjpeg.a in Frameworks */,
 				274AD649253F52B10033CAAB /* Security.framework in Frameworks */,
-				3B1404F428E55BA200A7B7B4 /* libcups3.3.dylib in Frameworks */,
 				274AD64A253F52B10033CAAB /* libpappl_static.a in Frameworks */,
 				274AD64B253F52B10033CAAB /* IOKit.framework in Frameworks */,
 				274AD64C253F52B10033CAAB /* libpam.tbd in Frameworks */,
@@ -777,7 +790,6 @@
 				27E8655925F176FB00A8F8D9 /* libpng16.a in Frameworks */,
 				27E8655A25F176FB00A8F8D9 /* libjpeg.a in Frameworks */,
 				27E8655B25F176FB00A8F8D9 /* Security.framework in Frameworks */,
-				3B1404F328E55BA100A7B7B4 /* libcups3.3.dylib in Frameworks */,
 				27E8655C25F176FB00A8F8D9 /* libpappl_static.a in Frameworks */,
 				27E8655D25F176FB00A8F8D9 /* IOKit.framework in Frameworks */,
 				27E8655E25F176FB00A8F8D9 /* libpam.tbd in Frameworks */,
@@ -805,7 +817,6 @@
 				27FFF39A24329D30003C0B8F /* libjpeg.a in Frameworks */,
 				27FFF39B24329D30003C0B8F /* libpng16.a in Frameworks */,
 				27FFF39C24329D30003C0B8F /* libusb-1.0.a in Frameworks */,
-				3B1404F228E55BA000A7B7B4 /* libcups3.3.dylib in Frameworks */,
 				27FFF39424329D16003C0B8F /* CoreFoundation.framework in Frameworks */,
 				27FFF39524329D16003C0B8F /* IOKit.framework in Frameworks */,
 				27FFF39724329D16003C0B8F /* libpam.tbd in Frameworks */,
@@ -818,7 +829,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B1CD1DC2923C7A60095F889 /* libcups_static.a in Frameworks */,
+				3BD8327F29283E490091251D /* libpappl_static.a in Frameworks */,
+				3BD8327E29283E3C0091251D /* libcups_static.a in Frameworks */,
 				3B1CD1DD2923C7A60095F889 /* libresolv.tbd in Frameworks */,
 				3B1CD1DE2923C7A60095F889 /* libiconv.tbd in Frameworks */,
 				3B1CD1DF2923C7A60095F889 /* libcrypto.a in Frameworks */,
@@ -828,7 +840,6 @@
 				3B1CD1E32923C7A60095F889 /* libpng16.a in Frameworks */,
 				3B1CD1E42923C7A60095F889 /* libjpeg.a in Frameworks */,
 				3B1CD1E52923C7A60095F889 /* Security.framework in Frameworks */,
-				3B1CD1E62923C7A60095F889 /* libpappl_static.a in Frameworks */,
 				3B1CD1E72923C7A60095F889 /* IOKit.framework in Frameworks */,
 				3B1CD1E82923C7A60095F889 /* libpam.tbd in Frameworks */,
 				3B1CD1E92923C7A60095F889 /* libz.tbd in Frameworks */,
@@ -848,7 +859,6 @@
 				276EE266255061D300429BCE /* Documentation */,
 				27905C62240D8861001D2A90 /* pappl */,
 				274A1ECB242E7DAD00DE387E /* testsuite */,
-				3B1404EC28E4C41C00A7B7B4 /* testepx */,
 				273C6EF6240D8729000F85E7 /* Products */,
 				27EFC5D42415EB550082CEA3 /* Frameworks */,
 			);
@@ -1011,7 +1021,6 @@
 				27EFC5E62415EBD70082CEA3 /* libjpeg.a */,
 				27EFC5E52415EBD70082CEA3 /* libusb-1.0.a */,
 				27EFC5E32415EBA80082CEA3 /* IOKit.framework */,
-				3B1404F128E4CB3100A7B7B4 /* libcups3.3.dylib */,
 				27EFC5DD2415EB8A0082CEA3 /* libz.tbd */,
 				27EFC5DB2415EB740082CEA3 /* CoreFoundation.framework */,
 				27EFC5D92415EB6C0082CEA3 /* SystemConfiguration.framework */,
@@ -1207,6 +1216,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				3BD8328129283E630091251D /* PBXTargetDependency */,
 			);
 			name = libpappl_static;
 			productName = libpappl;
@@ -1224,6 +1234,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				3BD8327D29283DA60091251D /* PBXTargetDependency */,
 			);
 			name = libpappl;
 			productName = libpappl;
@@ -1241,7 +1252,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				3B1CD1D62923C7A60095F889 /* PBXTargetDependency */,
+				3BD8327B29283D800091251D /* PBXTargetDependency */,
 			);
 			name = testepx;
 			productName = testsuite;
@@ -1505,7 +1516,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B14054628E6198200A7B7B4 /* testmainloop.c in Sources */,
 				274AD642253F52B10033CAAB /* pwg-driver.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1546,7 +1556,7 @@
 				27FFF32B24329B61003C0B8F /* job.c in Sources */,
 				27FFF32C24329B61003C0B8F /* job-accessors.c in Sources */,
 				27FFF32D24329B61003C0B8F /* job-process.c in Sources */,
-				3BB85625291388BB005A6D44 /* system-status-macos.m in Sources */,
+				3BD8328329283F460091251D /* system-status-macos.m in Sources */,
 				27FFF32E24329B61003C0B8F /* log.h in Sources */,
 				2774C75527DBCECE00A7C96D /* loc.c in Sources */,
 				27214FA624ED72B400E36FFC /* device-network.c in Sources */,
@@ -1616,7 +1626,7 @@
 				27FFF37724329C9E003C0B8F /* job.c in Sources */,
 				27FFF37824329C9E003C0B8F /* job-accessors.c in Sources */,
 				27FFF37924329C9E003C0B8F /* job-process.c in Sources */,
-				3BB85624291388BA005A6D44 /* system-status-macos.m in Sources */,
+				3BD8328229283F450091251D /* system-status-macos.m in Sources */,
 				27FFF37A24329C9E003C0B8F /* log.h in Sources */,
 				2774C75427DBCECE00A7C96D /* loc.c in Sources */,
 				27214FA524ED72B400E36FFC /* device-network.c in Sources */,
@@ -1710,10 +1720,20 @@
 			target = 27FFF30724329AAF003C0B8F /* libpappl_static */;
 			targetProxy = 27FFF39F24329D3B003C0B8F /* PBXContainerItemProxy */;
 		};
-		3B1CD1D62923C7A60095F889 /* PBXTargetDependency */ = {
+		3BD8327B29283D800091251D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 27FFF30724329AAF003C0B8F /* libpappl_static */;
-			targetProxy = 3B1CD1D72923C7A60095F889 /* PBXContainerItemProxy */;
+			targetProxy = 3BD8327A29283D800091251D /* PBXContainerItemProxy */;
+		};
+		3BD8327D29283DA60091251D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libcups3_static;
+			targetProxy = 3BD8327C29283DA60091251D /* PBXContainerItemProxy */;
+		};
+		3BD8328129283E630091251D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libcups3_static;
+			targetProxy = 3BD8328029283E630091251D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2069,7 +2089,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = RU58A2256H;
+				DEVELOPMENT_TEAM = U999BUTUSF;
 				PRODUCT_BUNDLE_IDENTIFIER = org.msweet.testpappl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -2082,7 +2102,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = RU58A2256H;
+				DEVELOPMENT_TEAM = U999BUTUSF;
 				PRODUCT_BUNDLE_IDENTIFIER = org.msweet.testpappl;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
