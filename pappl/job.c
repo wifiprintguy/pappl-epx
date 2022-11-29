@@ -24,7 +24,7 @@
 //
 
 void
-papplJobCancel(pappl_job_t *job)	// I - Job
+papplJobCancel(pappl_job_t *job)  // I - Job
 {
   if (!job)
     return;
@@ -61,21 +61,20 @@ papplJobCancel(pappl_job_t *job)	// I - Job
 // '_papplJobCreate()' - Create a new/existing job object.
 //
 
-pappl_job_t *				// O - Job
+pappl_job_t *       // O - Job
 _papplJobCreate(
-    pappl_printer_t *printer,		// I - Printer
-    int             job_id,		// I - Existing Job ID or `0` for new job
-    const char      *username,		// I - Username
-    const char      *format,		// I - Document format or `NULL` for none
-    const char      *job_name,		// I - Job name
-    ipp_t           *attrs)		// I - Job creation attributes or `NULL` for none
+    pappl_printer_t *printer,   // I - Printer
+    int             job_id,     // I - Existing Job ID or `0` for new job
+    const char      *username,  // I - Username
+    const char      *format,    // I - Document format or `NULL` for none
+    const char      *job_name,  // I - Job name
+    ipp_t           *attrs)     // I - Job creation attributes or `NULL` for none
 {
-  pappl_job_t		*job;		// Job
-  ipp_attribute_t	*attr;		// Job attribute
-  char			job_printer_uri[1024],
-					// job-printer-uri value
-			job_uri[1024],	// job-uri value
-			job_uuid[64];	// job-uuid value
+  pappl_job_t   *job;             // Job
+  ipp_attribute_t *attr;          // Job attribute
+  char      job_printer_uri[1024],// job-printer-uri value
+            job_uri[1024],        // job-uri value
+            job_uuid[64];         // job-uuid value
 
 
 
@@ -109,8 +108,8 @@ _papplJobCreate(
   if (attrs)
   {
     // Copy all of the job attributes...
-    const char	*hold_until;		// "job-hold-until" value
-    time_t	hold_until_time;	// "job-hold-until-time" value
+    const char  *hold_until;    // "job-hold-until" value
+    time_t  hold_until_time;    // "job-hold-until-time" value
 
     if ((attr = ippFindAttribute(attrs, "client-info", IPP_TAG_BEGIN_COLLECTION)) != NULL)
     {
@@ -129,11 +128,11 @@ _papplJobCreate(
     if (!format && ippGetOperation(attrs) != IPP_OP_CREATE_JOB)
     {
       if ((attr = ippFindAttribute(attrs, "document-format-detected", IPP_TAG_MIMETYPE)) != NULL)
-	job->format = ippGetString(attr, 0, NULL);
+        job->format = ippGetString(attr, 0, NULL);
       else if ((attr = ippFindAttribute(attrs, "document-format-supplied", IPP_TAG_MIMETYPE)) != NULL)
-	job->format = ippGetString(attr, 0, NULL);
+        job->format = ippGetString(attr, 0, NULL);
       else
-	job->format = "application/octet-stream";
+        job->format = "application/octet-stream";
     }
   }
   else
@@ -191,18 +190,18 @@ _papplJobCreate(
 // spool directory.
 //
 
-pappl_job_t *				// O - New job object or `NULL` on error
+pappl_job_t *       // O - New job object or `NULL` on error
 papplJobCreateWithFile(
-    pappl_printer_t *printer,		// I - Printer
-    const char      *username,		// I - Submitting user name
-    const char      *format,		// I - MIME media type of file
-    const char      *job_name,		// I - Job name
-    int             num_options,	// I - Number of options
-    cups_option_t   *options,		// I - Options or `NULL` if none
-    const char      *filename)		// I - File to print
+    pappl_printer_t *printer,     // I - Printer
+    const char      *username,    // I - Submitting user name
+    const char      *format,      // I - MIME media type of file
+    const char      *job_name,    // I - Job name
+    int             num_options,  // I - Number of options
+    cups_option_t   *options,     // I - Options or `NULL` if none
+    const char      *filename)    // I - File to print
 {
-  pappl_job_t	*job;			// New job
-  ipp_t		*attrs;			// Attributes for job
+  pappl_job_t *job;     // New job
+  ipp_t   *attrs;       // Attributes for job
 
 
   // Range check input...
@@ -238,7 +237,7 @@ papplJobCreateWithFile(
 //
 
 void
-_papplJobDelete(pappl_job_t *job)	// I - Job
+_papplJobDelete(pappl_job_t *job) // I - Job
 {
   papplLogJob(job, PAPPL_LOGLEVEL_INFO, "Removing job from history.");
 
@@ -262,13 +261,14 @@ _papplJobDelete(pappl_job_t *job)	// I - Job
 // This function holds a pending job for printing at a later time.
 //
 
-bool					// O - `true` on success, `false` on failure
-papplJobHold(pappl_job_t *job,		// I - Job
-	     const char  *username,	// I - User that held the job or `NULL` for none/system
-	     const char  *until,	// I - "job-hold-until" keyword or `NULL`
-	     time_t      until_time)	// I - "job-hold-until-time" value or 0 for indefinite
+bool          // O - `true` on success, `false` on failure
+papplJobHold(
+   pappl_job_t *job,        // I - Job
+   const char  *username,   // I - User that held the job or `NULL` for none/system
+   const char  *until,      // I - "job-hold-until" keyword or `NULL`
+   time_t      until_time)  // I - "job-hold-until-time" value or 0 for indefinite
 {
-  bool	ret = false;			// Return value
+  bool  ret = false;      // Return value
 
 
   // Range check input
@@ -297,14 +297,14 @@ papplJobHold(pappl_job_t *job,		// I - Job
 // '_papplJobHoldNoLock()' - Hold a job for printing without locking.
 //
 
-bool					// O - `true` on success, `false` on failure
+bool          // O - `true` on success, `false` on failure
 _papplJobHoldNoLock(
-    pappl_job_t *job,			// I - Job
-    const char  *username,		// I - User that held the job or `NULL` for none/system
-    const char  *until,			// I - "job-hold-until" keyword or `NULL`
-    time_t      until_time)		// I - "job-hold-until-time" value or 0 for indefinite
+    pappl_job_t *job,       // I - Job
+    const char  *username,  // I - User that held the job or `NULL` for none/system
+    const char  *until,     // I - "job-hold-until" keyword or `NULL`
+    time_t      until_time) // I - "job-hold-until-time" value or 0 for indefinite
 {
-  ipp_attribute_t	*attr;		// "job-hold-until[-time]" attribute
+  ipp_attribute_t *attr;    // "job-hold-until[-time]" attribute
 
 
   job->state = IPP_JSTATE_HELD;
@@ -312,8 +312,8 @@ _papplJobHoldNoLock(
   if (until)
   {
     // Hold until the specified time period...
-    time_t	curtime;		// Current time
-    struct tm	curdate;		// Current date
+    time_t  curtime;      // Current time
+    struct tm curdate;    // Current date
 
     job->state_reasons |= PAPPL_JREASON_JOB_HOLD_UNTIL_SPECIFIED;
 
@@ -324,41 +324,41 @@ _papplJobHoldNoLock(
     {
       // Hold to 6am the next morning unless local time is < 6pm.
       if (curdate.tm_hour < 18)
-	job->hold_until = curtime;
+        job->hold_until = curtime;
       else
-	job->hold_until = curtime + ((29 - curdate.tm_hour) * 60 + 59 - curdate.tm_min) * 60 + 60 - curdate.tm_sec;
+        job->hold_until = curtime + ((29 - curdate.tm_hour) * 60 + 59 - curdate.tm_min) * 60 + 60 - curdate.tm_sec;
     }
     else if (!strcmp(until, "evening") || !strcmp(until, "night"))
     {
       // Hold to 6pm unless local time is > 6pm or < 6am.
       if (curdate.tm_hour < 6 || curdate.tm_hour >= 18)
-	job->hold_until = curtime;
+        job->hold_until = curtime;
       else
-	job->hold_until = curtime + ((17 - curdate.tm_hour) * 60 + 59 - curdate.tm_min) * 60 + 60 - curdate.tm_sec;
+        job->hold_until = curtime + ((17 - curdate.tm_hour) * 60 + 59 - curdate.tm_min) * 60 + 60 - curdate.tm_sec;
     }
     else if (!strcmp(until, "second-shift"))
     {
       // Hold to 4pm unless local time is > 4pm.
       if (curdate.tm_hour >= 16)
-	job->hold_until = curtime;
+        job->hold_until = curtime;
       else
-	job->hold_until = curtime + ((15 - curdate.tm_hour) * 60 + 59 - curdate.tm_min) * 60 + 60 - curdate.tm_sec;
+        job->hold_until = curtime + ((15 - curdate.tm_hour) * 60 + 59 - curdate.tm_min) * 60 + 60 - curdate.tm_sec;
     }
     else if (!strcmp(until, "third-shift"))
     {
       // Hold to 12am unless local time is < 8am.
       if (curdate.tm_hour < 8)
-	job->hold_until = curtime;
+        job->hold_until = curtime;
       else
-	job->hold_until = curtime + ((23 - curdate.tm_hour) * 60 + 59 - curdate.tm_min) * 60 + 60 - curdate.tm_sec;
+        job->hold_until = curtime + ((23 - curdate.tm_hour) * 60 + 59 - curdate.tm_min) * 60 + 60 - curdate.tm_sec;
     }
     else if (!strcmp(until, "weekend"))
     {
       // Hold to weekend unless we are in the weekend.
       if (curdate.tm_wday == 0 || curdate.tm_wday == 6)
-	job->hold_until = curtime;
+        job->hold_until = curtime;
       else
-	job->hold_until = curtime + (((5 - curdate.tm_wday) * 24 + (17 - curdate.tm_hour)) * 60 + 59 - curdate.tm_min) * 60 + 60 - curdate.tm_sec;
+        job->hold_until = curtime + (((5 - curdate.tm_wday) * 24 + (17 - curdate.tm_hour)) * 60 + 59 - curdate.tm_min) * 60 + 60 - curdate.tm_sec;
     }
     else
     {
@@ -427,18 +427,18 @@ _papplJobHoldNoLock(
 // security purposes.
 //
 
-int					// O - File descriptor or -1 on error
+int         // O - File descriptor or -1 on error
 papplJobOpenFile(
-    pappl_job_t *job,			// I - Job
-    char        *fname,			// I - Filename buffer
-    size_t      fnamesize,		// I - Size of filename buffer
-    const char  *directory,		// I - Directory to store in (`NULL` for default)
-    const char  *ext,			// I - Extension (`NULL` for default)
-    const char  *mode)			// I - Open mode - "r" for reading or "w" for writing
+    pappl_job_t *job,       // I - Job
+    char        *fname,     // I - Filename buffer
+    size_t      fnamesize,  // I - Size of filename buffer
+    const char  *directory, // I - Directory to store in (`NULL` for default)
+    const char  *ext,       // I - Extension (`NULL` for default)
+    const char  *mode)      // I - Open mode - "r" for reading or "w" for writing
 {
-  char			name[64],	// "Safe" filename
-			*nameptr;	// Pointer into filename
-  const char		*job_name;	// job-name value
+  char        name[64],     // "Safe" filename
+              *nameptr;     // Pointer into filename
+  const char    *job_name;  // job-name value
 
 
   // Range check input...
@@ -535,11 +535,11 @@ papplJobOpenFile(
 // This function releases a held job for printing.
 //
 
-bool					// O - `true` on success, `false` on failure
-papplJobRelease(pappl_job_t *job,	// I - Job
-                const char  *username)	// I - User that released the job or `NULL` for none/system
+bool          // O - `true` on success, `false` on failure
+papplJobRelease(pappl_job_t *job,       // I - Job
+                const char  *username)  // I - User that released the job or `NULL` for none/system
 {
-  bool ret = false;			// Return value
+  bool ret = false;     // Return value
 
 
   // Range check input
@@ -574,10 +574,10 @@ papplJobRelease(pappl_job_t *job,	// I - Job
 
 void
 _papplJobReleaseNoLock(
-    pappl_job_t *job,			// I - Job
-    const char  *username)		// I - User that released the job or `NULL` for none/system
+    pappl_job_t *job,       // I - Job
+    const char  *username)  // I - User that released the job or `NULL` for none/system
 {
-  ipp_attribute_t	*attr;		// "job-hold-until[-time]" attribute
+  ipp_attribute_t *attr;    // "job-hold-until[-time]" attribute
 
 
   // Move the job back to the pending state and clear any attributes or states
@@ -601,13 +601,11 @@ _papplJobReleaseNoLock(
 //
 
 void
-_papplJobRemoveFile(pappl_job_t *job)	// I - Job
+_papplJobRemoveFile(pappl_job_t *job) // I - Job
 {
-  size_t dirlen = strlen(job->system->directory);
-					// Length of spool directory
-  const char *tempdir = papplGetTempDir();
-					// Location of temporary files
-  size_t templen = strlen(tempdir);	// Length of temporary directory
+  size_t dirlen = strlen(job->system->directory); // Length of spool directory
+  const char *tempdir = papplGetTempDir();        // Location of temporary files
+  size_t templen = strlen(tempdir);               // Length of temporary directory
 
 
   // Only remove the file if it is in spool or temporary directory...
@@ -628,15 +626,15 @@ _papplJobRemoveFile(pappl_job_t *job)	// I - Job
 
 void
 _papplJobSubmitFile(
-    pappl_job_t *job,			// I - Job
-    const char  *filename)		// I - Filename
+    pappl_job_t *job,       // I - Job
+    const char  *filename)  // I - Filename
 {
   if (!job->format)
   {
     // Open the file
-    unsigned char	header[8192];	// First 8k bytes of file
-    ssize_t		headersize;	// Number of bytes read
-    int			fd;		// File descriptor
+    unsigned char header[8192]; // First 8k bytes of file
+    ssize_t       headersize;   // Number of bytes read
+    int           fd;           // File descriptor
 
     if ((fd = open(filename, O_RDONLY)) >= 0)
     {
@@ -646,19 +644,19 @@ _papplJobSubmitFile(
       close(fd);
 
       if (!memcmp(header, "%PDF", 4))
-	job->format = "application/pdf";
+        job->format = "application/pdf";
       else if (!memcmp(header, "%!", 2))
-	job->format = "application/postscript";
+        job->format = "application/postscript";
       else if (!memcmp(header, "\377\330\377", 3) && header[3] >= 0xe0 && header[3] <= 0xef)
-	job->format = "image/jpeg";
+        job->format = "image/jpeg";
       else if (!memcmp(header, "\211PNG", 4))
-	job->format = "image/png";
+        job->format = "image/png";
       else if (!memcmp(header, "RaS2PwgR", 8))
-	job->format = "image/pwg-raster";
+        job->format = "image/pwg-raster";
       else if (!memcmp(header, "UNIRAST", 8))
-	job->format = "image/urf";
+        job->format = "image/urf";
       else if (job->system->mime_cb)
-	job->format = (job->system->mime_cb)(header, (size_t)headersize, job->system->mime_cbdata);
+        job->format = (job->system->mime_cb)(header, (size_t)headersize, job->system->mime_cbdata);
     }
   }
 
@@ -666,7 +664,7 @@ _papplJobSubmitFile(
   {
     // Guess the format using the filename extension...
     const char *ext = strrchr(filename, '.');
-				// Extension on filename
+        // Extension on filename
 
     if (!ext)
       job->format = job->printer->driver_data.format;
@@ -701,8 +699,7 @@ _papplJobSubmitFile(
   else
   {
     // Abort the job...
-    size_t dirlen = strlen(job->system->directory);
-					// Length of spool directory
+    size_t dirlen = strlen(job->system->directory);   // Length of spool directory
 
     job->state     = IPP_JSTATE_ABORTED;
     job->completed = time(NULL);
@@ -729,9 +726,9 @@ _papplJobSubmitFile(
 
 void
 _papplPrinterCheckJobs(
-    pappl_printer_t *printer)		// I - Printer
+    pappl_printer_t *printer)   // I - Printer
 {
-  pappl_job_t	*job;			// Current job
+  pappl_job_t *job;     // Current job
 
 
   papplLogPrinter(printer, PAPPL_LOGLEVEL_DEBUG, "Checking for new jobs to process.");
@@ -773,23 +770,25 @@ _papplPrinterCheckJobs(
 
     if (job->state == IPP_JSTATE_PENDING)
     {
-      pthread_t	t;			// Thread
+      pthread_t t;      // Thread
 
       papplLogPrinter(printer, PAPPL_LOGLEVEL_DEBUG, "Starting job %d.", job->job_id);
 
       if (pthread_create(&t, NULL, (void *(*)(void *))_papplJobProcess, job))
       {
-	job->state     = IPP_JSTATE_ABORTED;
-	job->completed = time(NULL);
+        job->state     = IPP_JSTATE_ABORTED;
+        job->completed = time(NULL);
 
-	cupsArrayRemove(printer->active_jobs, job);
-	cupsArrayAdd(printer->completed_jobs, job);
+        cupsArrayRemove(printer->active_jobs, job);
+        cupsArrayAdd(printer->completed_jobs, job);
 
-	if (!printer->system->clean_time)
-	  printer->system->clean_time = time(NULL) + 60;
+        if (!printer->system->clean_time)
+          printer->system->clean_time = time(NULL) + 60;
       }
       else
-	pthread_detach(t);
+      {
+        pthread_detach(t);
+      }
       break;
     }
   }
@@ -807,11 +806,11 @@ _papplPrinterCheckJobs(
 
 void
 _papplPrinterCleanJobsNoLock(
-    pappl_printer_t *printer)		// I - Printer
+    pappl_printer_t *printer)   // I - Printer
 {
-  time_t	cleantime;		// Clean time
-  pappl_job_t	*job;			// Current job
-  int		preserved;		// Number of preserved jobs
+  time_t      cleantime;    // Clean time
+  pappl_job_t *job;         // Current job
+  int         preserved;    // Number of preserved jobs
 
 
   if (cupsArrayGetCount(printer->completed_jobs) == 0 || (printer->max_preserved_jobs == 0 && printer->max_completed_jobs <= 0))
@@ -830,13 +829,15 @@ _papplPrinterCleanJobsNoLock(
     {
       if (job->filename)
       {
-	preserved ++;
-	if (preserved > printer->max_preserved_jobs)
-	  _papplJobRemoveFile(job);
+        preserved ++;
+        if (preserved > printer->max_preserved_jobs)
+          _papplJobRemoveFile(job);
       }
     }
     else
+    {
       break;
+    }
   }
 }
 
@@ -847,13 +848,13 @@ _papplPrinterCleanJobsNoLock(
 // This function finds a job submitted to a printer using its integer ID value.
 //
 
-pappl_job_t *				// O - Job or `NULL` if not found
+pappl_job_t *       // O - Job or `NULL` if not found
 papplPrinterFindJob(
-    pappl_printer_t *printer,		// I - Printer
-    int             job_id)		// I - Job ID
+    pappl_printer_t *printer,   // I - Printer
+    int             job_id)     // I - Job ID
 {
-  pappl_job_t		key,		// Job search key
-			*job;		// Matching job, if any
+  pappl_job_t key,    // Job search key
+              *job;   // Matching job, if any
 
 
   key.job_id = job_id;
@@ -879,11 +880,11 @@ papplPrinterFindJob(
 
 void
 papplSystemCleanJobs(
-    pappl_system_t *system)		// I - System
+    pappl_system_t *system)   // I - System
 {
-  cups_len_t		i,		// Looping var
-			count;		// Number of printers
-  pappl_printer_t	*printer;	// Current printer
+  cups_len_t      i,        // Looping var
+                  count;    // Number of printers
+  pappl_printer_t *printer; // Current printer
 
 
   _papplRWLockRead(system);
