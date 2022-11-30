@@ -44,6 +44,7 @@ struct _pappl_job_s			// Job data
   int			          fd;			        // Print file descriptor
   bool			        streaming;		  // Streaming job?
   void			        *data;			    // Per-job driver data
+  bool              stored;         // Stored Job?
 };
 
 
