@@ -21,29 +21,29 @@
 
 struct _pappl_job_s			// Job data
 {
-  pthread_rwlock_t	rwlock;			// Reader/writer lock
-  pappl_system_t	*system;		// Containing system
-  pappl_printer_t	*printer;		// Containing printer
-  int			job_id;			// "job-id" value
-  const char		*name,			// "job-name" value
-			*username,		// "job-originating-user-name" value
-			*format;		// "document-format" value
-  ipp_jstate_t		state;			// "job-state" value
-  pappl_jreason_t	state_reasons;		// "job-state-reasons" values
-  bool			is_canceled;		// Has this job been canceled?
-  char			*message;		// "job-state-message" value
-  pappl_loglevel_t	msglevel;		// "job-state-message" log level
-  time_t		created,		// "[date-]time-at-creation" value
-			processing,		// "[date-]time-at-processing" value
-			completed,		// "[date-]time-at-completed" value
-			hold_until;		// "job-hold-until[-time]" value
-  int			impressions,		// "job-impressions" value
-			impcompleted;		// "job-impressions-completed" value
-  ipp_t			*attrs;			// Static attributes
-  char			*filename;		// Print file name
-  int			fd;			// Print file descriptor
-  bool			streaming;		// Streaming job?
-  void			*data;			// Per-job driver data
+  pthread_rwlock_t	rwlock;			    // Reader/writer lock
+  pappl_system_t	  *system;		    // Containing system
+  pappl_printer_t	  *printer;		    // Containing printer
+  int			          job_id;			    // "job-id" value
+  const char		    *name,			    // "job-name" value
+                    *username,      // "job-originating-user-name" value
+                    *format;		    // "document-format" value
+  ipp_jstate_t		  state;			    // "job-state" value
+  pappl_jreason_t	  state_reasons;  // "job-state-reasons" values
+  bool			        is_canceled;		// Has this job been canceled?
+  char			        *message;		    // "job-state-message" value
+  pappl_loglevel_t	msglevel;		    // "job-state-message" log level
+  time_t		        created,		    // "[date-]time-at-creation" value
+                    processing,		  // "[date-]time-at-processing" value
+                    completed,		  // "[date-]time-at-completed" value
+                    hold_until;		  // "job-hold-until[-time]" value
+  int			          impressions,		// "job-impressions" value
+                    impcompleted;		// "job-impressions-completed" value
+  ipp_t			        *attrs;			    // Static attributes
+  char			        *filename;		  // Print file name
+  int			          fd;			        // Print file descriptor
+  bool			        streaming;		  // Streaming job?
+  void			        *data;			    // Per-job driver data
 };
 
 
