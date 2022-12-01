@@ -19,11 +19,11 @@
 // Local type...
 //
 
-typedef struct _pappl_attr_s		// Input attribute structure
+typedef struct _pappl_attr_s    // Input attribute structure
 {
-  const char	*name;			// Attribute name
-  ipp_tag_t	value_tag;		// Value tag
-  cups_len_t	max_count;		// Max number of values
+  const char  *name;      // Attribute name
+  ipp_tag_t value_tag;    // Value tag
+  cups_len_t  max_count;    // Max number of values
 } _pappl_attr_t;
 
 
@@ -31,25 +31,25 @@ typedef struct _pappl_attr_s		// Input attribute structure
 // Local functions...
 //
 
-static pappl_job_t	*create_job(pappl_client_t *client);
+static pappl_job_t  *create_job(pappl_client_t *client);
 
-static void		ipp_cancel_current_job(pappl_client_t *client);
-static void		ipp_cancel_jobs(pappl_client_t *client);
-static void		ipp_create_job(pappl_client_t *client);
-static void		ipp_disable_printer(pappl_client_t *client);
-static void		ipp_enable_printer(pappl_client_t *client);
-static void		ipp_get_jobs(pappl_client_t *client);
-static void		ipp_get_printer_attributes(pappl_client_t *client);
-static void		ipp_hold_new_jobs(pappl_client_t *client);
-static void		ipp_identify_printer(pappl_client_t *client);
-static void		ipp_pause_printer(pappl_client_t *client);
-static void		ipp_print_job(pappl_client_t *client);
-static void		ipp_release_held_new_jobs(pappl_client_t *client);
-static void		ipp_resume_printer(pappl_client_t *client);
-static void		ipp_set_printer_attributes(pappl_client_t *client);
-static void		ipp_validate_job(pappl_client_t *client);
+static void   ipp_cancel_current_job(pappl_client_t *client);
+static void   ipp_cancel_jobs(pappl_client_t *client);
+static void   ipp_create_job(pappl_client_t *client);
+static void   ipp_disable_printer(pappl_client_t *client);
+static void   ipp_enable_printer(pappl_client_t *client);
+static void   ipp_get_jobs(pappl_client_t *client);
+static void   ipp_get_printer_attributes(pappl_client_t *client);
+static void   ipp_hold_new_jobs(pappl_client_t *client);
+static void   ipp_identify_printer(pappl_client_t *client);
+static void   ipp_pause_printer(pappl_client_t *client);
+static void   ipp_print_job(pappl_client_t *client);
+static void   ipp_release_held_new_jobs(pappl_client_t *client);
+static void   ipp_resume_printer(pappl_client_t *client);
+static void   ipp_set_printer_attributes(pappl_client_t *client);
+static void   ipp_validate_job(pappl_client_t *client);
 
-static bool		valid_job_attributes(pappl_client_t *client);
+static bool   valid_job_attributes(pappl_client_t *client);
 
 
 //
@@ -58,20 +58,20 @@ static bool		valid_job_attributes(pappl_client_t *client);
 
 void
 _papplPrinterCopyAttributes(
-    pappl_printer_t *printer,		// I - Printer
-    pappl_client_t  *client,		// I - Client
-    cups_array_t    *ra,		// I - Requested attributes
-    const char      *format)		// I - "document-format" value, if any
+    pappl_printer_t *printer,   // I - Printer
+    pappl_client_t  *client,    // I - Client
+    cups_array_t    *ra,        // I - Requested attributes
+    const char      *format)    // I - "document-format" value, if any
 {
-  cups_len_t	i,			// Looping var
-		num_values;		// Number of values
-  unsigned	bit;			// Current bit value
-  const char	*svalues[100];		// String values
-  int		ivalues[100];		// Integer values
-  pappl_pr_driver_data_t *data = &printer->driver_data;
-					// Driver data
-  const char	*webscheme = (httpAddrIsLocalhost(httpGetAddress(client->http)) || !papplSystemGetTLSOnly(client->system)) ? "http" : "https";
-					// URL scheme for resources
+  cups_len_t              i,                              // Looping var
+                          num_values;                     // Number of values
+  unsigned                bit;                            // Current bit value
+  const char              *svalues[100];                  // String values
+  int                     ivalues[100];                   // Integer values
+  pappl_pr_driver_data_t  *data = &printer->driver_data;  // Driver data
+  const char  *webscheme =                                // URL scheme for resources
+          (httpAddrIsLocalhost(httpGetAddress(client->http)) || !papplSystemGetTLSOnly(client->system)) ? "http" : "https";
+          
 
 
   _papplCopyAttributes(client->response, printer->attrs, ra, IPP_TAG_ZERO, IPP_TAG_CUPS_CONST);
@@ -93,7 +93,7 @@ _papplPrinterCopyAttributes(
     for (num_values = 0, bit = PAPPL_IDENTIFY_ACTIONS_DISPLAY; bit <= PAPPL_IDENTIFY_ACTIONS_SPEAK; bit *= 2)
     {
       if (data->identify_default & bit)
-	svalues[num_values ++] = _papplIdentifyActionsString(bit);
+        svalues[num_values ++] = _papplIdentifyActionsString(bit);
     }
 
     if (num_values > 0)
@@ -122,8 +122,7 @@ _papplPrinterCopyAttributes(
 
   if (printer->num_supply > 0)
   {
-    pappl_supply_t *supply = printer->supply;
-					// Supply values...
+    pappl_supply_t *supply = printer->supply;  // Supply values...
 
     if (!ra || cupsArrayFind(ra, "marker-colors"))
     {
@@ -176,8 +175,7 @@ _papplPrinterCopyAttributes(
 
   if ((!ra || cupsArrayFind(ra, "media-col-default")) && data->media_default.size_name[0])
   {
-    ipp_t *col = _papplMediaColExport(&printer->driver_data, &data->media_default, 0);
-					// Collection value
+    ipp_t *col = _papplMediaColExport(&printer->driver_data, &data->media_default, 0);  // Collection value
 
     ippAddCollection(client->response, IPP_TAG_PRINTER, "media-col-default", col);
     ippDelete(col);
@@ -185,11 +183,11 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "media-col-ready"))
   {
-    cups_len_t		j,		// Looping var
-			count;		// Number of values
-    ipp_t		*col;		// Collection value
-    ipp_attribute_t	*attr;		// media-col-ready attribute
-    pappl_media_col_t	media;		// Current media...
+    cups_len_t        j,      // Looping var
+                      count;  // Number of values
+    ipp_t             *col;   // Collection value
+    ipp_attribute_t   *attr;  // media-col-ready attribute
+    pappl_media_col_t media;  // Current media...
 
     for (i = 0, count = 0; i < (cups_len_t)printer->num_ready; i ++)
     {
@@ -198,7 +196,7 @@ _papplPrinterCopyAttributes(
     }
 
     if (data->borderless && (data->bottom_top != 0 || data->left_right != 0))
-      count *= 2;			// Need to report ready media for borderless, too...
+      count *= 2;     // Need to report ready media for borderless, too...
 
     if (count > 0)
     {
@@ -206,33 +204,33 @@ _papplPrinterCopyAttributes(
 
       for (i = 0, j = 0; i < (cups_len_t)printer->num_ready && j < count; i ++)
       {
-	if (data->media_ready[i].size_name[0])
-	{
+        if (data->media_ready[i].size_name[0])
+        {
           if (data->borderless && (data->bottom_top != 0 || data->left_right != 0))
-	  {
-	    // Report both bordered and borderless media-col values...
-	    media = data->media_ready[i];
+          {
+            // Report both bordered and borderless media-col values...
+            media = data->media_ready[i];
 
-	    media.bottom_margin = media.top_margin   = data->bottom_top;
-	    media.left_margin   = media.right_margin = data->left_right;
-	    col = _papplMediaColExport(&printer->driver_data, &media, 0);
-	    ippSetCollection(client->response, &attr, IPP_NUM_CAST j ++, col);
-	    ippDelete(col);
+            media.bottom_margin = media.top_margin   = data->bottom_top;
+            media.left_margin   = media.right_margin = data->left_right;
+            col = _papplMediaColExport(&printer->driver_data, &media, 0);
+            ippSetCollection(client->response, &attr, IPP_NUM_CAST j ++, col);
+            ippDelete(col);
 
-	    media.bottom_margin = media.top_margin   = 0;
-	    media.left_margin   = media.right_margin = 0;
-	    col = _papplMediaColExport(&printer->driver_data, &media, 0);
-	    ippSetCollection(client->response, &attr, IPP_NUM_CAST j ++, col);
-	    ippDelete(col);
-	  }
-	  else
-	  {
-	    // Just report the single media-col value...
-	    col = _papplMediaColExport(&printer->driver_data, data->media_ready + i, 0);
-	    ippSetCollection(client->response, &attr, IPP_NUM_CAST j ++, col);
-	    ippDelete(col);
-	  }
-	}
+            media.bottom_margin = media.top_margin   = 0;
+            media.left_margin   = media.right_margin = 0;
+            col = _papplMediaColExport(&printer->driver_data, &media, 0);
+            ippSetCollection(client->response, &attr, IPP_NUM_CAST j ++, col);
+            ippDelete(col);
+          }
+          else
+          {
+            // Just report the single media-col value...
+            col = _papplMediaColExport(&printer->driver_data, data->media_ready + i, 0);
+            ippSetCollection(client->response, &attr, IPP_NUM_CAST j ++, col);
+            ippDelete(col);
+          }
+        }
       }
     }
   }
@@ -242,9 +240,9 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "media-ready"))
   {
-    cups_len_t		j,		// Looping vars
-			count;		// Number of values
-    ipp_attribute_t	*attr;		// media-col-ready attribute
+    cups_len_t      j,        // Looping vars
+                    count;    // Number of values
+    ipp_attribute_t *attr;    // media-col-ready attribute
 
     for (i = 0, count = 0; i < (cups_len_t)printer->num_ready; i ++)
     {
@@ -258,8 +256,8 @@ _papplPrinterCopyAttributes(
 
       for (i = 0, j = 0; i < (cups_len_t)printer->num_ready && j < count; i ++)
       {
-	if (data->media_ready[i].size_name[0])
-	  ippSetString(client->response, &attr, IPP_NUM_CAST j ++, data->media_ready[i].size_name);
+        if (data->media_ready[i].size_name[0])
+          ippSetString(client->response, &attr, IPP_NUM_CAST j ++, data->media_ready[i].size_name);
       }
     }
   }
@@ -351,8 +349,8 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "printer-icons"))
   {
-    char	uris[3][1024];		// Buffers for URIs
-    const char	*values[3];		// Values for attribute
+    char        uris[3][1024];  // Buffers for URIs
+    const char  *values[3];     // Values for attribute
 
     httpAssembleURIf(HTTP_URI_CODING_ALL, uris[0], sizeof(uris[0]), webscheme, NULL, client->host_field, client->host_port, "%s/icon-sm.png", printer->uriname);
     httpAssembleURIf(HTTP_URI_CODING_ALL, uris[1], sizeof(uris[1]), webscheme, NULL, client->host_field, client->host_port, "%s/icon-md.png", printer->uriname);
@@ -370,13 +368,13 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "printer-input-tray"))
   {
-    ipp_attribute_t	*attr = NULL;	// "printer-input-tray" attribute
-    char		value[256];	// Value for current tray
-    pappl_media_col_t	*media;		// Media in the tray
+    ipp_attribute_t   *attr = NULL; // "printer-input-tray" attribute
+    char              value[256];   // Value for current tray
+    pappl_media_col_t *media;       // Media in the tray
 
     for (i = 0, media = data->media_ready; i < (cups_len_t)data->num_source; i ++, media ++)
     {
-      const char	*type;		// Tray type
+      const char  *type;    // Tray type
 
       if (!strcmp(data->source[i], "manual"))
         type = "sheetFeedManual";
@@ -403,7 +401,7 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "printer-more-info"))
   {
-    char	uri[1024];		// URI value
+    char  uri[1024];    // URI value
 
     httpAssembleURIf(HTTP_URI_CODING_ALL, uri, sizeof(uri), webscheme, NULL, client->host_field, client->host_port, "%s/", printer->uriname);
     ippAddString(client->response, IPP_TAG_PRINTER, IPP_TAG_URI, "printer-more-info", NULL, uri);
@@ -442,8 +440,8 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "printer-strings-languages-supported"))
   {
-    _pappl_resource_t	*r;		// Current resource
-    cups_len_t		rcount;		// Number of resources
+    _pappl_resource_t *r;   // Current resource
+    cups_len_t    rcount;   // Number of resources
 
     pthread_rwlock_rdlock(&printer->system->rwlock);
 
@@ -464,12 +462,13 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "printer-strings-uri"))
   {
-    const char	*lang = ippGetString(ippFindAttribute(client->request, "attributes-natural-language", IPP_TAG_LANGUAGE), 0, NULL);
-					// Language
-    char	baselang[3],		// Base language
-		uri[1024];		// Strings file URI
-    _pappl_resource_t	*r;		// Current resource
-    cups_len_t	rcount;			// Number of resources
+    const char        *lang =       // Language
+        ippGetString(ippFindAttribute(client->request, "attributes-natural-language", IPP_TAG_LANGUAGE), 0, NULL);
+          
+    char              baselang[3],  // Base language
+                      uri[1024];    // Strings file URI
+    _pappl_resource_t *r;           // Current resource
+    cups_len_t        rcount;       // Number of resources
 
     papplCopyString(baselang, lang, sizeof(baselang));
 
@@ -494,22 +493,21 @@ _papplPrinterCopyAttributes(
 
   if (printer->num_supply > 0)
   {
-    pappl_supply_t	 *supply = printer->supply;
-					// Supply values...
+    pappl_supply_t   *supply = printer->supply;  // Supply values...
 
     if (!ra || cupsArrayFind(ra, "printer-supply"))
     {
-      char		value[256];	// "printer-supply" value
-      ipp_attribute_t	*attr = NULL;	// "printer-supply" attribute
+      char            value[256];   // "printer-supply" value
+      ipp_attribute_t *attr = NULL; // "printer-supply" attribute
 
       for (i = 0; i < (cups_len_t)printer->num_supply; i ++)
       {
-	snprintf(value, sizeof(value), "index=%u;type=%s;maxcapacity=100;level=%d;colorantname=%s;", (unsigned)i, _papplSupplyTypeString(supply[i].type), supply[i].level, _papplSupplyColorString(supply[i].color));
+        snprintf(value, sizeof(value), "index=%u;type=%s;maxcapacity=100;level=%d;colorantname=%s;", (unsigned)i, _papplSupplyTypeString(supply[i].type), supply[i].level, _papplSupplyColorString(supply[i].color));
 
-	if (attr)
-	  ippSetOctetString(client->response, &attr, ippGetCount(attr), value, IPP_NUM_CAST strlen(value));
-	else
-	  attr = ippAddOctetString(client->response, IPP_TAG_PRINTER, "printer-supply", value, IPP_NUM_CAST strlen(value));
+        if (attr)
+          ippSetOctetString(client->response, &attr, ippGetCount(attr), value, IPP_NUM_CAST strlen(value));
+        else
+          attr = ippAddOctetString(client->response, IPP_TAG_PRINTER, "printer-supply", value, IPP_NUM_CAST strlen(value));
       }
     }
 
@@ -524,7 +522,7 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "printer-supply-info-uri"))
   {
-    char	uri[1024];		// URI value
+    char  uri[1024];    // URI value
 
     httpAssembleURIf(HTTP_URI_CODING_ALL, uri, sizeof(uri), webscheme, NULL, client->host_field, client->host_port, "%s/supplies", printer->uriname);
     ippAddString(client->response, IPP_TAG_PRINTER, IPP_TAG_URI, "printer-supply-info-uri", NULL, uri);
@@ -535,8 +533,8 @@ _papplPrinterCopyAttributes(
 
   if (!ra || cupsArrayFind(ra, "printer-uri-supported"))
   {
-    char	uris[2][1024];		// Buffers for URIs
-    const char	*values[2];		// Values for attribute
+    char        uris[2][1024];  // Buffers for URIs
+    const char  *values[2];     // Values for attribute
 
     num_values = 0;
 
@@ -561,7 +559,7 @@ _papplPrinterCopyAttributes(
   if (client->system->wifi_status_cb && httpAddrIsLocalhost(httpGetAddress(client->http)) && (!ra || cupsArrayFind(ra, "printer-wifi-ssid") || cupsArrayFind(ra, "printer-wifi-state")))
   {
     // Get Wi-Fi status...
-    pappl_wifi_t	wifi;		// Wi-Fi status
+    pappl_wifi_t  wifi;   // Wi-Fi status
 
     if ((client->system->wifi_status_cb)(client->system, client->system->wifi_cbdata, &wifi))
     {
@@ -617,9 +615,9 @@ _papplPrinterCopyAttributes(
     else if (papplSystemGetAuthService(client->system))
     {
       static const char * const uri_authentication_basic[] =
-      {					// uri-authentication-supported values
-	"none",
-	"basic"
+      {         // uri-authentication-supported values
+        "none",
+        "basic"
       };
 
       ippAddStrings(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "uri-authentication-supported", 2, NULL, uri_authentication_basic);
@@ -627,9 +625,9 @@ _papplPrinterCopyAttributes(
     else
     {
       static const char * const uri_authentication_none[] =
-      {					// uri-authentication-supported values
-	"none",
-	"none"
+      {         // uri-authentication-supported values
+        "none",
+        "none"
       };
 
       ippAddStrings(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "uri-authentication-supported", 2, NULL, uri_authentication_none);
@@ -644,11 +642,11 @@ _papplPrinterCopyAttributes(
 
 void
 _papplPrinterCopyState(
-    pappl_printer_t *printer,		// I - Printer
-    ipp_tag_t       group_tag,		// I - Group tag
-    ipp_t           *ipp,		// I - IPP message
-    pappl_client_t  *client,		// I - Client connection
-    cups_array_t    *ra)		// I - Requested attributes
+    pappl_printer_t *printer,   // I - Printer
+    ipp_tag_t       group_tag,  // I - Group tag
+    ipp_t           *ipp,       // I - IPP message
+    pappl_client_t  *client,    // I - Client connection
+    cups_array_t    *ra)        // I - Requested attributes
 {
   if (!ra || cupsArrayFind(ra, "printer-is-accepting-jobs"))
     ippAddBoolean(ipp, group_tag, "printer-is-accepting-jobs", printer->is_accepting);
@@ -665,13 +663,12 @@ _papplPrinterCopyState(
 
   if (!ra || cupsArrayFind(ra, "printer-state-reasons"))
   {
-    ipp_attribute_t	*attr = NULL;	// printer-state-reasons
-    bool		wifi_not_configured = false;
-					// Need the 'wifi-not-configured' reason?
+    ipp_attribute_t *attr = NULL;                 // printer-state-reasons
+    bool            wifi_not_configured = false;  // TODO: Need the 'wifi-not-configured' reason?
 
     if (client && client->system->wifi_status_cb && httpAddrIsLocalhost(httpGetAddress(client->http)))
     {
-      pappl_wifi_t	wifi;		// Wi-Fi status
+      pappl_wifi_t  wifi;   // Wi-Fi status
 
       if ((client->system->wifi_status_cb)(client->system, client->system->wifi_cbdata, &wifi))
       {
@@ -683,15 +680,15 @@ _papplPrinterCopyState(
     if (printer->state_reasons == PAPPL_PREASON_NONE)
     {
       if (printer->is_stopped)
-	attr = ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-state-reasons", NULL, "moving-to-paused");
+        attr = ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-state-reasons", NULL, "moving-to-paused");
       else if (printer->state == IPP_PSTATE_STOPPED)
-	attr = ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-state-reasons", NULL, "paused");
+        attr = ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-state-reasons", NULL, "paused");
 
       if (printer->hold_new_jobs)
       {
         if (attr)
           ippSetString(ipp, &attr, ippGetCount(attr), "hold-new-jobs");
-	else
+        else
           attr = ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-state-reasons", NULL, "hold-new-jobs");
       }
 
@@ -699,37 +696,37 @@ _papplPrinterCopyState(
       {
         if (attr)
           ippSetString(ipp, &attr, ippGetCount(attr), "wifi-not-configured-report");
-	else
+        else
           attr = ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-state-reasons", NULL, "wifi-not-configured-report");
       }
       else if (!attr)
-	ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-state-reasons", NULL, "none");
+        ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-state-reasons", NULL, "none");
     }
     else
     {
-      pappl_preason_t	bit;			// Reason bit
+      pappl_preason_t bit;      // Reason bit
 
       for (bit = PAPPL_PREASON_OTHER; bit <= PAPPL_PREASON_TONER_LOW; bit *= 2)
       {
         if (printer->state_reasons & bit)
-	{
-	  if (attr)
-	    ippSetString(ipp, &attr, ippGetCount(attr), _papplPrinterReasonString(bit));
-	  else
-	    attr = ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-state-reasons", NULL, _papplPrinterReasonString(bit));
-	}
+        {
+          if (attr)
+            ippSetString(ipp, &attr, ippGetCount(attr), _papplPrinterReasonString(bit));
+          else
+            attr = ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "printer-state-reasons", NULL, _papplPrinterReasonString(bit));
+        }
       }
 
       if (printer->is_stopped)
-	ippSetString(ipp, &attr, ippGetCount(attr), "moving-to-paused");
+        ippSetString(ipp, &attr, ippGetCount(attr), "moving-to-paused");
       else if (printer->state == IPP_PSTATE_STOPPED)
-	ippSetString(ipp, &attr, ippGetCount(attr), "paused");
+        ippSetString(ipp, &attr, ippGetCount(attr), "paused");
 
       if (printer->hold_new_jobs)
-	ippSetString(ipp, &attr, ippGetCount(attr), "hold-new-jobs");
+        ippSetString(ipp, &attr, ippGetCount(attr), "hold-new-jobs");
 
       if (wifi_not_configured)
-	ippSetString(ipp, &attr, ippGetCount(attr), "wifi-not-configured-report");
+        ippSetString(ipp, &attr, ippGetCount(attr), "wifi-not-configured-report");
     }
   }
 }
@@ -741,15 +738,15 @@ _papplPrinterCopyState(
 
 void
 _papplPrinterCopyXRI(
-    pappl_printer_t *printer,		// I - Printer
-    ipp_t           *ipp,		// I - IPP message
-    pappl_client_t  *client)		// I - Client
+    pappl_printer_t *printer,   // I - Printer
+    ipp_t           *ipp,       // I - IPP message
+    pappl_client_t  *client)    // I - Client
 {
-  char	uri[1024];			// URI value
-  int	i,				// Looping var
-	num_values = 0;			// Number of values
-  ipp_t	*col,				// Current collection value
-	*values[2];			// Values for attribute
+  char  uri[1024];      // URI value
+  int   i,              // Looping var
+        num_values = 0; // Number of values
+  ipp_t *col,           // Current collection value
+        *values[2];     // Values for attribute
 
 
   if (httpAddrIsLocalhost(httpGetAddress(client->http)) || !papplSystemGetTLSOnly(client->system))
@@ -790,9 +787,9 @@ _papplPrinterCopyXRI(
 // '_papplPrinterIsAuthorized()' - Authorize access to a printer.
 //
 
-bool					// O - `true` on success, `false` on failure
+bool          // O - `true` on success, `false` on failure
 _papplPrinterIsAuthorized(
-    pappl_client_t  *client)		// I - Client
+    pappl_client_t  *client)    // I - Client
 {
   http_status_t code = _papplClientIsAuthorizedForGroup(client, true, client->printer->print_group, client->printer->print_gid);
 
@@ -816,7 +813,7 @@ _papplPrinterIsAuthorized(
 
 void
 _papplPrinterProcessIPP(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
   if (!client->printer)
   {
@@ -827,52 +824,52 @@ _papplPrinterProcessIPP(
   switch (ippGetOperation(client->request))
   {
     case IPP_OP_PRINT_JOB :
-	ipp_print_job(client);
-	break;
+        ipp_print_job(client);
+        break;
 
     case IPP_OP_VALIDATE_JOB :
-	ipp_validate_job(client);
-	break;
+        ipp_validate_job(client);
+        break;
 
     case IPP_OP_CREATE_JOB :
-	ipp_create_job(client);
-	break;
+        ipp_create_job(client);
+        break;
 
     case IPP_OP_CANCEL_CURRENT_JOB :
-	ipp_cancel_current_job(client);
-	break;
+        ipp_cancel_current_job(client);
+        break;
 
     case IPP_OP_CANCEL_JOBS :
     case IPP_OP_CANCEL_MY_JOBS :
-	ipp_cancel_jobs(client);
-	break;
+        ipp_cancel_jobs(client);
+        break;
 
     case IPP_OP_GET_JOBS :
-	ipp_get_jobs(client);
-	break;
+        ipp_get_jobs(client);
+        break;
 
     case IPP_OP_GET_PRINTER_ATTRIBUTES :
     case IPP_OP_GET_PRINTER_SUPPORTED_VALUES :
     case IPP_OP_CUPS_GET_DEFAULT :
-	ipp_get_printer_attributes(client);
-	break;
+        ipp_get_printer_attributes(client);
+        break;
 
     case IPP_OP_SET_PRINTER_ATTRIBUTES :
-	ipp_set_printer_attributes(client);
-	break;
+        ipp_set_printer_attributes(client);
+        break;
 
     case IPP_OP_IDENTIFY_PRINTER :
-	ipp_identify_printer(client);
-	break;
+        ipp_identify_printer(client);
+        break;
 
     case IPP_OP_PAUSE_PRINTER :
     case IPP_OP_PAUSE_PRINTER_AFTER_CURRENT_JOB :
-	ipp_pause_printer(client);
-	break;
+        ipp_pause_printer(client);
+        break;
 
     case IPP_OP_RESUME_PRINTER :
-	ipp_resume_printer(client);
-	break;
+        ipp_resume_printer(client);
+        break;
 
     case IPP_OP_ENABLE_PRINTER :
         ipp_enable_printer(client);
@@ -919,8 +916,8 @@ _papplPrinterProcessIPP(
         if (client->system->op_cb && (client->system->op_cb)(client, client->system->op_cbdata))
           break;
 
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_OPERATION_NOT_SUPPORTED, "Operation not supported.");
-	break;
+        papplClientRespondIPP(client, IPP_STATUS_ERROR_OPERATION_NOT_SUPPORTED, "Operation not supported.");
+        break;
   }
 }
 
@@ -929,69 +926,60 @@ _papplPrinterProcessIPP(
 // '_papplPrinterSetAttributes()' - Set printer attributes.
 //
 
-bool					// O - `true` if OK, `false` otherwise
+bool          // O - `true` if OK, `false` otherwise
 _papplPrinterSetAttributes(
-    pappl_client_t  *client,		// I - Client
-    pappl_printer_t *printer)		// I - Printer
+    pappl_client_t  *client,    // I - Client
+    pappl_printer_t *printer)   // I - Printer
 {
-  int			create_printer;	// Create-Printer request?
-  ipp_attribute_t	*rattr;		// Current request attribute
-  ipp_tag_t		value_tag;	// Value tag
-  cups_len_t		count;		// Number of values
-  const char		*name;		// Attribute name
-  char			defname[128],	// xxx-default name
-			value[1024];	// xxx-default value
-  cups_len_t		i, j;		// Looping vars
-  pwg_media_t		*pwg;		// PWG media size data
-  pappl_pr_driver_data_t driver_data;	// Printer driver data
-  bool			do_defaults = false,
-					// Update defaults?
-			do_ready = false;
-					// Update ready media?
-  cups_len_t		num_vendor = 0;	// Number of vendor defaults
-  cups_option_t		*vendor = NULL;	// Vendor defaults
-  pappl_contact_t	contact;	// printer-contact value
-  bool			do_contact = false;
-  pappl_contact_t service_contact;            // printer-service-contact-col value (EPX)
-  bool            do_service_contact = false; // Update service contact?
-					// Update contact?
-  const char		*geo_location = NULL,
-					// printer-geo-location value
-			*location = NULL,
-					// printer-location value
-			*organization = NULL,
-					// printer-organization value
-			*org_unit = NULL;
-					// printer-organizational-unit value
-  char			wifi_ssid[256] = "",
-					// printer-wifi-ssid value
-			wifi_password[256] = "";
-					// printer-wifi-password value
-  bool			do_wifi = false;// Join a Wi-Fi network?
-  static _pappl_attr_t	pattrs[] =	// Settable printer attributes
+  int                     create_printer;             // Create-Printer request?
+  ipp_attribute_t         *rattr;                     // Current request attribute
+  ipp_tag_t               value_tag;                  // Value tag
+  cups_len_t              count;                      // Number of values
+  const char              *name;                      // Attribute name
+  char                    defname[128],               // xxx-default name
+                          value[1024];                // xxx-default value
+  cups_len_t              i, j;                       // Looping vars
+  pwg_media_t             *pwg;                       // PWG media size data
+  pappl_pr_driver_data_t  driver_data;                // Printer driver data
+  bool                    do_defaults = false,        // Update defaults?
+                          do_ready = false;           // Update ready media?
+  cups_len_t              num_vendor = 0;             // Number of vendor defaults
+  cups_option_t           *vendor = NULL;             // Vendor defaults
+  pappl_contact_t         contact;                    // printer-contact value
+  bool                    do_contact = false;         // Update contact?
+  pappl_contact_t         service_contact;            // printer-service-contact-col value (EPX)
+  bool                    do_service_contact = false; // Update service contact?
+  const char              *geo_location = NULL,       // printer-geo-location value
+                          *location = NULL,           // printer-location value
+                          *organization = NULL,       // printer-organization value
+                          *org_unit = NULL;           // printer-organizational-unit value
+  char                    wifi_ssid[256] = "",        // printer-wifi-ssid value
+                          wifi_password[256] = "";    // printer-wifi-password value
+  bool                    do_wifi = false;            // Join a Wi-Fi network?
+  static _pappl_attr_t    pattrs[] =                  // Settable printer attributes
   {
-    { "label-mode-configured",		IPP_TAG_KEYWORD,	1 },
-    { "label-tear-off-configured",	IPP_TAG_INTEGER,	1 },
-    { "media-col-default",		IPP_TAG_BEGIN_COLLECTION, 1 },
-    { "media-col-ready",		IPP_TAG_BEGIN_COLLECTION, PAPPL_MAX_SOURCE },
-    { "media-default",			IPP_TAG_KEYWORD,	1 },
-    { "media-ready",			IPP_TAG_KEYWORD,	PAPPL_MAX_SOURCE },
-    { "orientation-requested-default",	IPP_TAG_ENUM,		1 },
-    { "print-color-mode-default",	IPP_TAG_KEYWORD,	1 },
-    { "print-content-optimize-default",	IPP_TAG_KEYWORD,	1 },
-    { "print-darkness-default",		IPP_TAG_INTEGER,	1 },
-    { "print-quality-default",		IPP_TAG_ENUM,		1 },
-    { "print-speed-default",		IPP_TAG_INTEGER,	1 },
-    { "printer-contact-col",		IPP_TAG_BEGIN_COLLECTION, 1 },
-    { "printer-service-contact-col",		IPP_TAG_BEGIN_COLLECTION, 1 },
-    { "printer-darkness-configured",	IPP_TAG_INTEGER,	1 },
-    { "printer-geo-location",		IPP_TAG_URI,		1 },
-    { "printer-location",		IPP_TAG_TEXT,		1 },
-    { "printer-organization",		IPP_TAG_TEXT,		1 },
-    { "printer-organizational-unit",	IPP_TAG_TEXT,		1 },
-    { "printer-resolution-default",	IPP_TAG_RESOLUTION,	1 },
-    { "printer-wifi-password",		IPP_TAG_STRING,		1 },
-    { "printer-wifi-ssid",		IPP_TAG_NAME,		1 }
+    { "label-mode-configured",          IPP_TAG_KEYWORD,  1 },
+    { "label-tear-off-configured",      IPP_TAG_INTEGER,  1 },
+    { "media-col-default",              IPP_TAG_BEGIN_COLLECTION, 1 },
+    { "media-col-ready",                IPP_TAG_BEGIN_COLLECTION, PAPPL_MAX_SOURCE },
+    { "media-default",                  IPP_TAG_KEYWORD,  1 },
+    { "media-ready",                    IPP_TAG_KEYWORD,  PAPPL_MAX_SOURCE },
+    { "orientation-requested-default",  IPP_TAG_ENUM,   1 },
+    { "print-color-mode-default",       IPP_TAG_KEYWORD,  1 },
+    { "print-content-optimize-default", IPP_TAG_KEYWORD,  1 },
+    { "print-darkness-default",         IPP_TAG_INTEGER,  1 },
+    { "print-quality-default",          IPP_TAG_ENUM,   1 },
+    { "print-speed-default",            IPP_TAG_INTEGER,  1 },
+    { "printer-contact-col",            IPP_TAG_BEGIN_COLLECTION, 1 },
+    { "printer-service-contact-col",    IPP_TAG_BEGIN_COLLECTION, 1 },
+    { "printer-darkness-configured",    IPP_TAG_INTEGER,  1 },
+    { "printer-geo-location",           IPP_TAG_URI,    1 },
+    { "printer-location",               IPP_TAG_TEXT,   1 },
+    { "printer-organization",           IPP_TAG_TEXT,   1 },
+    { "printer-organizational-unit",    IPP_TAG_TEXT,   1 },
+    { "printer-resolution-default",     IPP_TAG_RESOLUTION, 1 },
+    { "printer-wifi-password",          IPP_TAG_STRING,   1 },
+    { "printer-wifi-ssid",              IPP_TAG_NAME,   1 }
   };
 
 
@@ -1045,7 +1033,7 @@ _papplPrinterSetAttributes(
           num_vendor = cupsAddOption(printer->driver_data.vendor[j], value, num_vendor, &vendor);
           do_defaults = true;
           break;
-	}
+        }
       }
 
       if (j >= (cups_len_t)printer->driver_data.num_vendor)
@@ -1108,9 +1096,9 @@ _papplPrinterSetAttributes(
         if ((pwg = pwgMediaForPWG(ippGetString(rattr, i, NULL))) != NULL)
         {
           papplCopyString(driver_data.media_ready[i].size_name, pwg->pwg, sizeof(driver_data.media_ready[i].size_name));
-	  driver_data.media_ready[i].size_width  = pwg->width;
-	  driver_data.media_ready[i].size_length = pwg->length;
-	}
+          driver_data.media_ready[i].size_width  = pwg->width;
+          driver_data.media_ready[i].size_length = pwg->length;
+        }
       }
 
       for (; i < PAPPL_MAX_SOURCE; i ++)
@@ -1169,7 +1157,7 @@ _papplPrinterSetAttributes(
     }
     else if (!strcmp(name, "printer-geo-location"))
     {
-      float geo_lat, geo_lon;		// Latitude and longitude
+      float geo_lat, geo_lon;   // Latitude and longitude
 
       geo_location = ippGetString(rattr, 0, NULL);
       if (sscanf(geo_location, "geo:%f,%f", &geo_lat, &geo_lon) != 2 || geo_lat < -90.0 || geo_lat > 90.0 || geo_lon < -180.0 || geo_lon > 180.0)
@@ -1189,7 +1177,7 @@ _papplPrinterSetAttributes(
     }
     else if (!strcmp(name, "printer-resolution-default"))
     {
-      ipp_res_t units;			// Resolution units
+      ipp_res_t units;      // Resolution units
 
       driver_data.x_default = ippGetResolution(rattr, 0, &driver_data.y_default, &units);
       do_defaults = true;
@@ -1201,14 +1189,14 @@ _papplPrinterSetAttributes(
     }
     else if (!strcmp(name, "printer-wifi-password"))
     {
-      void		*data;		// Password
-      cups_len_t	datalen;	// Length of password
+      void    *data;        // Password
+      cups_len_t  datalen;  // Length of password
 
       data = ippGetOctetString(rattr, 0, &datalen);
       if (datalen > ((int)sizeof(wifi_password) - 1))
       {
-	papplClientRespondIPPUnsupported(client, rattr);
-	continue;
+        papplClientRespondIPPUnsupported(client, rattr);
+        continue;
       }
 
       memcpy(wifi_password, data, datalen);
@@ -1283,13 +1271,13 @@ _papplPrinterSetAttributes(
 //                  request.
 //
 
-static pappl_job_t *			// O - Job
+static pappl_job_t *      // O - Job
 create_job(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  ipp_attribute_t	*attr;		// Job attribute
-  const char		*job_name,	// Job name
-			*username;	// Owner
+  ipp_attribute_t *attr;      // Job attribute
+  const char      *job_name,  // Job name
+                  *username;  // Owner
 
 
   // Get the requesting-user-name, document format, and name...
@@ -1315,9 +1303,9 @@ create_job(
 
 static void
 ipp_cancel_current_job(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  pappl_job_t	*job;			// Job information
+  pappl_job_t *job;     // Job information
 
 
   // Get the job...
@@ -1336,22 +1324,22 @@ ipp_cancel_current_job(
   switch (job->state)
   {
     case IPP_JSTATE_CANCELED :
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already canceled - can\'t cancel.", job->job_id);
+  papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already canceled - can\'t cancel.", job->job_id);
         break;
 
     case IPP_JSTATE_ABORTED :
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already aborted - can\'t cancel.", job->job_id);
+  papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already aborted - can\'t cancel.", job->job_id);
         break;
 
     case IPP_JSTATE_COMPLETED :
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already completed - can\'t cancel.", job->job_id);
+  papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already completed - can\'t cancel.", job->job_id);
         break;
 
     default :
         // Cancel the job...
         papplJobCancel(job);
 
-	papplClientRespondIPP(client, IPP_STATUS_OK, NULL);
+  papplClientRespondIPP(client, IPP_STATUS_OK, NULL);
         break;
   }
 }
@@ -1362,9 +1350,9 @@ ipp_cancel_current_job(
 //
 
 static void
-ipp_cancel_jobs(pappl_client_t *client)	// I - Client
+ipp_cancel_jobs(pappl_client_t *client) // I - Client
 {
-  http_status_t	auth_status;		// Authorization status
+  http_status_t auth_status;    // Authorization status
 
 
   // Verify the connection is authorized...
@@ -1386,10 +1374,10 @@ ipp_cancel_jobs(pappl_client_t *client)	// I - Client
 //
 
 static void
-ipp_create_job(pappl_client_t *client)	// I - Client
+ipp_create_job(pappl_client_t *client)  // I - Client
 {
-  pappl_job_t		*job;		// New job
-  cups_array_t		*ra;		// Attributes to send in response
+  pappl_job_t     *job;   // New job
+  cups_array_t    *ra;    // Attributes to send in response
 
 
   // Authorize access...
@@ -1443,7 +1431,7 @@ ipp_create_job(pappl_client_t *client)	// I - Client
 
 static void
 ipp_disable_printer(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
   // Authorize access...
   if (!_papplPrinterIsAuthorized(client))
@@ -1460,7 +1448,7 @@ ipp_disable_printer(
 
 static void
 ipp_enable_printer(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
   // Authorize access...
   if (!_papplPrinterIsAuthorized(client))
@@ -1476,20 +1464,19 @@ ipp_enable_printer(
 //
 
 static void
-ipp_get_jobs(pappl_client_t *client)	// I - Client
+ipp_get_jobs(pappl_client_t *client)  // I - Client
 {
-  ipp_attribute_t	*attr;		// Current attribute
-  const char		*which_jobs = NULL;
-					// which-jobs values
-  int			job_comparison;	// Job comparison
-  ipp_jstate_t		job_state;	// job-state value
-  cups_len_t		i,		// Looping var
-			limit,		// Maximum number of jobs to return
-			count;		// Number of jobs that match
-  const char		*username;	// Username
-  cups_array_t		*list;		// Jobs list
-  pappl_job_t		*job;		// Current job pointer
-  cups_array_t		*ra;		// Requested attributes array
+  ipp_attribute_t *attr;              // Current attribute
+  const char      *which_jobs = NULL; // which-jobs values
+  int             job_comparison;     // Job comparison
+  ipp_jstate_t    job_state;          // job-state value
+  cups_len_t      i,                  // Looping var
+                  limit,              // Maximum number of jobs to return
+                  count;              // Number of jobs that match
+  const char      *username;          // Username
+  cups_array_t    *list;              // Jobs list
+  pappl_job_t     *job;               // Current job pointer
+  cups_array_t    *ra;                // Requested attributes array
 
 
   // Authorize access...
@@ -1555,8 +1542,8 @@ ipp_get_jobs(pappl_client_t *client)	// I - Client
     {
       if ((attr = ippFindAttribute(client->request, "requesting-user-name", IPP_TAG_NAME)) == NULL)
       {
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_BAD_REQUEST, "Need \"requesting-user-name\" with \"my-jobs\".");
-	return;
+  papplClientRespondIPP(client, IPP_STATUS_ERROR_BAD_REQUEST, "Need \"requesting-user-name\" with \"my-jobs\".");
+  return;
       }
 
       username = ippGetString(attr, 0, NULL);
@@ -1603,11 +1590,11 @@ ipp_get_jobs(pappl_client_t *client)	// I - Client
 
 static void
 ipp_get_printer_attributes(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  cups_array_t		*ra;		// Requested attributes array
-  pappl_printer_t	*printer = client->printer;
-					// Printer
+  cups_array_t    *ra;    // Requested attributes array
+  pappl_printer_t *printer = client->printer;
+          // Printer
 
 
   if (!printer->device_in_use && !printer->processing_job && (time(NULL) - printer->status_time) > 1 && printer->driver_data.status_cb)
@@ -1638,9 +1625,9 @@ ipp_get_printer_attributes(
 
 static void
 ipp_hold_new_jobs(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  http_status_t	auth_status;		// Authorization status
+  http_status_t auth_status;    // Authorization status
 
 
   // Verify the connection is authorized...
@@ -1664,12 +1651,12 @@ ipp_hold_new_jobs(
 
 static void
 ipp_identify_printer(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  cups_len_t		i;		// Looping var
-  ipp_attribute_t	*attr;		// IPP attribute
-  pappl_identify_actions_t actions;	// "identify-actions" value
-  const char		*message;	// "message" value
+  cups_len_t    i;    // Looping var
+  ipp_attribute_t *attr;    // IPP attribute
+  pappl_identify_actions_t actions; // "identify-actions" value
+  const char    *message; // "message" value
 
 
   if (client->printer->driver_data.identify_cb)
@@ -1679,7 +1666,7 @@ ipp_identify_printer(
       actions = PAPPL_IDENTIFY_ACTIONS_NONE;
 
       for (i = 0; i < ippGetCount(attr); i ++)
-	actions |= _papplIdentifyActionsValue(ippGetString(attr, i, NULL));
+  actions |= _papplIdentifyActionsValue(ippGetString(attr, i, NULL));
     }
     else
       actions = client->printer->driver_data.identify_default;
@@ -1702,9 +1689,9 @@ ipp_identify_printer(
 
 static void
 ipp_pause_printer(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  http_status_t	auth_status;		// Authorization status
+  http_status_t auth_status;    // Authorization status
 
 
   // Verify the connection is authorized...
@@ -1724,9 +1711,9 @@ ipp_pause_printer(
 //
 
 static void
-ipp_print_job(pappl_client_t *client)	// I - Client
+ipp_print_job(pappl_client_t *client) // I - Client
 {
-  pappl_job_t		*job;		// New job
+  pappl_job_t   *job;   // New job
 
 
   // Authorize access...
@@ -1772,9 +1759,9 @@ ipp_print_job(pappl_client_t *client)	// I - Client
 
 static void
 ipp_release_held_new_jobs(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  http_status_t	auth_status;		// Authorization status
+  http_status_t auth_status;    // Authorization status
 
 
   // Verify the connection is authorized...
@@ -1798,9 +1785,9 @@ ipp_release_held_new_jobs(
 
 static void
 ipp_resume_printer(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  http_status_t	auth_status;		// Authorization status
+  http_status_t auth_status;    // Authorization status
 
 
   // Verify the connection is authorized...
@@ -1821,9 +1808,9 @@ ipp_resume_printer(
 
 static void
 ipp_set_printer_attributes(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  http_status_t	auth_status;		// Authorization status
+  http_status_t auth_status;    // Authorization status
 
 
   // Verify the connection is authorized...
@@ -1846,7 +1833,7 @@ ipp_set_printer_attributes(
 
 static void
 ipp_validate_job(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
   // Authorize access...
   if (!_papplPrinterIsAuthorized(client))
@@ -1864,15 +1851,15 @@ ipp_validate_job(
 // response and attributes to the unsupported group.
 //
 
-static bool				// O - `true` if valid, `false` if not
+static bool       // O - `true` if valid, `false` if not
 valid_job_attributes(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  cups_len_t		i,		// Looping var
-			count;		// Number of values
-  bool			valid = true;	// Valid attributes?
-  ipp_attribute_t	*attr,		// Current attribute
-			*supported;	// xxx-supported attribute
+  cups_len_t    i,            // Looping var
+                count;        // Number of values
+  bool          valid = true; // Valid attributes?
+  ipp_attribute_t *attr,      // Current attribute
+                  *supported; // xxx-supported attribute
 
 
   // If a shutdown is pending, do not accept more jobs...
@@ -1968,21 +1955,21 @@ valid_job_attributes(
 
       if (!ippContainsString(supported, ippGetString(attr, 0, NULL)))
       {
-	papplClientRespondIPPUnsupported(client, attr);
-	valid = false;
+        papplClientRespondIPPUnsupported(client, attr);
+        valid = false;
       }
     }
   }
 
   if ((attr = ippFindAttribute(client->request, "media-col", IPP_TAG_ZERO)) != NULL)
   {
-    ipp_t		*col,		// media-col collection
-			*size;		// media-size collection
-    ipp_attribute_t	*member,	// Member attribute
-			*x_dim,		// x-dimension
-			*y_dim;		// y-dimension
-    int			x_value,	// y-dimension value
-			y_value;	// x-dimension value
+    ipp_t           *col,     // media-col collection
+                    *size;    // media-size collection
+    ipp_attribute_t *member,  // Member attribute
+                    *x_dim,   // x-dimension
+                    *y_dim;   // y-dimension
+    int             x_value,  // y-dimension value
+                    y_value;  // x-dimension value
 
     if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_BEGIN_COLLECTION)
     {
@@ -1996,59 +1983,59 @@ valid_job_attributes(
     {
       if (ippGetCount(member) != 1 || (ippGetValueTag(member) != IPP_TAG_NAME && ippGetValueTag(member) != IPP_TAG_NAMELANG && ippGetValueTag(member) != IPP_TAG_KEYWORD))
       {
-	papplClientRespondIPPUnsupported(client, attr);
-	valid = false;
+        papplClientRespondIPPUnsupported(client, attr);
+        valid = false;
       }
       else
       {
-	supported = ippFindAttribute(client->printer->driver_attrs, "media-supported", IPP_TAG_KEYWORD);
+        supported = ippFindAttribute(client->printer->driver_attrs, "media-supported", IPP_TAG_KEYWORD);
 
-	if (!ippContainsString(supported, ippGetString(member, 0, NULL)))
-	{
-	  papplClientRespondIPPUnsupported(client, attr);
-	  valid = false;
-	}
+        if (!ippContainsString(supported, ippGetString(member, 0, NULL)))
+        {
+          papplClientRespondIPPUnsupported(client, attr);
+          valid = false;
+        }
       }
     }
     else if ((member = ippFindAttribute(col, "media-size", IPP_TAG_BEGIN_COLLECTION)) != NULL)
     {
       if (ippGetCount(member) != 1)
       {
-	papplClientRespondIPPUnsupported(client, attr);
-	valid = false;
+        papplClientRespondIPPUnsupported(client, attr);
+        valid = false;
       }
       else
       {
-	size = ippGetCollection(member, 0);
+        size = ippGetCollection(member, 0);
 
-	if ((x_dim = ippFindAttribute(size, "x-dimension", IPP_TAG_INTEGER)) == NULL || ippGetCount(x_dim) != 1 || (y_dim = ippFindAttribute(size, "y-dimension", IPP_TAG_INTEGER)) == NULL || ippGetCount(y_dim) != 1)
-	{
-	  papplClientRespondIPPUnsupported(client, attr);
-	  valid = false;
-	}
-	else
-	{
-	  x_value   = ippGetInteger(x_dim, 0);
-	  y_value   = ippGetInteger(y_dim, 0);
-	  supported = ippFindAttribute(client->printer->driver_attrs, "media-size-supported", IPP_TAG_BEGIN_COLLECTION);
-	  count     = ippGetCount(supported);
+        if ((x_dim = ippFindAttribute(size, "x-dimension", IPP_TAG_INTEGER)) == NULL || ippGetCount(x_dim) != 1 || (y_dim = ippFindAttribute(size, "y-dimension", IPP_TAG_INTEGER)) == NULL || ippGetCount(y_dim) != 1)
+        {
+          papplClientRespondIPPUnsupported(client, attr);
+          valid = false;
+        }
+        else
+        {
+          x_value   = ippGetInteger(x_dim, 0);
+          y_value   = ippGetInteger(y_dim, 0);
+          supported = ippFindAttribute(client->printer->driver_attrs, "media-size-supported", IPP_TAG_BEGIN_COLLECTION);
+          count     = ippGetCount(supported);
 
-	  for (i = 0; i < count ; i ++)
-	  {
-	    size  = ippGetCollection(supported, i);
-	    x_dim = ippFindAttribute(size, "x-dimension", IPP_TAG_ZERO);
-	    y_dim = ippFindAttribute(size, "y-dimension", IPP_TAG_ZERO);
+          for (i = 0; i < count ; i ++)
+          {
+            size  = ippGetCollection(supported, i);
+            x_dim = ippFindAttribute(size, "x-dimension", IPP_TAG_ZERO);
+            y_dim = ippFindAttribute(size, "y-dimension", IPP_TAG_ZERO);
 
-	    if (ippContainsInteger(x_dim, x_value) && ippContainsInteger(y_dim, y_value))
-	      break;
-	  }
+            if (ippContainsInteger(x_dim, x_value) && ippContainsInteger(y_dim, y_value))
+              break;
+          }
 
-	  if (i >= count)
-	  {
-	    papplClientRespondIPPUnsupported(client, attr);
-	    valid = false;
-	  }
-	}
+          if (i >= count)
+          {
+            papplClientRespondIPPUnsupported(client, attr);
+            valid = false;
+          }
+        }
       }
     }
   }
@@ -2074,7 +2061,7 @@ valid_job_attributes(
   if ((attr = ippFindAttribute(client->request, "page-ranges", IPP_TAG_ZERO)) != NULL)
   {
     int upper = 0, lower = ippGetRange(attr, 0, &upper);
-					// "page-ranges" value
+          // "page-ranges" value
 
     if (!ippGetBoolean(ippFindAttribute(client->printer->driver_attrs, "page-ranges-supported", IPP_TAG_BOOLEAN), 0) || ippGetValueTag(attr) != IPP_TAG_RANGE || ippGetCount(attr) != 1 || lower < 1 || upper < lower)
     {
@@ -2086,7 +2073,7 @@ valid_job_attributes(
   if ((attr = ippFindAttribute(client->request, "print-color-mode", IPP_TAG_ZERO)) != NULL)
   {
     pappl_color_mode_t value = _papplColorModeValue(ippGetString(attr, 0, NULL));
-					// "print-color-mode" value
+          // "print-color-mode" value
 
     if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.color_supported))
     {
@@ -2106,7 +2093,7 @@ valid_job_attributes(
 
   if ((attr = ippFindAttribute(client->request, "print-darkness", IPP_TAG_ZERO)) != NULL)
   {
-    int value = ippGetInteger(attr, 0);	// "print-darkness" value
+    int value = ippGetInteger(attr, 0); // "print-darkness" value
 
     if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_INTEGER || value < -100 || value > 100 || client->printer->driver_data.darkness_supported == 0)
     {
@@ -2135,7 +2122,7 @@ valid_job_attributes(
 
   if ((attr = ippFindAttribute(client->request, "print-speed", IPP_TAG_ZERO)) != NULL)
   {
-    int value = ippGetInteger(attr, 0);	// "print-speed" value
+    int value = ippGetInteger(attr, 0); // "print-speed" value
 
     if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_INTEGER || value < client->printer->driver_data.speed_supported[0] || value > client->printer->driver_data.speed_supported[1] || client->printer->driver_data.speed_supported[1] == 0)
     {
@@ -2146,9 +2133,9 @@ valid_job_attributes(
 
   if ((attr = ippFindAttribute(client->request, "printer-resolution", IPP_TAG_ZERO)) != NULL)
   {
-    int		xdpi,			// Horizontal resolution
-		ydpi;			// Vertical resolution
-    ipp_res_t	units;			// Resolution units
+    int   xdpi,     // Horizontal resolution
+    ydpi;     // Vertical resolution
+    ipp_res_t units;      // Resolution units
 
     xdpi  = ippGetResolution(attr, 0, &ydpi, &units);
 
@@ -2167,16 +2154,15 @@ valid_job_attributes(
 
       if (i >= (cups_len_t)client->printer->driver_data.num_resolution)
       {
-	papplClientRespondIPPUnsupported(client, attr);
-	valid = false;
+        papplClientRespondIPPUnsupported(client, attr);
+        valid = false;
       }
     }
   }
 
   if ((attr = ippFindAttribute(client->request, "sides", IPP_TAG_ZERO)) != NULL)
   {
-    pappl_sides_t value = _papplSidesValue(ippGetString(attr, 0, NULL));
-					// "sides" value
+    pappl_sides_t value = _papplSidesValue(ippGetString(attr, 0, NULL)); // "sides" value
 
     if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.sides_supported))
     {
