@@ -27,8 +27,9 @@ static int	compare_completed_jobs(pappl_job_t *a, pappl_job_t *b);
 //
 // 'papplPrinterCancelAllJobs()' - Cancel all jobs on the printer.
 //
-// This function cancels all jobs on the printer.  If any job is currently being
-// printed, it will be stopped at a convenient time (usually the end of a page)
+// This function cancels all jobs on the printer that are in the 'pending-held', 'pending',
+// 'processing' or 'processing-stopped' states. If any job is currently being printed (in the
+// 'processing' state), it will be stopped at a convenient time (usually the end of a page)
 // so that the printer will be left in a known state.
 //
 
