@@ -43,136 +43,148 @@ Plan
 * Need to figure out the driver callback and the file printing callback and the raster printing callback and see how all that works together
 
 
-Operations
+Basics and Overview
 -------------------------------------
-* Get-User-Printer-Attributes
 
+This is what needs to be supported. Individual feature plans are in the next sections.
 
-Operation Attributes
+* Operations
+    * Get-User-Printer-Attributes
+* Operation Attributes
+    * job-password
+    * job-password-encryption
+    * job-release-action
+    * job-storage
+* Job Template Attributes
+    * job-cancel-after
+    * proof-copies
+    * proof-print
+* Printer Description Attributes
+    * job-cancel-after-default
+    * job-cancel-after-supported
+    * job-password-encryption-supported
+    * job-password-length-supported
+    * job-password-repertoire-supported
+    * job-password-repertoire-configured
+    * job-password-supported
+    * job-release-action-default
+    * job-release-action-supported
+    * job-storage-access-supported
+    * job-storage-disposition-supported
+    * job-storage-group-supported
+    * job-storage-supported
+    * printer-detailed-status-messages 
+    * proof-copies-supported
+    * proof-print-copies-supported
+    * proof-print-default
+    * proof-print-supported
+* Job Status Attributes
+    * job-release-action
+    * job-storage
+    * parent-job-id
+    * parent-job-uuid
+* Additional Values for Existing Attributes
+    * ipp-features-supported:
+        * 'job-release'
+        * 'job-storage'
+        * 'print-policy'
+        * 'proof-and-suspend'
+        * 'proof-print'
+    * job-state-reasons:
+        * 'conflicting-attributes'
+        * 'job-canceled-after-timeout'
+        * 'job-held-for-authorization'
+        * 'job-held-for-button-press'
+        * 'job-held-for-release'
+        * 'job-password-wait'
+        * 'job-printed-successfully'
+        * 'job-printed-with-errors'
+        * 'job-printed-with-warnings'
+        * 'job-resuming'
+        * 'job-stored'
+        * 'job-stored-with-errors'
+        * 'job-stored-with-warnings'
+        * 'job-storing'
+        * 'job-suspended-by-operator'
+        * 'job-suspended-by-system'
+        * 'job-suspended-by-user'
+        * 'job-suspended-for-approval'
+        * 'job-suspending'
+        * 'unsupported-attributes-or-values', 
+    * which-jobs: 'proof-print'
+        * 'proof-and-suspend'
+        * 'stored-group'
+        * 'stored-owner'
+        * 'stored-public'
+* Obsolete Attributes
+    * feed-orientation
+    * feed-orientation-default
+    * feed-orientation-supported
+    * job-save-disposition
+    * pdl-init-file
+    * pdl-init-file-default
+    * pdl-init-file-entry
+    * pdl-init-file-entry-supported
+    * pdl-init-file-location
+    * pdl-init-file-location-supported
+    * pdl-init-file-name
+    * pdl-init-file-name-supported
+    * pdl-init-file-name-subdirectory-supported
+    * save-disposition
+    * save-disposition-supported
+    * save-document-format
+    * save-document-format-default
+    * save-document-format-supported
+    * save-info
+    * save-info-supported
+    * save-location
+    * save-location-default
+    * save-location-supported
+    * save-name
+    * save-name-supported
+    * save-name-subdirectory-supported
+* Obsolete Attribute Values
+    * job-password-encryption:
+        * ‘md2’
+        * ‘md4’
+        * ‘md5’
+        * ‘sha'
+    * job-state-reasons:
+        * 'job-saved-successfully'
+        * 'job-saved-with-errors'
+        * 'job-saved-with-warnings'
+        * 'job-saving'
+    * which-jobs:
+        * 'saved'
+
+Job Release
 -------------------------------------
-* job-password
-* job-password-encryption
-* job-release-action
-* job-storage
+
+### Plan
+* Mike added Job Hold (2022-11-19)
+* Look at papplJobHold() and see how that plays into the job creation process
+* Focus on "button press" to start
+* Also need to look at the web pages relating to this
 
 
-Job Template Attributes
+Job Storage
 -------------------------------------
-* job-cancel-after
-* proof-copies
-* proof-print
+* Basic idea: Job reaching "completed" state remains in the Job Retention phase (Document(s) are not deleted) if "job-storage" is present.
+* Add "stored" to _pappl_job_s (job-private.h) that will be set if the "job-storage" 
+* Update _papplPrinterCleanJobsNoLock() and make it not remove the job from printer->completed_jobs
+    * this is the only place where cupsArrayRemove(printer->completed_jobs, job) is called
+    * Trying to get info on printer->max_completed_jobs and printer->max_preserved_jobs
 
 
-Printer Description Attributes
+Job Print Policy
 -------------------------------------
-* job-cancel-after-default
-* job-cancel-after-supported
-* job-password-encryption-supported
-* job-password-length-supported
-* job-password-repertoire-supported
-* job-password-repertoire-configured
-* job-password-supported
-* job-release-action-default
-* job-release-action-supported
-* job-storage-access-supported
-* job-storage-disposition-supported
-* job-storage-group-supported
-* job-storage-supported
-* printer-detailed-status-messages 
-* proof-copies-supported
-* proof-print-copies-supported
-* proof-print-default
-* proof-print-supported
 
 
-Job Status Attributes
+Job Proof and Release
 -------------------------------------
-job-release-action
-job-storage
-parent-job-id
-parent-job-uuid
 
 
-Additional Values
--------------------------------------
-* ipp-features-supported:
-    * 'job-release'
-    * 'job-storage'
-    * 'print-policy'
-    * 'proof-and-suspend'
-    * 'proof-print'
-* job-state-reasons:
-    * 'conflicting-attributes'
-    * 'job-canceled-after-timeout'
-    * 'job-held-for-authorization'
-    * 'job-held-for-button-press'
-    * 'job-held-for-release'
-    * 'job-password-wait'
-    * 'job-printed-successfully'
-    * 'job-printed-with-errors'
-    * 'job-printed-with-warnings'
-    * 'job-resuming'
-    * 'job-stored'
-    * 'job-stored-with-errors'
-    * 'job-stored-with-warnings'
-    * 'job-storing'
-    * 'job-suspended-by-operator'
-    * 'job-suspended-by-system'
-    * 'job-suspended-by-user'
-    * 'job-suspended-for-approval'
-    * 'job-suspending'
-    * 'unsupported-attributes-or-values', 
-* which-jobs: 'proof-print'
-    * 'proof-and-suspend'
-    * 'stored-group'
-    * 'stored-owner'
-    * 'stored-public'
 
-
-Obsolete Attributes
--------------------------------------
-* feed-orientation
-* feed-orientation-default
-* feed-orientation-supported
-* job-save-disposition
-* pdl-init-file
-* pdl-init-file-default
-* pdl-init-file-entry
-* pdl-init-file-entry-supported
-* pdl-init-file-location
-* pdl-init-file-location-supported
-* pdl-init-file-name
-* pdl-init-file-name-supported
-* pdl-init-file-name-subdirectory-supported
-* save-disposition
-* save-disposition-supported
-* save-document-format
-* save-document-format-default
-* save-document-format-supported
-* save-info
-* save-info-supported
-* save-location
-* save-location-default
-* save-location-supported
-* save-name
-* save-name-supported
-* save-name-subdirectory-supported
-
-
-Obsolete Attribute Values
--------------------------------------
-* job-password-encryption:
-    * ‘md2’
-    * ‘md4’
-    * ‘md5’
-    * ‘sha'
-* job-state-reasons:
-    * 'job-saved-successfully'
-    * 'job-saved-with-errors'
-    * 'job-saved-with-warnings'
-    * 'job-saving'
-* which-jobs:
-    * 'saved'
 
 
 Other Feedback
