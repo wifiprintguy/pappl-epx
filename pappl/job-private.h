@@ -13,38 +13,42 @@
 #  include "base-private.h"
 #  include "job.h"
 #  include "log.h"
+#  include "printer.h"
 
 
 //
 // Types and structures...
 //
 
-struct _pappl_job_s			// Job data
+struct _pappl_job_s     // Job data
 {
-  pthread_rwlock_t	rwlock;			    // Reader/writer lock
-  pappl_system_t	  *system;		    // Containing system
-  pappl_printer_t	  *printer;		    // Containing printer
-  int			          job_id;			    // "job-id" value
-  const char		    *name,			    // "job-name" value
-                    *username,      // "job-originating-user-name" value
-                    *format;		    // "document-format" value
-  ipp_jstate_t		  state;			    // "job-state" value
-  pappl_jreason_t	  state_reasons;  // "job-state-reasons" values
-  bool			        is_canceled;		// Has this job been canceled?
-  char			        *message;		    // "job-state-message" value
-  pappl_loglevel_t	msglevel;		    // "job-state-message" log level
-  time_t		        created,		    // "[date-]time-at-creation" value
-                    processing,		  // "[date-]time-at-processing" value
-                    completed,		  // "[date-]time-at-completed" value
-                    hold_until;		  // "job-hold-until[-time]" value
-  int			          impressions,		// "job-impressions" value
-                    impcompleted;		// "job-impressions-completed" value
-  ipp_t			        *attrs;			    // Static attributes
-  char			        *filename;		  // Print file name
-  int			          fd;			        // Print file descriptor
-  bool			        streaming;		  // Streaming job?
-  void			        *data;			    // Per-job driver data
-  bool              stored;         // Stored Job?
+  pthread_rwlock_t            rwlock;               // Reader/writer lock
+  pappl_system_t              *system;              // Containing system
+  pappl_printer_t             *printer;             // Containing printer
+  int                         job_id;               // "job-id" value
+  const char                  *name,                // "job-name" value
+                              *username,            // "job-originating-user-name" value
+                              *format;              // "document-format" value
+  ipp_jstate_t                state;                // "job-state" value
+  pappl_jreason_t             state_reasons;        // "job-state-reasons" values
+  bool                        is_canceled;          // Has this job been canceled?
+  char                        *message;             // "job-state-message" value
+  pappl_loglevel_t            msglevel;             // "job-state-message" log level
+  time_t                      created,              // "[date-]time-at-creation" value
+                              processing,           // "[date-]time-at-processing" value
+                              completed,            // "[date-]time-at-completed" value
+                              hold_until;           // "job-hold-until[-time]" value
+  int                         impressions,          // "job-impressions" value
+                              impcompleted;         // "job-impressions-completed" value
+  ipp_t                       *attrs;               // Static attributes
+  char                        *filename;            // Print file name
+  int                         fd;                   // Print file descriptor
+  bool                        streaming;            // Streaming job?
+  void                        *data;                // Per-job driver data
+  bool                        stored;               // Stored Job?
+  pappl_storage_access_t      storage_access;       // job-storage-access enum
+  pappl_storage_disposition_t storage_disposition;  // job-storage-disposition enum
+  char                        storage_group;        // job-storage-group string
 };
 
 
@@ -52,30 +56,30 @@ struct _pappl_job_s			// Job data
 // Functions...
 //
 
-extern int		_papplJobCompareActive(pappl_job_t *a, pappl_job_t *b) _PAPPL_PRIVATE;
-extern int		_papplJobCompareAll(pappl_job_t *a, pappl_job_t *b) _PAPPL_PRIVATE;
-extern int		_papplJobCompareCompleted(pappl_job_t *a, pappl_job_t *b) _PAPPL_PRIVATE;
-extern void		_papplJobCopyAttributes(pappl_job_t *job, pappl_client_t *client, cups_array_t *ra) _PAPPL_PRIVATE;
-extern void		_papplJobCopyDocumentData(pappl_client_t *client, pappl_job_t *job) _PAPPL_PRIVATE;
-extern void		_papplJobCopyState(pappl_job_t *job, ipp_tag_t group_tag, ipp_t *ipp, cups_array_t *ra) _PAPPL_PRIVATE;
-extern pappl_job_t	*_papplJobCreate(pappl_printer_t *printer, int job_id, const char *username, const char *format, const char *job_name, ipp_t *attrs) _PAPPL_PRIVATE;
-extern void		_papplJobDelete(pappl_job_t *job) _PAPPL_PRIVATE;
+extern int    _papplJobCompareActive(pappl_job_t *a, pappl_job_t *b) _PAPPL_PRIVATE;
+extern int    _papplJobCompareAll(pappl_job_t *a, pappl_job_t *b) _PAPPL_PRIVATE;
+extern int    _papplJobCompareCompleted(pappl_job_t *a, pappl_job_t *b) _PAPPL_PRIVATE;
+extern void   _papplJobCopyAttributes(pappl_job_t *job, pappl_client_t *client, cups_array_t *ra) _PAPPL_PRIVATE;
+extern void   _papplJobCopyDocumentData(pappl_client_t *client, pappl_job_t *job) _PAPPL_PRIVATE;
+extern void   _papplJobCopyState(pappl_job_t *job, ipp_tag_t group_tag, ipp_t *ipp, cups_array_t *ra) _PAPPL_PRIVATE;
+extern pappl_job_t  *_papplJobCreate(pappl_printer_t *printer, int job_id, const char *username, const char *format, const char *job_name, ipp_t *attrs) _PAPPL_PRIVATE;
+extern void   _papplJobDelete(pappl_job_t *job) _PAPPL_PRIVATE;
 #  ifdef HAVE_LIBJPEG
-extern bool		_papplJobFilterJPEG(pappl_job_t *job, pappl_device_t *device, void *data);
+extern bool   _papplJobFilterJPEG(pappl_job_t *job, pappl_device_t *device, void *data);
 #  endif // HAVE_LIBJPEG
 #  ifdef HAVE_LIBPNG
-extern bool		_papplJobFilterPNG(pappl_job_t *job, pappl_device_t *device, void *data);
+extern bool   _papplJobFilterPNG(pappl_job_t *job, pappl_device_t *device, void *data);
 #  endif // HAVE_LIBPNG
-extern bool		_papplJobHoldNoLock(pappl_job_t *job, const char *username, const char *until, time_t until_time) _PAPPL_PRIVATE;
-extern void		*_papplJobProcess(pappl_job_t *job) _PAPPL_PRIVATE;
-extern void		_papplJobProcessIPP(pappl_client_t *client) _PAPPL_PRIVATE;
-extern void		_papplJobProcessRaster(pappl_job_t *job, pappl_client_t *client) _PAPPL_PRIVATE;
-extern const char	*_papplJobReasonString(pappl_jreason_t reason) _PAPPL_PRIVATE;
-extern void		_papplJobReleaseNoLock(pappl_job_t *job, const char *username) _PAPPL_PRIVATE;
-extern void		_papplJobRemoveFile(pappl_job_t *job) _PAPPL_PRIVATE;
-extern void		_papplJobSetState(pappl_job_t *job, ipp_jstate_t state) _PAPPL_PRIVATE;
-extern void		_papplJobSubmitFile(pappl_job_t *job, const char *filename) _PAPPL_PRIVATE;
-extern bool		_papplJobValidateDocumentAttributes(pappl_client_t *client) _PAPPL_PRIVATE;
+extern bool   _papplJobHoldNoLock(pappl_job_t *job, const char *username, const char *until, time_t until_time) _PAPPL_PRIVATE;
+extern void   *_papplJobProcess(pappl_job_t *job) _PAPPL_PRIVATE;
+extern void   _papplJobProcessIPP(pappl_client_t *client) _PAPPL_PRIVATE;
+extern void   _papplJobProcessRaster(pappl_job_t *job, pappl_client_t *client) _PAPPL_PRIVATE;
+extern const char *_papplJobReasonString(pappl_jreason_t reason) _PAPPL_PRIVATE;
+extern void   _papplJobReleaseNoLock(pappl_job_t *job, const char *username) _PAPPL_PRIVATE;
+extern void   _papplJobRemoveFile(pappl_job_t *job) _PAPPL_PRIVATE;
+extern void   _papplJobSetState(pappl_job_t *job, ipp_jstate_t state) _PAPPL_PRIVATE;
+extern void   _papplJobSubmitFile(pappl_job_t *job, const char *filename) _PAPPL_PRIVATE;
+extern bool   _papplJobValidateDocumentAttributes(pappl_client_t *client) _PAPPL_PRIVATE;
 
 
 #endif // !_PAPPL_JOB_PRIVATE_H_
