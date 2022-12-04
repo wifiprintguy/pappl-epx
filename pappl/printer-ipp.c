@@ -2133,9 +2133,9 @@ valid_job_attributes(
 
   if ((attr = ippFindAttribute(client->request, "printer-resolution", IPP_TAG_ZERO)) != NULL)
   {
-    int   xdpi,     // Horizontal resolution
-    ydpi;     // Vertical resolution
-    ipp_res_t units;      // Resolution units
+    int       xdpi,   // Horizontal resolution
+              ydpi;   // Vertical resolution
+    ipp_res_t units;  // Resolution units
 
     xdpi  = ippGetResolution(attr, 0, &ydpi, &units);
 
@@ -2168,6 +2168,49 @@ valid_job_attributes(
     {
       papplClientRespondIPPUnsupported(client, attr);
       valid = false;
+    }
+  }
+  
+  if ((attr = ippFindAttribute(client->request, "job-storage", IPP_TAG_BEGIN_COLLECTION)) != NULL)
+  {
+    if (NULL == (attr = ippFindAttribute(client->request, "job-storage-access", IPP_TAG_KEYWORD)))
+    {
+      // Required member
+      papplClientRespondIPPUnsupported(client, attr);
+      valid = false;
+    }
+    else
+    {
+      pappl_storage_access_t value = _papplStorageAccessValue(ippGetString(attr, 0, NULL)); // "job-storage-access" value
+
+      // If "job-storage-access" = 'group' then "job-storage-group" is required
+      if ( (value & PAPPL_STORAGE_ACCESS_GROUP) && NULL == ippFindAttribute(client->request, "job-storage-group", IPP_TAG_NAME))
+      {
+        papplClientRespondIPPUnsupported(client, attr);
+        valid = false;
+      }
+
+      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.storage_access_supported))
+      {
+        papplClientRespondIPPUnsupported(client, attr);
+        valid = false;
+      }
+    }
+    
+    if (NULL == (attr = ippFindAttribute(client->request, "job-storage-disposition", IPP_TAG_KEYWORD)))
+    {
+      // Required member
+      papplClientRespondIPPUnsupported(client, attr);
+      valid = false;
+    }
+    else
+    {
+      pappl_storage_disposition_t value = _papplStorageAccessValue(ippGetString(attr, 0, NULL)); // "job-storage-disposition" value
+      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.storage_disposition_supported))
+      {
+        papplClientRespondIPPUnsupported(client, attr);
+        valid = false;
+      }
     }
   }
 

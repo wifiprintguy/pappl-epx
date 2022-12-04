@@ -104,6 +104,7 @@ _papplJobCreate(
   job->state   = IPP_JSTATE_HELD;
   job->system  = printer->system;
   job->created = time(NULL);
+  job->stored  = false;
 
   if (attrs)
   {
@@ -143,6 +144,14 @@ _papplJobCreate(
 
   if ((attr = ippFindAttribute(attrs, "job-impressions", IPP_TAG_INTEGER)) != NULL)
     job->impressions = ippGetInteger(attr, 0);
+
+  if ((attr = ippFindAttribute(attrs, "job-storage", IPP_TAG_BEGIN_COLLECTION)) != NULL)
+  {
+    // Additional checks are not needed because structure was validated in valid_job_attributes() in printer-ipp.c
+    job->storage_access = _papplStorageAccessValue(ippGetString(ippFindAttribute(attrs, "job-storage-access", IPP_TAG_BEGIN_COLLECTION), 0, NULL));
+    job->storage_disposition = _papplStorageAccessValue(ippGetString(ippFindAttribute(attrs, "job-storage-disposition", IPP_TAG_BEGIN_COLLECTION), 0, NULL));
+    job->stored = true;
+  }
 
   // Add job description attributes and add to the jobs array...
   job->job_id = job_id > 0 ? job_id : printer->next_job_id ++;
@@ -820,7 +829,11 @@ _papplPrinterCleanJobsNoLock(
   // only thread enumerating and can use cupsArrayGetFirst/Last...
   for (job = (pappl_job_t *)cupsArrayGetFirst(printer->completed_jobs), cleantime = time(NULL) - 60, preserved = 0; job; job = (pappl_job_t *)cupsArrayGetNext(printer->completed_jobs))
   {
-    if (job->completed && job->completed < cleantime && printer->max_completed_jobs > 0 && (int)cupsArrayGetCount(printer->completed_jobs) > printer->max_completed_jobs)
+    if (job->stored)
+    {
+      continue;
+    }
+    else if (job->completed && job->completed < cleantime && printer->max_completed_jobs > 0 && (int)cupsArrayGetCount(printer->completed_jobs) > printer->max_completed_jobs)
     {
       cupsArrayRemove(printer->completed_jobs, job);
       cupsArrayRemove(printer->all_jobs, job);

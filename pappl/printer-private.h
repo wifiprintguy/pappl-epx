@@ -183,6 +183,12 @@ extern pappl_scaling_t  _papplScalingValue(const char *value) _PAPPL_PRIVATE;
 extern const char *_papplSidesString(pappl_sides_t value) _PAPPL_PRIVATE;
 extern pappl_sides_t  _papplSidesValue(const char *value) _PAPPL_PRIVATE;
 
+extern const char *_papplStorageAccessString(pappl_storage_access_t value) _PAPPL_PRIVATE;
+extern pappl_sides_t  _papplStorageAccessValue(const char *value) _PAPPL_PRIVATE;
+
+extern const char *_papplStorageDispositionString(pappl_storage_disposition_t value) _PAPPL_PRIVATE;
+extern pappl_sides_t  _papplStorageDispositionValue(const char *value) _PAPPL_PRIVATE;
+
 extern const char *_papplSupplyColorString(pappl_supply_color_t value) _PAPPL_PRIVATE;
 extern pappl_supply_color_t _papplSupplyColorValue(const char *value) _PAPPL_PRIVATE;
 extern const char *_papplSupplyTypeString(pappl_supply_type_t value) _PAPPL_PRIVATE;
