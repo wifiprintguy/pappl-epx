@@ -111,8 +111,9 @@ This is what needs to be supported. Individual feature plans are in the next sec
         * 'job-suspended-for-approval'
         * 'job-suspending'
         * 'unsupported-attributes-or-values', 
-    * which-jobs: 'proof-print'
+    * which-jobs:
         * 'proof-and-suspend'
+        * 'proof-print'
         * 'stored-group'
         * 'stored-owner'
         * 'stored-public'

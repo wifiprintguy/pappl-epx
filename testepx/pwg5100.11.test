@@ -196,25 +196,26 @@
     EXPECT 'job-storage-access-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner'
     EXPECT 'job-storage-access-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'public'
 
-    EXPECT 'job-storage-disposition-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag
-    
-    EXPECT 'which-jobs-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'stored-group'
+    EXPECT 'job-storage-disposition-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'print-and-store'
+    EXPECT 'job-storage-disposition-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'store-only'
+
     EXPECT 'which-jobs-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'stored-owner'
     EXPECT 'which-jobs-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'stored-public'
-    
+#    EXPECT ?'which-jobs-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'stored-group'
+
 }
 #########################################################
 {
     SKIP-IF-NOT-DEFINED HAVE_JOB_STORAGE
 
-    NAME "[EPX2-3.2] Job Storage: List Stored Jobs"
+    NAME "[EPX2-3.2] Job Storage: List Stored Jobs - Public"
     OPERATION Get-Jobs
 
     GROUP operation-attributes-tag
         ATTR charset attributes-charset utf-8
         ATTR language attributes-natural-language en
         ATTR uri printer-uri $uri
-        ATTR keyword which-jobs stored
+        ATTR keyword which-jobs stored-public
         ATTR boolean my-jobs true
 
     STATUS successful-ok
@@ -354,3 +355,5 @@
 
     STATUS successful-ok
 }
+
+
