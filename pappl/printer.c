@@ -111,9 +111,9 @@ papplPrinterCreate(
 {
   pappl_printer_t	*printer;	// Printer
   char			resource[1024],	// Resource path
-			*resptr,	// Pointer into resource path
-			uuid[128],	// printer-uuid
-			print_group[65];// print-group value
+  *resptr,	// Pointer into resource path
+  uuid[128],	// printer-uuid
+  print_group[65];// print-group value
   int			k_supported;	// Maximum file size supported
 #if !_WIN32
   struct statfs		spoolinfo;	// FS info for spool directory
@@ -122,6 +122,7 @@ papplPrinterCreate(
   char			path[256];	// Path to resource
   pappl_pr_driver_data_t driver_data;	// Driver data
   ipp_t			*driver_attrs;	// Driver attributes
+  size_t num_keywords = 0;
   static const char * const ipp_versions[] =
   {					// ipp-versions-supported values
     "1.1",
@@ -205,31 +206,7 @@ papplPrinterCreate(
     "job-password",
     "owner-authorized"
   };
-  static const char * const job_storage_access[] =
-  {                    // job-storage-access-supported values
-    "group",
-    "owner",
-    "public"
-  };
-  static const char * const job_storage_disposition[] =
-  {                    // job-storage-disposition-supported values
-    "print-and-store",
-    "store-only"
-  };
-  static const char * const job_storage_group[] =
-  {                    // job-storage-group-supported values
-    "admin",
-    "faculty",
-    "students",
-    "guests"
-  };
-  static const char * const job_storage[] =
-  {                    // job-storage-supported values
-    "job-storage-access",
-    "job-storage-disposition",
-    "job-storage-group"
-  };
-
+  
   static const char * const job_hold_until[] =
   {					// job-hold-until-supported values
     "day-time",
@@ -286,28 +263,22 @@ papplPrinterCreate(
     "none",
     "tls"
   };
-  static const char * const which_jobs[] =
-  {					// which-jobs-supported values
-    "completed",
-    "not-completed",
-    "all"
-  };
-
-
+  
+  
   // Range check input...
   if (!system || !printer_name || !driver_name || !device_uri)
   {
     errno = EINVAL;
     return (NULL);
   }
-
+  
   if (!system->driver_cb)
   {
     papplLog(system, PAPPL_LOGLEVEL_ERROR, "No driver callback set, unable to add printer.");
     errno = ENOENT;
     return (NULL);
   }
-
+  
   // Prepare URI values for the printer attributes...
   if (system->options & PAPPL_SOPTIONS_MULTI_QUEUE)
   {
@@ -317,21 +288,21 @@ papplPrinterCreate(
       snprintf(resource, sizeof(resource), "/ipp/print/_%s", printer_name);
     else
       snprintf(resource, sizeof(resource), "/ipp/print/%s", printer_name);
-
+    
     // Convert URL reserved characters to underscore...
     for (resptr = resource + 11; *resptr; resptr ++)
     {
       if ((*resptr & 255) <= ' ' || strchr("\177/\\\'\"?#", *resptr))
-	*resptr = '_';
+        *resptr = '_';
     }
-
+    
     // Eliminate duplicate and trailing underscores...
     resptr = resource + 11;
     while (*resptr)
     {
       if (resptr[0] == '_' && resptr[1] == '_')
         memmove(resptr, resptr + 1, strlen(resptr));
-					// Duplicate underscores
+      // Duplicate underscores
       else if (resptr[0] == '_' && !resptr[1])
         *resptr = '\0';			// Trailing underscore
       else
@@ -340,48 +311,48 @@ papplPrinterCreate(
   }
   else
     papplCopyString(resource, "/ipp/print", sizeof(resource));
-
+  
   // Make sure the printer doesn't already exist...
   if ((printer = papplSystemFindPrinter(system, resource, 0, NULL)) != NULL)
   {
     int		n;		// Current instance number
     char	temp[1024];	// Temporary resource path
-
+    
     if (!strcmp(printer_name, printer->name))
     {
       papplLog(system, PAPPL_LOGLEVEL_ERROR, "Printer '%s' already exists.", printer_name);
       errno = EEXIST;
       return (NULL);
     }
-
+    
     for (n = 2; n < 10; n ++)
     {
       snprintf(temp, sizeof(temp), "%s_%d", resource, n);
       if (!papplSystemFindPrinter(system, temp, 0, NULL))
         break;
     }
-
+    
     if (n >= 10)
     {
       papplLog(system, PAPPL_LOGLEVEL_ERROR, "Printer '%s' name conflicts with existing printer.", printer_name);
       errno = EEXIST;
       return (NULL);
     }
-
+    
     papplCopyString(resource, temp, sizeof(resource));
   }
-
+  
   // Allocate memory for the printer...
   if ((printer = calloc(1, sizeof(pappl_printer_t))) == NULL)
   {
     papplLog(system, PAPPL_LOGLEVEL_ERROR, "Unable to allocate memory for printer: %s", strerror(errno));
     return (NULL);
   }
-
+  
   papplLog(system, PAPPL_LOGLEVEL_INFO, "Printer '%s' at resource path '%s'.", printer_name, resource);
-
+  
   _papplSystemMakeUUID(system, printer_name, 0, uuid, sizeof(uuid));
-
+  
   // Get the maximum spool size based on the size of the filesystem used for
   // the spool directory.  If the host OS doesn't support the statfs call
   // or the filesystem is larger than 2TiB, always report INT_MAX.
@@ -395,38 +366,54 @@ papplPrinterCreate(
   else
     k_supported = (int)spoolsize;
 #endif // _WIN32
-
+  
   // Initialize printer structure and attributes...
   pthread_rwlock_init(&printer->rwlock, NULL);
-
-  printer->system             = system;
-  printer->name               = strdup(printer_name);
-  printer->dns_sd_name        = strdup(printer_name);
-  printer->resource           = strdup(resource);
-  printer->resourcelen        = strlen(resource);
-  printer->uriname            = printer->resource + 10; // Skip "/ipp/print" in resource
-  printer->device_id          = device_id ? strdup(device_id) : NULL;
-  printer->device_uri         = strdup(device_uri);
-  printer->driver_name        = strdup(driver_name);
-  printer->attrs              = ippNew();
-  printer->start_time         = time(NULL);
-  printer->config_time        = printer->start_time;
-  printer->state              = IPP_PSTATE_IDLE;
-  printer->state_reasons      = PAPPL_PREASON_NONE;
-  printer->state_time         = printer->start_time;
-  printer->is_accepting       = true;
-  printer->all_jobs           = cupsArrayNew((cups_array_cb_t)compare_all_jobs, NULL, NULL, 0, NULL, (cups_afree_cb_t)_papplJobDelete);
-  printer->active_jobs        = cupsArrayNew((cups_array_cb_t)compare_active_jobs, NULL, NULL, 0, NULL, NULL);
-  printer->completed_jobs     = cupsArrayNew((cups_array_cb_t)compare_completed_jobs, NULL, NULL, 0, NULL, NULL);
-  printer->next_job_id        = 1;
-  printer->max_active_jobs    = (system->options & PAPPL_SOPTIONS_MULTI_QUEUE) ? 0 : 1;
-  printer->max_completed_jobs = 100;
-  printer->usb_vendor_id      = 0x1209;	// See <https://pid.codes>
-  printer->usb_product_id     = 0x8011;
-  printer->cancel_after_time          = INT_MAX; // initial "job-cancel-after-default" value
-  printer->pw_repertoire_configured   = PAPPL_PW_REPERTOIRE_IANA_UTF_8_ANY; // initial "job-password-repertoire-configured" value
-  printer->release_action_default     = PAPPL_RELEASE_ACTION_NONE;
-
+  
+  printer->system                         = system;
+  printer->name                           = strdup(printer_name);
+  printer->dns_sd_name                    = strdup(printer_name);
+  printer->resource                       = strdup(resource);
+  printer->resourcelen                    = strlen(resource);
+  printer->uriname                        = printer->resource + 10; // Skip "/ipp/print" in resource
+  printer->device_id                      = device_id ? strdup(device_id) : NULL;
+  printer->device_uri                     = strdup(device_uri);
+  printer->driver_name                    = strdup(driver_name);
+  printer->attrs                          = ippNew();
+  printer->start_time                     = time(NULL);
+  printer->config_time                    = printer->start_time;
+  printer->state                          = IPP_PSTATE_IDLE;
+  printer->state_reasons                  = PAPPL_PREASON_NONE;
+  printer->state_time                     = printer->start_time;
+  printer->is_accepting                   = true;
+  printer->all_jobs                       = cupsArrayNew((cups_array_cb_t)compare_all_jobs, NULL, NULL, 0, NULL, (cups_afree_cb_t)_papplJobDelete);
+  printer->active_jobs                    = cupsArrayNew((cups_array_cb_t)compare_active_jobs, NULL, NULL, 0, NULL, NULL);
+  printer->completed_jobs                 = cupsArrayNew((cups_array_cb_t)compare_completed_jobs, NULL, NULL, 0, NULL, NULL);
+  printer->next_job_id                    = 1;
+  printer->max_active_jobs                = (system->options & PAPPL_SOPTIONS_MULTI_QUEUE) ? 0 : 1;
+  printer->max_completed_jobs             = 100;
+  printer->usb_vendor_id                  = 0x1209;	// See <https://pid.codes>
+  printer->usb_product_id                 = 0x8011;
+  printer->cancel_after_time              = INT_MAX; // initial "job-cancel-after-default" value
+  printer->pw_repertoire_configured       = PAPPL_PW_REPERTOIRE_IANA_UTF_8_ANY; // initial "job-password-repertoire-configured" value
+  printer->release_action_default         = PAPPL_RELEASE_ACTION_NONE;
+  printer->storage_access_supported       = PAPPL_STORAGE_ACCESS_OWNER | PAPPL_STORAGE_ACCESS_PUBLIC;
+  printer->storage_disposition_supported  = PAPPL_STORAGE_DISPOSITION_STORE_ONLY | PAPPL_STORAGE_DISPOSITION_PRINT_AND_STORE;
+  printer->storage_group_supported        = false;
+  printer->which_jobs_supported           = PAPPL_WHICH_JOBS_ALL | PAPPL_WHICH_JOBS_COMPLETED | PAPPL_WHICH_JOBS_NOT_COMPLETED; // Always supported - not conditional on features
+  
+  if (printer->storage_access_supported & PAPPL_STORAGE_ACCESS_OWNER)
+    printer->which_jobs_supported |= PAPPL_WHICH_JOBS_STORED_OWNER;
+  
+  if (printer->storage_access_supported & PAPPL_STORAGE_ACCESS_PUBLIC)
+    printer->which_jobs_supported |= PAPPL_WHICH_JOBS_STORED_PUBLIC;
+  
+  if (printer->storage_group_supported)
+  {
+    printer->storage_access_supported |= PAPPL_STORAGE_ACCESS_GROUP;
+    printer->which_jobs_supported |= PAPPL_WHICH_JOBS_STORED_GROUP;
+  }
+  
   if (!printer->name || !printer->dns_sd_name || !printer->resource || (device_id && !printer->device_id) || !printer->device_uri || !printer->driver_name || !printer->attrs)
   {
     // Failed to allocate one of the required members...
@@ -620,17 +607,31 @@ papplPrinterCreate(
   // job-sheets-supported
   ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_NAME), "job-sheets-supported", NULL, "none");
 
+  // job-storage-supported
+  const char * job_storage_supported[3];
+  job_storage_supported[0] = "job-storage-access";
+  job_storage_supported[1] = "job-storage-disposition";
+  num_keywords = 2;
+  if (printer->storage_group_supported)
+    job_storage_supported[++num_keywords] = "job-storage-group";
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-supported", (cups_len_t)num_keywords, NULL, job_storage_supported);
+
   // job-storage-access-supported
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-access-supported", (cups_len_t)(sizeof(job_storage_access) / sizeof(job_storage_access[0])), NULL, job_storage_access);
+  char * job_storage_access_supported[3];
+  num_keywords = _papplLookupStrings(printer->storage_access_supported, 3, job_storage_access_supported, sizeof(pappl_storage_access) / sizeof(pappl_storage_access[0]), pappl_storage_access);
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-access-supported", (cups_len_t)num_keywords, NULL, job_storage_access_supported);
 
   // job-storage-disposition-supported
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-disposition-supported", (cups_len_t)(sizeof(job_storage_disposition) / sizeof(job_storage_disposition[0])), NULL, job_storage_disposition);
+  char * job_storage_disposition_supported[3];
+  num_keywords = _papplLookupStrings(printer->storage_disposition_supported, 3, job_storage_disposition_supported, sizeof(pappl_storage_disposition) / sizeof(pappl_storage_disposition[0]), pappl_storage_disposition);
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-disposition-supported", (cups_len_t)num_keywords, NULL, job_storage_disposition_supported);
 
   // job-storage-group-supported
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-group-supported", (cups_len_t)(sizeof(job_storage_group) / sizeof(job_storage_group[0])), NULL, job_storage_group);
-
-  // job-storage-supported
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-supported", (cups_len_t)(sizeof(job_storage) / sizeof(job_storage[0])), NULL, job_storage);
+  if (printer->storage_group_supported)
+  {
+    const char * job_storage_group_supported[] = { "fake_group1", "fake_group2", "fake_group3"};
+    ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-group-supported", (cups_len_t)(sizeof(job_storage_group_supported) / sizeof(job_storage_group_supported[0])), NULL, job_storage_group_supported);
+  }
 
   if (_papplSystemFindMIMEFilter(system, "image/jpeg", "image/pwg-raster"))
   {
@@ -742,8 +743,10 @@ papplPrinterCreate(
     ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "uri-security-supported", 2, NULL, uri_security);
 
   // which-jobs-supported
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "which-jobs-supported", sizeof(which_jobs) / sizeof(which_jobs[0]), NULL, which_jobs);
-
+  const char * which_jobs_supported[16];
+  num_keywords = _papplLookupStrings(printer->which_jobs_supported, 16, which_jobs_supported, sizeof(pappl_which_jobs) / sizeof(pappl_which_jobs[0]), pappl_which_jobs);
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "which-jobs-supported", num_keywords, NULL, which_jobs_supported);
+    
 
   // Add the printer to the system...
   _papplSystemAddPrinter(system, printer, printer_id);

@@ -728,7 +728,7 @@
 		3B1CD1D12923C6DD0095F889 /* testepx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = testepx.h; sourceTree = "<group>"; };
 		3B1CD1D22923C6DD0095F889 /* epx-driver.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "epx-driver.c"; sourceTree = "<group>"; };
 		3B1CD1D32923C6DD0095F889 /* testepx.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = testepx.c; sourceTree = "<group>"; };
-		3B1CD1D42923C6DD0095F889 /* pwg5100.11.test */ = {isa = PBXFileReference; lastKnownFileType = text; path = pwg5100.11.test; sourceTree = "<group>"; };
+		3B1CD1D42923C6DD0095F889 /* pwg5100.11.test */ = {isa = PBXFileReference; lastKnownFileType = text; path = pwg5100.11.test; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.sh; };
 		3B1CD1EF2923C7A60095F889 /* testepx */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = testepx; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B1CD1F22923C89B0095F889 /* libcups.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcups.xcodeproj; path = ../libcups/xcode/libcups.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */

@@ -133,7 +133,7 @@ typedef enum pappl_pw_repertoire_e
   PAPPL_PW_REPERTOIRE_IANA_UTF_8_LETTERS    = 0x0020, // 'iana_utf-8_letters'
   PAPPL_PW_REPERTOIRE_IANA_UTF_8_ANY        = 0x0040, // 'iana_utf-8_any'
   // Vendor
-  PAPPL_PW_REPERTOIRE_VENDOR                = 0x1000  // Vendor coode
+  PAPPL_PW_REPERTOIRE_VENDOR                = 0x1000  // Vendor code
 } pappl_pw_repertoire_t;
 
 enum pappl_preason_e      // IPP "printer-state-reasons" bit values
@@ -230,6 +230,29 @@ enum pappl_uoptions_e     // USB gadget options
 };
 
 typedef unsigned pappl_uoptions_t;  // USB gadget options bitfield
+
+enum pappl_which_jobs_e
+{
+  PAPPL_WHICH_JOBS_ALL                    = 0x0001, // 'all'
+  PAPPL_WHICH_JOBS_ABORTED                = 0x0002, // 'aborted'
+  PAPPL_WHICH_JOBS_CANCELED               = 0x0004, // 'canceled'
+  PAPPL_WHICH_JOBS_COMPLETED              = 0x0008, // 'completed'
+  PAPPL_WHICH_JOBS_FETCHABLE              = 0x0010, // 'fetchable'
+  PAPPL_WHICH_JOBS_NOT_COMPLETED          = 0x0020, // 'not-completed'
+  PAPPL_WHICH_JOBS_PENDING                = 0x0040, // 'pending'
+  PAPPL_WHICH_JOBS_PENDING_HELD           = 0x0080, // 'pending-held'
+  PAPPL_WHICH_JOBS_PROCESSING             = 0x0100, // 'processing'
+  PAPPL_WHICH_JOBS_PROCESSING_STOPPED     = 0x0200, // 'processing-stopped'
+  PAPPL_WHICH_JOBS_PROOF_AND_SUSPEND      = 0x0400, // 'proof-and-suspend'
+  PAPPL_WHICH_JOBS_PROOF_PRINT            = 0x0800, // 'proof-print'
+  PAPPL_WHICH_JOBS_STORED_GROUP           = 0x1000, // 'stored-group'
+  PAPPL_WHICH_JOBS_STORED_OWNER           = 0x2000, // 'stored-owner'
+  PAPPL_WHICH_JOBS_STORED_PUBLIC          = 0x4000, // 'stored-public'
+  PAPPL_WHICH_JOBS_SAVED                  = 0x8000  // 'saved'
+};
+typedef unsigned pappl_which_jobs_t;
+
+
 
 //
 // Callback functions...
@@ -390,18 +413,19 @@ struct pappl_pr_driver_data_s   // Printer driver data
   int     darkness_default; // print-darkness-default
   int     darkness_configured;  // printer-darkness-configured
   int     darkness_supported; // printer/print-darkness-supported (0 for none)
-  pappl_identify_actions_t identify_default;  // "identify-actions-default" value
-  pappl_identify_actions_t identify_supported;  // "identify-actions-supported" values
-  int     num_features;   // Number of "ipp-features-supported" values
-  
-  pappl_storage_access_t      storage_access_supported;       // job-storage-access-supported bitfield (0 for none)
-  pappl_storage_disposition_t storage_disposition_supported;  // job-storage-disposition-supported bitfield (0 for none)
-  char                        *storage_group_supported[6];     // job-storage-group-supported - 6 groups possible
-  char                        *storage_supported[3];           // job-storage-supported - 3 members possible
+  pappl_identify_actions_t    identify_default;  // "identify-actions-default" value
+  pappl_identify_actions_t    identify_supported;  // "identify-actions-supported" values
+  int                         num_features;                     // Number of "ipp-features-supported" values
+  const char                  *features[PAPPL_MAX_VENDOR];      // "ipp-features-supported" values
 
-  const char    *features[PAPPL_MAX_VENDOR]; // "ipp-features-supported" values
-  int     num_vendor;   // Number of vendor attributes
-  const char    *vendor[PAPPL_MAX_VENDOR]; // Vendor attribute names
+  pappl_storage_access_t      storage_access_supported;         // job-storage-access-supported bitfield (0 for none)
+  pappl_storage_disposition_t storage_disposition_supported;    // job-storage-disposition-supported bitfield (0 for none)
+  char                        *storage_group_supported[16];      // job-storage-group-supported - 16 groups possible
+  unsigned                    num_storage_supported;            // Number of keywords in "job-storage-supported"
+  char                        *storage_supported[6];            // job-storage-supported - 6 members possible
+
+  int                         num_vendor;   // Number of vendor attributes
+  const char                  *vendor[PAPPL_MAX_VENDOR]; // Vendor attribute names
 };
 
 
