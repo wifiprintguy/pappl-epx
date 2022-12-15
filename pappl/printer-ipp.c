@@ -1508,6 +1508,24 @@ ipp_get_jobs(pappl_client_t *client)  // I - Client
     job_state      = IPP_JSTATE_PENDING;
     list           = client->printer->all_jobs;
   }
+  else if (!strcmp(which_jobs, "stored-owner") && (client->printer->which_jobs_supported & PAPPL_WHICH_JOBS_STORED_OWNER) )
+  {
+    job_comparison = 1;
+    job_state      = IPP_JSTATE_PENDING;
+    list           = client->printer->completed_jobs; // Filter out Stored Jobs with 'owner' for "job-storage-access" below
+  }
+  else if (!strcmp(which_jobs, "stored-public") && (client->printer->which_jobs_supported & PAPPL_WHICH_JOBS_STORED_PUBLIC) )
+  {
+    job_comparison = 1;
+    job_state      = IPP_JSTATE_PENDING;
+    list           = client->printer->completed_jobs; // Filter out Stored Jobs with 'public' for "job-storage-access" below
+  }
+  else if (!strcmp(which_jobs, "stored-group") && (client->printer->which_jobs_supported & PAPPL_WHICH_JOBS_STORED_GROUP) )
+  {
+    job_comparison = 1;
+    job_state      = IPP_JSTATE_PENDING;
+    list           = client->printer->completed_jobs; // Filter out Stored Jobs with 'group' for "job-storage-access" below
+  }
   else
   {
     papplClientRespondIPP(client, IPP_STATUS_ERROR_ATTRIBUTES_OR_VALUES, "The \"which-jobs\" value '%s' is not supported.", which_jobs);
@@ -1542,8 +1560,8 @@ ipp_get_jobs(pappl_client_t *client)  // I - Client
     {
       if ((attr = ippFindAttribute(client->request, "requesting-user-name", IPP_TAG_NAME)) == NULL)
       {
-  papplClientRespondIPP(client, IPP_STATUS_ERROR_BAD_REQUEST, "Need \"requesting-user-name\" with \"my-jobs\".");
-  return;
+        papplClientRespondIPP(client, IPP_STATUS_ERROR_BAD_REQUEST, "Need \"requesting-user-name\" with \"my-jobs\".");
+        return;
       }
 
       username = ippGetString(attr, 0, NULL);
@@ -1568,7 +1586,11 @@ ipp_get_jobs(pappl_client_t *client)  // I - Client
     job = (pappl_job_t *)cupsArrayGetElement(list, i);
 
     // Filter out jobs that don't match...
-    if ((job_comparison < 0 && job->state > job_state) || /* (job_comparison == 0 && job->state != job_state) || */ (job_comparison > 0 && job->state < job_state) || (username && job->username && strcasecmp(username, job->username)))
+    if ((job_comparison < 0 && job->state > job_state) || /* (job_comparison == 0 && job->state != job_state) || */
+        (job_comparison > 0 && job->state < job_state) ||
+        (username && job->username && strcasecmp(username, job->username)) ||
+        (job->stored && ! (job->storage_access & PAPPL_STORAGE_ACCESS_OWNER) )
+       )
       continue;
 
     if (count > 0)
@@ -2173,7 +2195,10 @@ valid_job_attributes(
   
   if ((attr = ippFindAttribute(client->request, "job-storage", IPP_TAG_BEGIN_COLLECTION)) != NULL)
   {
-    if (NULL == (attr = ippFindAttribute(client->request, "job-storage-access", IPP_TAG_KEYWORD)))
+    // Get a pointer to the collection so we can dive into it
+    ipp_t *col = ippGetCollection(attr, 0);
+
+    if (NULL == (attr = ippFindAttribute(col, "job-storage-access", IPP_TAG_KEYWORD)))
     {
       // Required member
       papplClientRespondIPPUnsupported(client, attr);
@@ -2197,7 +2222,7 @@ valid_job_attributes(
       }
     }
     
-    if (NULL == (attr = ippFindAttribute(client->request, "job-storage-disposition", IPP_TAG_KEYWORD)))
+    if (NULL == (attr = ippFindAttribute(col, "job-storage-disposition", IPP_TAG_KEYWORD)))
     {
       // Required member
       papplClientRespondIPPUnsupported(client, attr);
@@ -2205,7 +2230,7 @@ valid_job_attributes(
     }
     else
     {
-      pappl_storage_disposition_t value = _papplStorageAccessValue(ippGetString(attr, 0, NULL)); // "job-storage-disposition" value
+      pappl_storage_disposition_t value = _papplStorageDispositionValue(ippGetString(attr, 0, NULL)); // "job-storage-disposition" value
       if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.storage_disposition_supported))
       {
         papplClientRespondIPPUnsupported(client, attr);
