@@ -7,7 +7,8 @@
 #
 #########################################################
 
-
+DEFINE datecodelong 19700101000000
+DEFINE IPP_URI_SCHEME "/^ipps?://.+$$/"
 
 #########################################################
 {
@@ -18,7 +19,7 @@
         ATTR charset attributes-charset utf-8
         ATTR language attributes-natural-language en
         ATTR uri printer-uri $uri
-        ATTR keyword requested-attributes 'printer-service-contact-col'
+        ATTR keyword requested-attributes 'printer-service-contact-col','document-format-supported'
 
     STATUS successful-ok
     
@@ -185,41 +186,216 @@
         ATTR charset attributes-charset utf-8
         ATTR language attributes-natural-language en
         ATTR uri printer-uri $uri
-        ATTR keyword requested-attributes 'job-storage-supported','job-storage-access-supported','job-storage-disposition-supported','which-jobs-supported'
+        ATTR keyword requested-attributes 'job-storage-supported','job-storage-access-supported','job-storage-disposition-supported','which-jobs-supported','operations-supported'
 
     STATUS successful-ok
     
     # Required members of 'job-storage'
     EXPECT 'job-storage-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage-access'
     EXPECT 'job-storage-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage-disposition'
+    EXPECT 'job-storage-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage-group' DEFINE-MATCH HAVE_JOB_STORAGE_GROUP
 
     EXPECT 'job-storage-access-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner'
     EXPECT 'job-storage-access-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'public'
+    EXPECT 'job-storage-access-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'group' IF-DEFINED HAVE_JOB_STORAGE_GROUP
 
     EXPECT 'job-storage-disposition-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'print-and-store'
     EXPECT 'job-storage-disposition-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'store-only'
 
     EXPECT 'which-jobs-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'stored-owner'
     EXPECT 'which-jobs-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'stored-public'
-#    EXPECT ?'which-jobs-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'stored-group'
+    EXPECT 'which-jobs-supported' OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'stored-group' IF-DEFINED HAVE_JOB_STORAGE_GROUP
 
+    EXPECT  'operations-supported' OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 0x0005  # Create-Job
+    EXPECT  'operations-supported' OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 0x0006  # Send-Document
+    EXPECT  'operations-supported' OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 0x0008  # Cancel-Job
+    EXPECT  'operations-supported' OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 0x0009  # Get-Job-Attributes
 }
 #########################################################
 {
     SKIP-IF-NOT-DEFINED HAVE_JOB_STORAGE
 
-    NAME "[EPX2-3.2] Job Storage: List Stored Jobs - Public"
+    NAME "[EPX2-3.2.1] Job Storage: Get-Jobs - which-jobs=stored-public"
     OPERATION Get-Jobs
 
     GROUP operation-attributes-tag
         ATTR charset attributes-charset utf-8
         ATTR language attributes-natural-language en
         ATTR uri printer-uri $uri
-        ATTR keyword which-jobs stored-public
+        ATTR name requesting-user-name $user
         ATTR boolean my-jobs true
+
+        ATTR keyword which-jobs stored-public
 
     STATUS successful-ok
 }
+#########################################################
+{
+    SKIP-IF-NOT-DEFINED HAVE_JOB_STORAGE
+
+    NAME "[EPX2-3.2.2] Job Storage: Get-Jobs - which-jobs=stored-owner"
+    OPERATION Get-Jobs
+
+    GROUP operation-attributes-tag
+        ATTR charset attributes-charset utf-8
+        ATTR language attributes-natural-language en
+        ATTR uri printer-uri $uri
+        ATTR name requesting-user-name $user
+        ATTR boolean my-jobs true
+
+        ATTR keyword which-jobs stored-owner
+
+    STATUS successful-ok
+}
+#########################################################
+{
+    SKIP-IF-NOT-DEFINED HAVE_JOB_STORAGE
+    SKIP-IF-NOT-DEFINED HAVE_JOB_STORAGE_GROUP
+
+    NAME "[EPX2-3.2.3] Job Storage: Get-Jobs - which-jobs=stored-group"
+    OPERATION Get-Jobs
+
+    GROUP operation-attributes-tag
+        ATTR charset attributes-charset utf-8
+        ATTR language attributes-natural-language en
+        ATTR uri printer-uri $uri
+        ATTR name requesting-user-name $user
+        ATTR boolean my-jobs true
+
+        ATTR keyword which-jobs stored-group
+
+    STATUS successful-ok
+}
+#########################################################
+{
+    SKIP-IF-NOT-DEFINED HAVE_JOB_STORAGE
+
+    NAME "[EPX2-3.3.1] Job Storage: Create-Job for new Stored Job - Owner / Store Only"
+
+    OPERATION Create-Job
+
+    GROUP operation-attributes-tag
+        ATTR charset attributes-charset utf-8
+        ATTR language attributes-natural-language en
+        ATTR uri printer-uri $uri
+
+        ATTR name requesting-user-name $user
+        ATTR name job-name "$user - $hostname - $filename - $datecodelong"
+        ATTR collection "job-storage" {
+          MEMBER keyword "job-storage-access"       'owner'
+          MEMBER keyword "job-storage-disposition"  'store-only'
+        }
+
+    GROUP job-attributes-tag
+        ATTR integer copies 1
+
+    STATUS successful-ok
+
+    EXPECT job-uri OF-TYPE uri COUNT 1 IN-GROUP job-attributes-tag WITH-VALUE "$IPP_URI_SCHEME"
+    EXPECT job-id OF-TYPE integer COUNT 1 IN-GROUP job-attributes-tag WITH-VALUE >0
+    EXPECT job-id DEFINE-VALUE STORED_JOB_TEST_JOB_1_ID
+    EXPECT ?job-uuid
+    EXPECT job-state OF-TYPE unknown|enum COUNT 1 IN-GROUP job-attributes-tag WITH-VALUE 3,4,5,6
+    EXPECT ?job-state-message OF-TYPE text IN-GROUP job-attributes-tag
+    EXPECT job-state-reasons OF-TYPE keyword IN-GROUP job-attributes-tag
+}
+#########################################################
+{
+    SKIP-IF-NOT-DEFINED STORED_JOB_TEST_JOB_1_ID
+
+    NAME "[EPX2-3.3.2] Job Storage: Send-Document - job-id=$STORED_JOB_TEST_JOB_1_ID"
+    OPERATION Send-Document
+
+    GROUP operation-attributes-tag
+      ATTR charset attributes-charset utf-8
+      ATTR language attributes-natural-language en
+      ATTR uri job-uri $job-uri
+
+      ATTR name requesting-user-name $user
+      ATTR mimeMediaType document-format $filetype
+      ATTR boolean last-document true
+
+    FILE $filename
+
+    STATUS successful-ok
+    STATUS successful-ok
+    STATUS server-error-job-canceled
+    STATUS server-error-busy REPEAT-MATCH REPEAT-LIMIT 30
+
+    EXPECT job-uri OF-TYPE uri COUNT 1 IN-GROUP job-attributes-tag WITH-VALUE "$IPP_URI_SCHEME"
+    EXPECT job-id OF-TYPE integer COUNT 1 IN-GROUP job-attributes-tag WITH-VALUE >0
+    EXPECT ?job-uuid
+    EXPECT job-state OF-TYPE unknown|enum COUNT 1 IN-GROUP job-attributes-tag WITH-VALUE 3,4,5,6
+    EXPECT ?job-state-message OF-TYPE text IN-GROUP job-attributes-tag
+    EXPECT job-state-reasons OF-TYPE keyword IN-GROUP job-attributes-tag
+}
+#########################################################
+{
+    NAME "[EPX2-3.3.3] Job Storage: Monitor Job until it reaches terminal state ($date-current)"
+    IGNORE-ERRORS yes
+
+    OPERATION Get-Job-Attributes
+
+    GROUP operation-attributes-tag
+        ATTR charset attributes-charset utf-8
+        ATTR language attributes-natural-language en
+        ATTR uri printer-uri $uri
+        ATTR integer job-id $job-id
+        ATTR name requesting-user-name $user
+
+    STATUS successful-ok
+
+    EXPECT job-id
+    EXPECT job-state OF-TYPE unknown|enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE >6 REPEAT-NO-MATCH
+    DISPLAY job-state
+    DISPLAY job-state-reasons
+}
+#########################################################
+{
+    SKIP-IF-NOT-DEFINED HAVE_JOB_STORAGE
+
+    NAME "[EPX2-3.3.4] Job Storage: Get-Jobs - which-jobs=stored-owner"
+    OPERATION Get-Jobs
+
+    GROUP operation-attributes-tag
+        ATTR charset attributes-charset utf-8
+        ATTR language attributes-natural-language en
+        ATTR uri printer-uri $uri
+        ATTR name requesting-user-name $user
+        ATTR boolean my-jobs true
+
+        ATTR keyword which-jobs stored-owner
+
+    STATUS successful-ok
+}
+#########################################################
+{
+    SKIP-IF-NOT-DEFINED HAVE_JOB_STORAGE
+
+    NAME "[EPX2-3.3.5] Get-Job-Attributes Test"
+    OPERATION Get-Job-Attributes
+
+    GROUP operation-attributes-tag
+        ATTR charset attributes-charset utf-8
+        ATTR naturalLanguage attributes-natural-language en
+        ATTR uri printer-uri $uri
+        ATTR integer job-id $JOB_ID
+        ATTR name requesting-user-name $user
+
+  STATUS successful-ok
+
+}
+
+
+
+
+
+
+
+
+
+
+
 #########################################################
 {
     SKIP-IF-NOT-DEFINED HAVE_PROOF_AND_SUSPEND
