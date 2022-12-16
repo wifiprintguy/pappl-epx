@@ -19,11 +19,11 @@
 // Local type...
 //
 
-typedef struct _pappl_attr_s		// Input attribute structure
+typedef struct _pappl_attr_s    // Input attribute structure
 {
-  const char	*name;			// Attribute name
-  ipp_tag_t	value_tag;		// Value tag
-  int		max_count;		// Max number of values
+  const char  *name;      // Attribute name
+  ipp_tag_t   value_tag;  // Value tag
+  int         max_count;  // Max number of values
 } _pappl_attr_t;
 
 
@@ -31,12 +31,12 @@ typedef struct _pappl_attr_s		// Input attribute structure
 // Local functions...
 //
 
-static void		ipp_cancel_job(pappl_client_t *client);
-static void		ipp_close_job(pappl_client_t *client);
-static void		ipp_get_job_attributes(pappl_client_t *client);
-static void		ipp_hold_job(pappl_client_t *client);
-static void		ipp_release_job(pappl_client_t *client);
-static void		ipp_send_document(pappl_client_t *client);
+static void   ipp_cancel_job(pappl_client_t *client);
+static void   ipp_close_job(pappl_client_t *client);
+static void   ipp_get_job_attributes(pappl_client_t *client);
+static void   ipp_hold_job(pappl_client_t *client);
+static void   ipp_release_job(pappl_client_t *client);
+static void   ipp_send_document(pappl_client_t *client);
 
 
 //
@@ -45,9 +45,9 @@ static void		ipp_send_document(pappl_client_t *client);
 
 void
 _papplJobCopyAttributes(
-    pappl_job_t    *job,		// I - Job
-    pappl_client_t *client,		// I - Client
-    cups_array_t   *ra)			// I - requested-attributes
+    pappl_job_t    *job,    // I - Job
+    pappl_client_t *client, // I - Client
+    cups_array_t   *ra)     // I - requested-attributes
 {
   _papplCopyAttributes(client->response, job->attrs, ra, IPP_TAG_JOB, 0);
 
@@ -99,14 +99,14 @@ _papplJobCopyAttributes(
 
 void
 _papplJobCopyDocumentData(
-    pappl_client_t *client,		// I - Client
-    pappl_job_t    *job)		// I - Job
+    pappl_client_t *client, // I - Client
+    pappl_job_t    *job)    // I - Job
 {
-  char			filename[1024],	// Filename buffer
-			buffer[4096];	// Copy buffer
-  ssize_t		bytes,		// Bytes read
-			total = 0;	// Total bytes copied
-  cups_array_t		*ra;		// Attributes to send in response
+  char          filename[1024], // Filename buffer
+                buffer[4096];   // Copy buffer
+  ssize_t       bytes,          // Bytes read
+                total = 0;      // Total bytes copied
+  cups_array_t  *ra;            // Attributes to send in response
 
 
   // If we have a PWG or Apple raster file, process it directly or return
@@ -147,7 +147,7 @@ _papplJobCopyDocumentData(
 
     if (write(job->fd, buffer, (size_t)bytes) < bytes)
     {
-      int error = errno;		// Write error
+      int error = errno;    // Write error
 
       close(job->fd);
       job->fd = -1;
@@ -177,7 +177,7 @@ _papplJobCopyDocumentData(
 
   if (close(job->fd))
   {
-    int error = errno;			// Write error
+    int error = errno;      // Write error
 
     job->fd = -1;
 
@@ -246,10 +246,10 @@ _papplJobCopyDocumentData(
 
 void
 _papplJobCopyState(
-    pappl_job_t    *job,	// I - Job
-    ipp_tag_t      group_tag,	// I - Group tag
-    ipp_t          *ipp,	// I - IPP message
-    cups_array_t   *ra)		// I - Requested attributes
+    pappl_job_t    *job,      // I - Job
+    ipp_tag_t      group_tag, // I - Group tag
+    ipp_t          *ipp,      // I - IPP message
+    cups_array_t   *ra)       // I - Requested attributes
 {
   if (!ra || cupsArrayFind(ra, "job-state"))
     ippAddInteger(ipp, group_tag, IPP_TAG_ENUM, "job-state", (int)job->state);
@@ -264,41 +264,41 @@ _papplJobCopyState(
     {
       switch (job->state)
       {
-	case IPP_JSTATE_PENDING :
-	    ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job pending.");
-	    break;
+        case IPP_JSTATE_PENDING :
+          ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job pending.");
+          break;
 
-	case IPP_JSTATE_HELD :
-	    if (job->fd >= 0)
-	      ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job incoming.");
-	    else if (ippFindAttribute(job->attrs, "job-hold-until", IPP_TAG_ZERO))
-	      ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job held.");
-	    else
-	      ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job created.");
-	    break;
+        case IPP_JSTATE_HELD :
+          if (job->fd >= 0)
+            ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job incoming.");
+          else if (ippFindAttribute(job->attrs, "job-hold-until", IPP_TAG_ZERO))
+            ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job held.");
+          else
+            ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job created.");
+          break;
 
-	case IPP_JSTATE_PROCESSING :
-	    if (job->is_canceled)
-	      ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job canceling.");
-	    else
-	      ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job printing.");
-	    break;
+        case IPP_JSTATE_PROCESSING :
+          if (job->is_canceled)
+            ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job canceling.");
+          else
+            ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job printing.");
+          break;
 
-	case IPP_JSTATE_STOPPED :
-	    ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job stopped.");
-	    break;
+        case IPP_JSTATE_STOPPED :
+          ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job stopped.");
+          break;
 
-	case IPP_JSTATE_CANCELED :
-	    ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job canceled.");
-	    break;
+        case IPP_JSTATE_CANCELED :
+          ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job canceled.");
+          break;
 
-	case IPP_JSTATE_ABORTED :
-	    ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job aborted.");
-	    break;
+        case IPP_JSTATE_ABORTED :
+          ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job aborted.");
+          break;
 
-	case IPP_JSTATE_COMPLETED :
-	    ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job completed.");
-	    break;
+        case IPP_JSTATE_COMPLETED :
+          ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_TEXT), "job-state-message", NULL, "Job completed.");
+          break;
       }
     }
   }
@@ -307,9 +307,9 @@ _papplJobCopyState(
   {
     if (job->state_reasons)
     {
-      size_t		num_values = 0;	// Number of string values
-      const char	*svalues[32];	// String values
-      pappl_jreason_t	bit;		// Current reason bit
+      size_t    num_values = 0; // Number of string values
+      const char  *svalues[32]; // String values
+      pappl_jreason_t bit;    // Current reason bit
 
       for (bit = PAPPL_JREASON_ABORTED_BY_SYSTEM; bit <= PAPPL_JREASON_WARNINGS_DETECTED; bit *= 2)
       {
@@ -323,39 +323,39 @@ _papplJobCopyState(
     {
       switch (job->state)
       {
-	case IPP_JSTATE_PENDING :
-	    ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "none");
-	    break;
+        case IPP_JSTATE_PENDING :
+          ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "none");
+          break;
 
-	case IPP_JSTATE_HELD :
-	    if (job->fd >= 0)
-	      ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-incoming");
-	    else
-	      ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-data-insufficient");
-	    break;
+        case IPP_JSTATE_HELD :
+          if (job->fd >= 0)
+            ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-incoming");
+          else
+            ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-data-insufficient");
+          break;
 
-	case IPP_JSTATE_PROCESSING :
-	    if (job->is_canceled)
-	      ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "processing-to-stop-point");
-	    else
-	      ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-printing");
-	    break;
+        case IPP_JSTATE_PROCESSING :
+          if (job->is_canceled)
+            ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "processing-to-stop-point");
+          else
+            ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-printing");
+          break;
 
-	case IPP_JSTATE_STOPPED :
-	    ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-stopped");
-	    break;
+        case IPP_JSTATE_STOPPED :
+          ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-stopped");
+          break;
 
-	case IPP_JSTATE_CANCELED :
-	    ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-canceled-by-user");
-	    break;
+        case IPP_JSTATE_CANCELED :
+          ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-canceled-by-user");
+          break;
 
-	case IPP_JSTATE_ABORTED :
-	    ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "aborted-by-system");
-	    break;
+        case IPP_JSTATE_ABORTED :
+          ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "aborted-by-system");
+          break;
 
-	case IPP_JSTATE_COMPLETED :
-	    ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-completed-successfully");
-	    break;
+        case IPP_JSTATE_COMPLETED :
+          ippAddString(ipp, group_tag, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-state-reasons", NULL, "job-completed-successfully");
+          break;
       }
     }
   }
@@ -368,40 +368,40 @@ _papplJobCopyState(
 
 void
 _papplJobProcessIPP(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
   switch (ippGetOperation(client->request))
   {
     case IPP_OP_CANCEL_JOB :
-	ipp_cancel_job(client);
-	break;
+      ipp_cancel_job(client);
+      break;
 
     case IPP_OP_CLOSE_JOB :
-	ipp_close_job(client);
-	break;
+      ipp_close_job(client);
+      break;
 
     case IPP_OP_GET_JOB_ATTRIBUTES :
-	ipp_get_job_attributes(client);
-	break;
+      ipp_get_job_attributes(client);
+      break;
 
     case IPP_OP_HOLD_JOB :
-	ipp_hold_job(client);
-	break;
+      ipp_hold_job(client);
+      break;
 
     case IPP_OP_RELEASE_JOB :
-	ipp_release_job(client);
-	break;
+      ipp_release_job(client);
+      break;
 
     case IPP_OP_SEND_DOCUMENT :
-	ipp_send_document(client);
-	break;
+      ipp_send_document(client);
+      break;
 
     default :
-        if (client->system->op_cb && (client->system->op_cb)(client, client->system->op_cbdata))
-          break;
+      if (client->system->op_cb && (client->system->op_cb)(client, client->system->op_cbdata))
+        break;
 
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_OPERATION_NOT_SUPPORTED, "Operation not supported.");
-	break;
+      papplClientRespondIPP(client, IPP_STATUS_ERROR_OPERATION_NOT_SUPPORTED, "Operation not supported.");
+      break;
   }
 }
 
@@ -414,20 +414,17 @@ _papplJobProcessIPP(
 // suitable response and attributes to the unsupported group.
 //
 
-bool					// O - `true` if valid, `false` if not
+bool          // O - `true` if valid, `false` if not
 _papplJobValidateDocumentAttributes(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  bool			valid = true;	// Valid attributes?
-  ipp_op_t		op = ippGetOperation(client->request);
-					// IPP operation
-  const char		*op_name = ippOpString(op);
-					// IPP operation name
-  ipp_attribute_t	*attr,		// Current attribute
-			*supported;	// xxx-supported attribute
-  const char		*compression = NULL,
-					// compression value
-			*format = NULL;	// document-format value
+  bool            valid = true;                           // Valid attributes?
+  ipp_op_t        op = ippGetOperation(client->request);  // IPP operation
+  const char      *op_name = ippOpString(op);             // IPP operation name
+  ipp_attribute_t *attr,                                  // Current attribute
+                  *supported;                             // xxx-supported attribute
+  const char    *compression = NULL,                      // compression value
+                *format = NULL;                           // document-format value
 
 
   // Check operation attributes...
@@ -486,8 +483,8 @@ _papplJobValidateDocumentAttributes(
   if (format && !strcmp(format, "application/octet-stream") && (ippGetOperation(client->request) == IPP_OP_PRINT_JOB || ippGetOperation(client->request) == IPP_OP_SEND_DOCUMENT))
   {
     // Auto-type the file using the first N bytes of the file...
-    unsigned char	header[8192];	// First 8k bytes of file
-    ssize_t		headersize;	// Number of bytes read
+    unsigned char header[8192]; // First 8k bytes of file
+    ssize_t   headersize; // Number of bytes read
 
 
     memset(header, 0, sizeof(header));
@@ -539,9 +536,9 @@ _papplJobValidateDocumentAttributes(
 //
 
 static void
-ipp_cancel_job(pappl_client_t *client)	// I - Client
+ipp_cancel_job(pappl_client_t *client)  // I - Client
 {
-  pappl_job_t	*job;			// Job information
+  pappl_job_t *job;     // Job information
 
 
   // Authorize access...
@@ -565,23 +562,23 @@ ipp_cancel_job(pappl_client_t *client)	// I - Client
   switch (job->state)
   {
     case IPP_JSTATE_CANCELED :
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already canceled - can\'t cancel.", job->job_id);
-        break;
+      papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already canceled - can\'t cancel.", job->job_id);
+      break;
 
     case IPP_JSTATE_ABORTED :
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already aborted - can\'t cancel.", job->job_id);
-        break;
+      papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already aborted - can\'t cancel.", job->job_id);
+      break;
 
     case IPP_JSTATE_COMPLETED :
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already completed - can\'t cancel.", job->job_id);
-        break;
+      papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already completed - can\'t cancel.", job->job_id);
+      break;
 
     default :
-        // Cancel the job...
-        papplJobCancel(job);
+      // Cancel the job...
+      papplJobCancel(job);
 
-	papplClientRespondIPP(client, IPP_STATUS_OK, NULL);
-        break;
+      papplClientRespondIPP(client, IPP_STATUS_OK, NULL);
+      break;
   }
 }
 
@@ -591,9 +588,9 @@ ipp_cancel_job(pappl_client_t *client)	// I - Client
 //
 
 static void
-ipp_close_job(pappl_client_t *client)	// I - Client
+ipp_close_job(pappl_client_t *client) // I - Client
 {
-  pappl_job_t	*job = client->job;	// Job information
+  pappl_job_t *job = client->job; // Job information
 
 
   // Authorize access...
@@ -612,25 +609,25 @@ ipp_close_job(pappl_client_t *client)	// I - Client
   switch (job->state)
   {
     case IPP_JSTATE_CANCELED :
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is canceled - can\'t close.", job->job_id);
-        break;
+      papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is canceled - can\'t close.", job->job_id);
+      break;
 
     case IPP_JSTATE_ABORTED :
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is aborted - can\'t close.", job->job_id);
-        break;
+      papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is aborted - can\'t close.", job->job_id);
+      break;
 
     case IPP_JSTATE_COMPLETED :
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is completed - can\'t close.", job->job_id);
-        break;
+      papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is completed - can\'t close.", job->job_id);
+      break;
 
     case IPP_JSTATE_PROCESSING :
     case IPP_JSTATE_STOPPED :
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already closed.", job->job_id);
-        break;
+      papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job #%d is already closed.", job->job_id);
+      break;
 
     default :
-	papplClientRespondIPP(client, IPP_STATUS_OK, NULL);
-        break;
+      papplClientRespondIPP(client, IPP_STATUS_OK, NULL);
+      break;
   }
 }
 
@@ -641,10 +638,10 @@ ipp_close_job(pappl_client_t *client)	// I - Client
 
 static void
 ipp_get_job_attributes(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  pappl_job_t	*job = client->job;	// Job information
-  cups_array_t	*ra;			// requested-attributes
+  pappl_job_t   *job = client->job; // Job information
+  cups_array_t  *ra;                // requested-attributes
 
 
   // Authorize access...
@@ -670,9 +667,9 @@ ipp_get_job_attributes(
 //
 
 static void
-ipp_hold_job(pappl_client_t *client)	// I - Client
+ipp_hold_job(pappl_client_t *client)  // I - Client
 {
-  pappl_job_t	*job = client->job;	// Job information
+  pappl_job_t *job = client->job; // Job information
 
 
   // Authorize access...
@@ -682,8 +679,8 @@ ipp_hold_job(pappl_client_t *client)	// I - Client
   // Get the job...
   if (job)
   {
-    const char	*hold_until;		// "job-hold-until" keyword
-    time_t	hold_until_time;	// "job-hold-until-time" value
+    const char  *hold_until;    // "job-hold-until" keyword
+    time_t  hold_until_time;  // "job-hold-until-time" value
 
     hold_until      = ippGetString(ippFindAttribute(client->request, "job-hold-until", IPP_TAG_KEYWORD), 0, NULL);
     hold_until_time = ippDateToTime(ippGetDate(ippFindAttribute(client->request, "job-hold-until-time", IPP_TAG_DATE), 0));
@@ -695,17 +692,17 @@ ipp_hold_job(pappl_client_t *client)	// I - Client
     if (hold_until && !strcmp(hold_until, "no-hold"))
     {
       if (papplJobRelease(job, client->username))
-	papplClientRespondIPP(client, IPP_STATUS_OK, "Job released.");
+        papplClientRespondIPP(client, IPP_STATUS_OK, "Job released.");
       else
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job already released.");
+        papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job already released.");
     }
     else
     {
       // Otherwise hold with the specified values...
       if (papplJobHold(job, client->username, hold_until, hold_until_time))
-	papplClientRespondIPP(client, IPP_STATUS_OK, "Job held.");
+        papplClientRespondIPP(client, IPP_STATUS_OK, "Job held.");
       else
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job not pending/held.");
+        papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job not pending/held.");
     }
   }
   else
@@ -721,9 +718,9 @@ ipp_hold_job(pappl_client_t *client)	// I - Client
 //
 
 static void
-ipp_release_job(pappl_client_t *client)	// I - Client
+ipp_release_job(pappl_client_t *client) // I - Client
 {
-  pappl_job_t	*job = client->job;	// Job information
+  pappl_job_t *job = client->job; // Job information
 
 
   // Authorize access...
@@ -753,11 +750,11 @@ ipp_release_job(pappl_client_t *client)	// I - Client
 
 static void
 ipp_send_document(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  pappl_job_t	*job = client->job;	// Job information
-  ipp_attribute_t *attr;		// Current attribute
-  bool		have_data;		// Do we have document data?
+  pappl_job_t     *job = client->job; // Job information
+  ipp_attribute_t *attr;              // Current attribute
+  bool            have_data;          // Do we have document data?
 
 
   // Authorize access...
