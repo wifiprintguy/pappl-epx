@@ -21,15 +21,15 @@
 
 void
 _papplClientFlushDocumentData(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  char	buffer[8192];			// Read buffer
+  char  buffer[8192];     // Read buffer
 
 
   if (httpGetState(client->http) == HTTP_STATE_POST_RECV)
   {
     while (httpRead(client->http, buffer, sizeof(buffer)) > 0)
-      ;				// Read all data
+      ;       // Read all data
   }
 }
 
@@ -38,11 +38,11 @@ _papplClientFlushDocumentData(
 // '_papplClientHaveDocumentData()' - Determine whether we have more document data.
 //
 
-bool					// O - `true` if data is present, `false` otherwise
+bool          // O - `true` if data is present, `false` otherwise
 _papplClientHaveDocumentData(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  char temp;				// Data
+  char temp;        // Data
 
 
   if (httpGetState(client->http) != HTTP_STATE_POST_RECV)
@@ -56,20 +56,19 @@ _papplClientHaveDocumentData(
 // '_papplClientProcessIPP()' - Process an IPP request.
 //
 
-bool					// O - `true` on success, `false` on error
+bool          // O - `true` on success, `false` on error
 _papplClientProcessIPP(
-    pappl_client_t *client)		// I - Client
+    pappl_client_t *client)   // I - Client
 {
-  ipp_tag_t		group;		// Current group tag
-  ipp_attribute_t	*attr;		// Current attribute
-  ipp_attribute_t	*charset;	// Character set attribute
-  ipp_attribute_t	*language;	// Language attribute
-  ipp_attribute_t	*uri;		// Printer URI attribute
-  int			major, minor;	// Version number
-  ipp_op_t		op;		// Operation code
-  const char		*name;		// Name of attribute
-  bool			printer_op = true;
-					// Printer operation?
+  ipp_tag_t       group;              // Current group tag
+  ipp_attribute_t *attr;              // Current attribute
+  ipp_attribute_t *charset;           // Character set attribute
+  ipp_attribute_t *language;          // Language attribute
+  ipp_attribute_t *uri;               // Printer URI attribute
+  int             major, minor;       // Version number
+  ipp_op_t        op;                 // Operation code
+  const char      *name;              // Name of attribute
+  bool            printer_op = true;  // Printer operation?
 
 
   // First build an empty response message for this request...
@@ -104,11 +103,11 @@ _papplClientProcessIPP(
       if (ippGetGroupTag(attr) < group && ippGetGroupTag(attr) != IPP_TAG_ZERO)
       {
         // Out of order; return an error...
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_BAD_REQUEST, "Attribute groups are out of order (%x < %x).", ippGetGroupTag(attr), group);
-	break;
+        papplClientRespondIPP(client, IPP_STATUS_ERROR_BAD_REQUEST, "Attribute groups are out of order (%x < %x).", ippGetGroupTag(attr), group);
+        break;
       }
       else
-	group = ippGetGroupTag(attr);
+        group = ippGetGroupTag(attr);
     }
 
     if (!attr)
@@ -121,26 +120,26 @@ _papplClientProcessIPP(
       attr = ippGetFirstAttribute(client->request);
       name = ippGetName(attr);
       if (attr && name && !strcmp(name, "attributes-charset") && ippGetValueTag(attr) == IPP_TAG_CHARSET)
-	charset = attr;
+        charset = attr;
       else
-	charset = NULL;
+        charset = NULL;
 
       attr = ippGetNextAttribute(client->request);
       name = ippGetName(attr);
 
       if (attr && name && !strcmp(name, "attributes-natural-language") && ippGetValueTag(attr) == IPP_TAG_LANGUAGE)
-	language = attr;
+        language = attr;
       else
-	language = NULL;
+        language = NULL;
 
       if ((attr = ippFindAttribute(client->request, "system-uri", IPP_TAG_URI)) != NULL)
-	uri = attr;
+        uri = attr;
       else if ((attr = ippFindAttribute(client->request, "printer-uri", IPP_TAG_URI)) != NULL)
-	uri = attr;
+        uri = attr;
       else if ((attr = ippFindAttribute(client->request, "job-uri", IPP_TAG_URI)) != NULL)
-	uri = attr;
+        uri = attr;
       else
-	uri = NULL;
+        uri = NULL;
 
       client->printer = NULL;
       client->job     = NULL;
@@ -148,92 +147,92 @@ _papplClientProcessIPP(
       if (charset && strcasecmp(ippGetString(charset, 0, NULL), "us-ascii") && strcasecmp(ippGetString(charset, 0, NULL), "utf-8"))
       {
         // Bad character set...
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_BAD_REQUEST, "Unsupported character set \"%s\".", ippGetString(charset, 0, NULL));
+        papplClientRespondIPP(client, IPP_STATUS_ERROR_BAD_REQUEST, "Unsupported character set \"%s\".", ippGetString(charset, 0, NULL));
       }
       else if (!charset || !language || (!uri && op != IPP_OP_CUPS_GET_DEFAULT && op != IPP_OP_CUPS_GET_PRINTERS))
       {
         // Return an error, since attributes-charset,
-	// attributes-natural-language, and system/printer/job-uri are required
-	// for all operations.
-	papplClientRespondIPP(client, IPP_STATUS_ERROR_BAD_REQUEST, "Missing required attributes.");
+        // attributes-natural-language, and system/printer/job-uri are required
+        // for all operations.
+        papplClientRespondIPP(client, IPP_STATUS_ERROR_BAD_REQUEST, "Missing required attributes.");
       }
       else
       {
         if (uri)
         {
-	  char	scheme[32],		// URI scheme
-		userpass[32],		// Username/password in URI
-		host[256],		// Host name in URI
-		resource[256],		// Resource path in URI
-		*resptr;		// Pointer into resource
-	  int	port,			// Port number in URI
-		job_id;			// Job ID
+          char  scheme[32],   // URI scheme
+          userpass[32],   // Username/password in URI
+          host[256],    // Host name in URI
+          resource[256],    // Resource path in URI
+          *resptr;    // Pointer into resource
+          int port,     // Port number in URI
+          job_id;     // Job ID
 
-	  name = ippGetName(uri);
+          name = ippGetName(uri);
 
-	  if (httpSeparateURI(HTTP_URI_CODING_ALL, ippGetString(uri, 0, NULL), scheme, sizeof(scheme), userpass, sizeof(userpass), host, sizeof(host), &port, resource, sizeof(resource)) < HTTP_URI_STATUS_OK)
-	  {
-	    papplClientRespondIPP(client, IPP_STATUS_ERROR_ATTRIBUTES_OR_VALUES, "Bad %s value '%s'.", name, ippGetString(uri, 0, NULL));
-	  }
-	  else if (!strcmp(name, "system-uri"))
-	  {
-	    printer_op = false;
+          if (httpSeparateURI(HTTP_URI_CODING_ALL, ippGetString(uri, 0, NULL), scheme, sizeof(scheme), userpass, sizeof(userpass), host, sizeof(host), &port, resource, sizeof(resource)) < HTTP_URI_STATUS_OK)
+          {
+            papplClientRespondIPP(client, IPP_STATUS_ERROR_ATTRIBUTES_OR_VALUES, "Bad %s value '%s'.", name, ippGetString(uri, 0, NULL));
+          }
+          else if (!strcmp(name, "system-uri"))
+          {
+            printer_op = false;
 
-	    if (strcmp(resource, "/ipp/system"))
-	    {
-	      papplClientRespondIPP(client, IPP_STATUS_ERROR_ATTRIBUTES_OR_VALUES, "Bad %s value '%s'.", name, ippGetString(uri, 0, NULL));
-	    }
-	    else
-	      client->printer = papplSystemFindPrinter(client->system, NULL, ippGetInteger(ippFindAttribute(client->request, "printer-id", IPP_TAG_INTEGER), 0), NULL);
-	  }
-	  else if ((client->printer = papplSystemFindPrinter(client->system, resource, 0, NULL)) != NULL)
-	  {
-	    if (!strcmp(name, "job-uri") && (resptr = strrchr(resource, '/')) != NULL)
-	    {
-	      char *endptr;		// Pointer after job ID
+            if (strcmp(resource, "/ipp/system"))
+            {
+              papplClientRespondIPP(client, IPP_STATUS_ERROR_ATTRIBUTES_OR_VALUES, "Bad %s value '%s'.", name, ippGetString(uri, 0, NULL));
+            }
+            else
+              client->printer = papplSystemFindPrinter(client->system, NULL, ippGetInteger(ippFindAttribute(client->request, "printer-id", IPP_TAG_INTEGER), 0), NULL);
+          }
+          else if ((client->printer = papplSystemFindPrinter(client->system, resource, 0, NULL)) != NULL)
+          {
+            if (!strcmp(name, "job-uri") && (resptr = strrchr(resource, '/')) != NULL)
+            {
+              char *endptr;   // Pointer after job ID
 
-	      job_id = (int)strtol(resptr + 1, &endptr, 10);
+              job_id = (int)strtol(resptr + 1, &endptr, 10);
 
-	      if (errno == ERANGE || *endptr)
-	        job_id = 0;
-	    }
-	    else
-	      job_id = ippGetInteger(ippFindAttribute(client->request, "job-id", IPP_TAG_INTEGER), 0);
+              if (errno == ERANGE || *endptr)
+                job_id = 0;
+            }
+            else
+              job_id = ippGetInteger(ippFindAttribute(client->request, "job-id", IPP_TAG_INTEGER), 0);
 
-	    if (job_id)
-	    {
-	      if ((client->job = papplPrinterFindJob(client->printer, job_id)) == NULL)
-	      {
-		papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_FOUND, "job-id %d not found.", job_id);
-	      }
-	    }
-	  }
-	  else
-	  {
-	    papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_FOUND, "%s %s not found.", name, ippGetString(uri, 0, NULL));
-	  }
+            if (job_id)
+            {
+              if ((client->job = papplPrinterFindJob(client->printer, job_id)) == NULL)
+              {
+                papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_FOUND, "job-id %d not found.", job_id);
+              }
+            }
+          }
+          else
+          {
+            papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_FOUND, "%s %s not found.", name, ippGetString(uri, 0, NULL));
+          }
         }
         else
           printer_op = false;
 
-	if (ippGetStatusCode(client->response) == IPP_STATUS_OK)
-	{
-	  papplLogClient(client, PAPPL_LOGLEVEL_DEBUG, "IPP/%d.%d %s (%s)", major, minor, ippOpString(op), httpGetField(client->http, HTTP_FIELD_USER_AGENT));
+        if (ippGetStatusCode(client->response) == IPP_STATUS_OK)
+        {
+          papplLogClient(client, PAPPL_LOGLEVEL_DEBUG, "IPP/%d.%d %s (%s)", major, minor, ippOpString(op), httpGetField(client->http, HTTP_FIELD_USER_AGENT));
 
-	  if (printer_op)
-	  {
-	    // Process job or printer operation...
-	    if (client->job)
-	      _papplJobProcessIPP(client);
-	    else
-	      _papplPrinterProcessIPP(client);
-	  }
-	  else
-	  {
-	    // Process system operation...
-	    _papplSystemProcessIPP(client);
-	  }
-	}
+          if (printer_op)
+          {
+            // Process job or printer operation...
+            if (client->job)
+              _papplJobProcessIPP(client);
+            else
+              _papplPrinterProcessIPP(client);
+          }
+          else
+          {
+            // Process system operation...
+            _papplSystemProcessIPP(client);
+          }
+        }
       }
     }
   }
@@ -264,22 +263,22 @@ _papplClientProcessIPP(
 // > attributes.
 //
 
-ipp_t *					// O - IPP response message
+ipp_t *         // O - IPP response message
 papplClientRespondIPP(
-    pappl_client_t *client,		// I - Client
-    ipp_status_t   status,		// I - status-code
-    const char     *message,		// I - printf-style status-message
-    ...)				// I - Additional args as needed
+    pappl_client_t *client,   // I - Client
+    ipp_status_t   status,    // I - status-code
+    const char     *message,  // I - printf-style status-message
+    ...)                      // I - Additional args as needed
 {
-  const char	*formatted = NULL;	// Formatted message
+  const char  *formatted = NULL;  // Formatted message
 
 
   ippSetStatusCode(client->response, status);
 
   if (message)
   {
-    va_list		ap;		// Pointer to additional args
-    ipp_attribute_t	*attr;		// New status-message attribute
+    va_list   ap;   // Pointer to additional args
+    ipp_attribute_t *attr;    // New status-message attribute
 
     va_start(ap, message);
     if ((attr = ippFindAttribute(client->response, "status-message", IPP_TAG_TEXT)) != NULL)
@@ -310,10 +309,10 @@ papplClientRespondIPP(
 
 void
 papplClientRespondIPPUnsupported(
-    pappl_client_t  *client,		// I - Client
-    ipp_attribute_t *attr)		// I - Atribute
+    pappl_client_t  *client,  // I - Client
+    ipp_attribute_t *attr)    // I - Atribute
 {
-  ipp_attribute_t	*temp;		// Copy of attribute
+  ipp_attribute_t *temp;    // Copy of attribute
 
 
   papplClientRespondIPP(client, IPP_STATUS_ERROR_ATTRIBUTES_OR_VALUES, "Unsupported %s %s%s value.", ippGetName(attr), ippGetCount(attr) > 1 ? "1setOf " : "", ippTagString(ippGetValueTag(attr)));
