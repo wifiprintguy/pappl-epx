@@ -19,9 +19,9 @@
 //
 
 static const char *cups_cspace_string(cups_cspace_t cspace);
-static bool	filter_raw(pappl_job_t *job, pappl_device_t *device);
-static void	finish_job(pappl_job_t *job);
-static bool	start_job(pappl_job_t *job);
+static bool     filter_raw(pappl_job_t *job, pappl_device_t *device);
+static void     finish_job(pappl_job_t *job);
+static bool     start_job(pappl_job_t *job);
 
 
 //
@@ -36,22 +36,22 @@ static bool	start_job(pappl_job_t *job);
 // from parsing the job file.
 //
 
-pappl_pr_options_t *			// O - Job options data or `NULL` on error
+pappl_pr_options_t *                    // O - Job options data or `NULL` on error
 papplJobCreatePrintOptions(
-    pappl_job_t      *job,		// I - Job
-    unsigned         num_pages,		// I - Number of pages (`0` for unknown)
-    bool             color)		// I - Is the document in color?
+    pappl_job_t      *job,              // I - Job
+    unsigned         num_pages,         // I - Number of pages (`0` for unknown)
+    bool             color)             // I - Is the document in color?
 {
-  pappl_pr_options_t	*options;	// New options data
-  cups_len_t		i,		// Looping var
-			count;		// Number of values
-  ipp_attribute_t	*attr;		// Attribute
-  pappl_printer_t	*printer = job->printer;
-					// Printer
-  const char		*raster_type;	// Raster type for output
+  pappl_pr_options_t    *options;       // New options data
+  cups_len_t            i,              // Looping var
+                        count;          // Number of values
+  ipp_attribute_t       *attr;          // Attribute
+  pappl_printer_t       *printer = job->printer;
+                                        // Printer
+  const char            *raster_type;   // Raster type for output
 #if CUPS_VERSION_MAJOR < 3
   static const char * const media_positions[] =
-  {					// "media-source" to MediaPosition mapping
+  {                                     // "media-source" to MediaPosition mapping
     "auto",
     "main",
     "alternate",
@@ -104,7 +104,7 @@ papplJobCreatePrintOptions(
     "roll-10"
   };
   static const cups_orient_t orientations[] =
-  {					// "orientation-requested" to Orientation  mapping
+  {         // "orientation-requested" to Orientation  mapping
     CUPS_ORIENT_0,
     CUPS_ORIENT_90,
     CUPS_ORIENT_270,
@@ -113,7 +113,7 @@ papplJobCreatePrintOptions(
   };
 #endif // CUPS_VERSION_MAJOR < 3
   static const char * const sheet_back[] =
-  {					// "pwg-raster-document-sheet-back values
+  {         // "pwg-raster-document-sheet-back values
     "normal",
     "flipped",
     "rotated",
@@ -154,9 +154,9 @@ papplJobCreatePrintOptions(
     for (i = 0, count = ippGetCount(attr); i < count; i ++)
     {
       ipp_t *col = ippGetCollection(attr, i);
-					// "finishings-col" collection value
+          // "finishings-col" collection value
       const char *template = ippGetString(ippFindAttribute(col, "finishing-template", IPP_TAG_ZERO), 0, NULL);
-					// "finishing-template" value
+          // "finishing-template" value
 
       if (template && !strcmp(template, "punch"))
         options->finishings |= PAPPL_FINISHINGS_PUNCH;
@@ -178,8 +178,8 @@ papplJobCreatePrintOptions(
   }
   else if ((attr = ippFindAttribute(job->attrs, "media", IPP_TAG_ZERO)) != NULL)
   {
-    const char	*pwg_name = ippGetString(attr, 0, NULL);
-    pwg_media_t	*pwg_media = pwgMediaForPWG(pwg_name);
+    const char  *pwg_name = ippGetString(attr, 0, NULL);
+    pwg_media_t *pwg_media = pwgMediaForPWG(pwg_name);
 
     if (pwg_name && pwg_media)
     {
@@ -216,7 +216,7 @@ papplJobCreatePrintOptions(
   // output-bin
   if (printer->driver_data.num_bin > 0)
   {
-    const char		*value;		// Attribute string value
+    const char    *value;   // Attribute string value
 
     if ((value = ippGetString(ippFindAttribute(job->attrs, "output-bin", IPP_TAG_ZERO), 0, NULL)) != NULL)
       papplCopyString(options->output_bin, value, sizeof(options->output_bin));
@@ -227,8 +227,8 @@ papplJobCreatePrintOptions(
   // page-ranges
   if ((attr = ippFindAttribute(job->attrs, "page-ranges", IPP_TAG_RANGE)) != NULL && ippGetCount(attr) == 1)
   {
-    int	last, first = ippGetRange(attr, 0, &last);
-					// pages-ranges values
+    int last, first = ippGetRange(attr, 0, &last);
+          // pages-ranges values
 
     if (first > (int)num_pages && num_pages != 0)
     {
@@ -321,7 +321,7 @@ papplJobCreatePrintOptions(
   // printer-resolution
   if ((attr = ippFindAttribute(job->attrs, "printer-resolution", IPP_TAG_RESOLUTION)) != NULL)
   {
-    ipp_res_t	units;			// Resolution units
+    ipp_res_t units;      // Resolution units
 
     options->printer_resolution[0] = ippGetResolution(attr, 0, options->printer_resolution + 1, &units);
   }
@@ -358,11 +358,11 @@ papplJobCreatePrintOptions(
   for (i = 0; i < (cups_len_t)printer->driver_data.num_vendor; i ++)
   {
     const char *name = printer->driver_data.vendor[i];
-					// Vendor attribute name
+          // Vendor attribute name
 
     if ((attr = ippFindAttribute(job->attrs, name, IPP_TAG_ZERO)) == NULL)
     {
-      char	defname[128];		// xxx-default attribute
+      char  defname[128]; // xxx-default attribute
 
       snprintf(defname, sizeof(defname), "%s-default", name);
       attr = ippFindAttribute(job->attrs, defname, IPP_TAG_ZERO);
@@ -370,7 +370,7 @@ papplJobCreatePrintOptions(
 
     if (attr)
     {
-      char	value[1024];		// Value of attribute
+      char  value[1024];    // Value of attribute
 
       ippAttributeString(attr, value, sizeof(value));
       options->num_vendor = (int)cupsAddOption(name, value, (cups_len_t)options->num_vendor, &options->vendor);
@@ -438,7 +438,7 @@ papplJobCreatePrintOptions(
   options->header.cupsInteger[CUPS_RASTER_PWG_PrintQuality]   = options->print_quality;
 
 #else // CUPS 3.x has a new API for this...
-  cups_size_t	media;			// CUPS media value
+  cups_size_t media;    // CUPS media value
 
   memset(&media, 0, sizeof(media));
 
@@ -513,7 +513,7 @@ papplJobCreatePrintOptions(
 
 void
 papplJobDeletePrintOptions(
-    pappl_pr_options_t *options)		// I - Options
+    pappl_pr_options_t *options)    // I - Options
 {
   if (options)
   {
@@ -527,10 +527,10 @@ papplJobDeletePrintOptions(
 // '_papplJobProcess()' - Process a print job.
 //
 
-void *					// O - Thread exit status
-_papplJobProcess(pappl_job_t *job)	// I - Job
+void *          // O - Thread exit status
+_papplJobProcess(pappl_job_t *job)  // I - Job
 {
-  _pappl_mime_filter_t	*filter;	// Filter for printing
+  _pappl_mime_filter_t  *filter;  // Filter for printing
 
 
   // Start processing the job...
@@ -540,15 +540,20 @@ _papplJobProcess(pappl_job_t *job)	// I - Job
     if ((filter = _papplSystemFindMIMEFilter(job->system, job->format, job->printer->driver_data.format)) == NULL)
       filter =_papplSystemFindMIMEFilter(job->system, job->format, "image/pwg-raster");
 
-    if (filter)
+    if (job->storage_disposition & PAPPL_STORAGE_DISPOSITION_STORE_ONLY)
+    {
+      // No output so just let it pass through
+      sleep(10);
+    }
+    else if (filter)
     {
       if (!(filter->cb)(job, job->printer->device, filter->cbdata))
-	job->state = IPP_JSTATE_ABORTED;
+        job->state = IPP_JSTATE_ABORTED;
     }
     else if (!strcmp(job->format, job->printer->driver_data.format))
     {
       if (!filter_raw(job, job->printer->device))
-	job->state = IPP_JSTATE_ABORTED;
+        job->state = IPP_JSTATE_ABORTED;
     }
     else
     {
@@ -571,25 +576,25 @@ _papplJobProcess(pappl_job_t *job)	// I - Job
 
 void
 _papplJobProcessRaster(
-    pappl_job_t    *job,		// I - Job
-    pappl_client_t *client)		// I - Client
+    pappl_job_t    *job,                // I - Job
+    pappl_client_t *client)             // I - Client
 {
-  pappl_printer_t	*printer = job->printer;
-					// Printer for job
-  pappl_pr_options_t	*options = NULL;// Job options
-  cups_raster_t		*ras = NULL;	// Raster stream
-  cups_page_header_t	header;		// Page header
-  unsigned		header_pages;	// Number of pages from page header
-  const unsigned char	*dither;	// Dither line
-  unsigned char		*pixels,	// Incoming pixel line
-			*pixptr,	// Pixel pointer in line
-			*line,		// Output (bitmap) line
-			*lineptr,	// Pointer in line
-			byte,		// Byte in line
-			bit;		// Current bit
-  unsigned		page = 0,	// Current page
-			x,		// Current column
-			y;		// Current line
+  pappl_printer_t       *printer = job->printer;
+                                        // Printer for job
+  pappl_pr_options_t    *options = NULL;// Job options
+  cups_raster_t         *ras = NULL;    // Raster stream
+  cups_page_header_t    header;         // Page header
+  unsigned              header_pages;   // Number of pages from page header
+  const unsigned char   *dither;        // Dither line
+  unsigned char         *pixels,        // Incoming pixel line
+                        *pixptr,        // Pixel pointer in line
+                        *line,          // Output (bitmap) line
+                        *lineptr,       // Pointer in line
+                        byte,           // Byte in line
+                        bit;            // Current bit
+  unsigned              page = 0,       // Current page
+                        x,              // Current column
+                        y;              // Current line
 
 
   // Start processing the job...
@@ -659,7 +664,7 @@ _papplJobProcessRaster(
     }
 
     if (options->header.cupsBitsPerPixel >= 8 && header.cupsBitsPerPixel >= 8)
-      options->header = header;		// Use page header from client
+      options->header = header;   // Use page header from client
 
     if (!(printer->driver_data.rstartpage_cb)(job, options, job->printer->device, page))
     {
@@ -673,8 +678,8 @@ _papplJobProcessRaster(
       if ((pixels = malloc(options->header.cupsBytesPerLine)) == NULL)
       {
         papplLogJob(job, PAPPL_LOGLEVEL_ERROR, "Unable to allocate raster line.");
-	job->state = IPP_JSTATE_ABORTED;
-	break;
+        job->state = IPP_JSTATE_ABORTED;
+        break;
       }
 
       if (options->header.cupsColorSpace == CUPS_CSPACE_K)
@@ -688,8 +693,8 @@ _papplJobProcessRaster(
       if ((pixels = malloc(header.cupsBytesPerLine)) == NULL)
       {
         papplLogJob(job, PAPPL_LOGLEVEL_ERROR, "Unable to allocate raster line.");
-	job->state = IPP_JSTATE_ABORTED;
-	break;
+        job->state = IPP_JSTATE_ABORTED;
+        break;
       }
     }
 
@@ -709,51 +714,51 @@ _papplJobProcessRaster(
         if (header.cupsBitsPerPixel == 8 && options->header.cupsBitsPerPixel == 1)
         {
           // Dither the line...
-	  dither = options->dither[y & 15];
-	  memset(line, 0, options->header.cupsBytesPerLine);
+          dither = options->dither[y & 15];
+          memset(line, 0, options->header.cupsBytesPerLine);
 
           if (header.cupsColorSpace == CUPS_CSPACE_K)
           {
             // Black...
-	    for (x = 0, lineptr = line, pixptr = pixels, bit = 128, byte = 0; x < header.cupsWidth; x ++, pixptr ++)
-	    {
-	      if (*pixptr > dither[x & 15])
-	        byte |= bit;
+            for (x = 0, lineptr = line, pixptr = pixels, bit = 128, byte = 0; x < header.cupsWidth; x ++, pixptr ++)
+            {
+              if (*pixptr > dither[x & 15])
+                byte |= bit;
 
-	      if (bit == 1)
-	      {
-	        *lineptr++ = byte;
-	        byte       = 0;
-	        bit        = 128;
-	      }
-	      else
-	        bit /= 2;
-	    }
+              if (bit == 1)
+              {
+                *lineptr++ = byte;
+                byte       = 0;
+                bit        = 128;
+              }
+              else
+                bit /= 2;
+            }
 
-	    if (bit < 128)
-	      *lineptr = byte;
-	  }
-	  else
-	  {
-	    // Grayscale to black...
-	    for (x = 0, lineptr = line, pixptr = pixels, bit = 128, byte = 0; x < header.cupsWidth; x ++, pixptr ++)
-	    {
-	      if (*pixptr <= dither[x & 15])
-	        byte |= bit;
+            if (bit < 128)
+              *lineptr = byte;
+          }
+          else
+          {
+            // Grayscale to black...
+            for (x = 0, lineptr = line, pixptr = pixels, bit = 128, byte = 0; x < header.cupsWidth; x ++, pixptr ++)
+            {
+              if (*pixptr <= dither[x & 15])
+                byte |= bit;
 
-	      if (bit == 1)
-	      {
-	        *lineptr++ = byte;
-	        byte       = 0;
-	        bit        = 128;
-	      }
-	      else
-	        bit /= 2;
-	    }
+              if (bit == 1)
+              {
+                *lineptr++ = byte;
+                byte       = 0;
+                bit        = 128;
+              }
+              else
+                bit /= 2;
+            }
 
-	    if (bit < 128)
-	      *lineptr = byte;
-	  }
+            if (bit < 128)
+              *lineptr = byte;
+          }
 
           (printer->driver_data.rwriteline_cb)(job, options, job->printer->device, y, line);
         }
@@ -782,7 +787,7 @@ _papplJobProcessRaster(
 
         while (y < options->header.cupsHeight)
         {
-	  (printer->driver_data.rwriteline_cb)(job, options, job->printer->device, y, line);
+          (printer->driver_data.rwriteline_cb)(job, options, job->printer->device, y, line);
           y ++;
         }
       }
@@ -790,12 +795,12 @@ _papplJobProcessRaster(
       {
         if (header.cupsColorSpace == CUPS_CSPACE_K || header.cupsColorSpace == CUPS_CSPACE_CMYK)
           memset(pixels, 0x00, header.cupsBytesPerLine);
-	else
+        else
           memset(pixels, 0xff, header.cupsBytesPerLine);
 
         while (y < options->header.cupsHeight)
         {
-	  (printer->driver_data.rwriteline_cb)(job, options, job->printer->device, y, pixels);
+          (printer->driver_data.rwriteline_cb)(job, options, job->printer->device, y, pixels);
           y ++;
         }
       }
@@ -833,10 +838,10 @@ _papplJobProcessRaster(
   if (httpGetState(client->http) == HTTP_STATE_POST_RECV)
   {
     // Flush excess data...
-    char	buffer[8192];		// Read buffer
+    char  buffer[8192];   // Read buffer
 
     while (httpRead(client->http, buffer, sizeof(buffer)) > 0)
-      ;				// Read all document data
+      ;       // Read all document data
   }
 
   cupsRasterClose(ras);
@@ -850,11 +855,11 @@ _papplJobProcessRaster(
 // 'cups_cspace_string()' - Get a string corresponding to a cupsColorSpace enum value.
 //
 
-static const char *			// O - cupsColorSpace string value
+static const char *     // O - cupsColorSpace string value
 cups_cspace_string(
-    cups_cspace_t value)		// I - cupsColorSpace enum value
+    cups_cspace_t value)    // I - cupsColorSpace enum value
 {
-  static const char * const cspace[] =	// cupsColorSpace values
+  static const char * const cspace[] =  // cupsColorSpace values
   {
     "Gray",
     "RGB",
@@ -933,11 +938,11 @@ cups_cspace_string(
 // 'filter_raw()' - "Filter" a raw print file.
 //
 
-static bool				// O - `true` on success, `false` otherwise
-filter_raw(pappl_job_t    *job,		// I - Job
-           pappl_device_t *device)	// I - Device
+static bool                             // O - `true` on success, `false` otherwise
+filter_raw(pappl_job_t    *job,         // I - Job
+           pappl_device_t *device)      // I - Device
 {
-  pappl_pr_options_t	*options;	// Job options
+  pappl_pr_options_t    *options;       // Job options
 
 
   papplJobSetImpressions(job, 1);
@@ -961,10 +966,10 @@ filter_raw(pappl_job_t    *job,		// I - Job
 //
 
 static void
-finish_job(pappl_job_t  *job)		// I - Job
+finish_job(pappl_job_t  *job)           // I - Job
 {
   pappl_printer_t *printer = job->printer;
-					// Printer
+                      // Printer
 
 
   _papplRWLockWrite(printer);
@@ -1026,7 +1031,7 @@ finish_job(pappl_job_t  *job)		// I - Job
   }
   else if (!strncmp(printer->device_uri, "file:", 5) || cupsArrayGetCount(printer->active_jobs) == 0)
   {
-    pappl_devmetrics_t	metrics;	// Metrics for device IO
+    pappl_devmetrics_t  metrics;    // Metrics for device IO
 
     _papplRWLockWrite(printer);
 
@@ -1051,12 +1056,12 @@ finish_job(pappl_job_t  *job)		// I - Job
 // 'start_job()' - Start processing a job...
 //
 
-static bool				// O - `true` on success, `false` otherwise
-start_job(pappl_job_t *job)		// I - Job
+static bool                             // O - `true` on success, `false` otherwise
+start_job(pappl_job_t *job)             // I - Job
 {
   pappl_printer_t *printer = job->printer;
-					// Printer
-  bool	first_open = true;		// Is this the first time we try to open the device?
+                                        // Printer
+  bool  first_open = true;              // Is this the first time we try to open the device?
 
 
   // Move the job to the 'processing' state...
@@ -1100,8 +1105,8 @@ start_job(pappl_job_t *job)		// I - Job
         papplLogPrinter(printer, PAPPL_LOGLEVEL_ERROR, "Unable to open device '%s', pausing queue until printer becomes available.", printer->device_uri);
         first_open = false;
 
-	printer->state      = IPP_PSTATE_STOPPED;
-	printer->state_time = time(NULL);
+        printer->state      = IPP_PSTATE_STOPPED;
+        printer->state_time = time(NULL);
       }
       else
       {
