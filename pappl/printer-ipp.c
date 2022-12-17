@@ -1589,7 +1589,7 @@ ipp_get_jobs(pappl_client_t *client)  // I - Client
     if ((job_comparison < 0 && job->state > job_state) || /* (job_comparison == 0 && job->state != job_state) || */
         (job_comparison > 0 && job->state < job_state) ||
         (username && job->username && strcasecmp(username, job->username)) ||
-        (job->stored && ! (job->storage_access & PAPPL_STORAGE_ACCESS_OWNER) )
+        (job->storage_disposition && ! (job->storage_access == PAPPL_STORAGE_ACCESS_OWNER) )
        )
       continue;
 

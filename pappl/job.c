@@ -104,7 +104,6 @@ _papplJobCreate(
   job->state   = IPP_JSTATE_HELD;
   job->system  = printer->system;
   job->created = time(NULL);
-  job->stored  = false;
 
   if (attrs)
   {
@@ -153,7 +152,6 @@ _papplJobCreate(
     job->storage_access = _papplStorageAccessValue(ippGetString(ippFindAttribute(col, "job-storage-access", IPP_TAG_KEYWORD), 0, NULL));
     job->storage_disposition = _papplStorageDispositionValue(ippGetString(ippFindAttribute(col, "job-storage-disposition", IPP_TAG_KEYWORD), 0, NULL));
     job->storage_group = ippGetString(ippFindAttribute(col, "job-storage-group", IPP_TAG_NAME), 0, NULL);
-    job->stored = true;
   }
 
   // Add job description attributes and add to the jobs array...
@@ -832,8 +830,9 @@ _papplPrinterCleanJobsNoLock(
   // only thread enumerating and can use cupsArrayGetFirst/Last...
   for (job = (pappl_job_t *)cupsArrayGetFirst(printer->completed_jobs), cleantime = time(NULL) - 60, preserved = 0; job; job = (pappl_job_t *)cupsArrayGetNext(printer->completed_jobs))
   {
-    if (job->stored)
+    if (job->storage_disposition)
     {
+      // Skip to the next job
       continue;
     }
     else if (job->completed && job->completed < cleantime && printer->max_completed_jobs > 0 && (int)cupsArrayGetCount(printer->completed_jobs) > printer->max_completed_jobs)

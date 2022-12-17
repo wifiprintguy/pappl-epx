@@ -45,7 +45,6 @@ struct _pappl_job_s     // Job data
   int                         fd;                   // Print file descriptor
   bool                        streaming;            // Streaming job?
   void                        *data;                // Per-job driver data
-  bool                        stored;               // Stored Job?
   pappl_storage_access_t      storage_access;       // job-storage-access enum
   pappl_storage_disposition_t storage_disposition;  // job-storage-disposition enum
   const char *                storage_group;        // job-storage-group string
