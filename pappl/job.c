@@ -147,9 +147,12 @@ _papplJobCreate(
 
   if ((attr = ippFindAttribute(attrs, "job-storage", IPP_TAG_BEGIN_COLLECTION)) != NULL)
   {
-    // Additional checks are not needed because structure was validated in valid_job_attributes() in printer-ipp.c
-    job->storage_access = _papplStorageAccessValue(ippGetString(ippFindAttribute(attrs, "job-storage-access", IPP_TAG_BEGIN_COLLECTION), 0, NULL));
-    job->storage_disposition = _papplStorageAccessValue(ippGetString(ippFindAttribute(attrs, "job-storage-disposition", IPP_TAG_BEGIN_COLLECTION), 0, NULL));
+    // Get a pointer to the collection so we can dive into it
+    ipp_t *col = ippGetCollection(attr, 0);
+
+    job->storage_access = _papplStorageAccessValue(ippGetString(ippFindAttribute(col, "job-storage-access", IPP_TAG_KEYWORD), 0, NULL));
+    job->storage_disposition = _papplStorageDispositionValue(ippGetString(ippFindAttribute(col, "job-storage-disposition", IPP_TAG_KEYWORD), 0, NULL));
+    job->storage_group = ippGetString(ippFindAttribute(col, "job-storage-group", IPP_TAG_NAME), 0, NULL);
     job->stored = true;
   }
 
