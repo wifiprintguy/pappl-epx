@@ -48,7 +48,7 @@ struct _pappl_job_s     // Job data
   bool                        stored;               // Stored Job?
   pappl_storage_access_t      storage_access;       // job-storage-access enum
   pappl_storage_disposition_t storage_disposition;  // job-storage-disposition enum
-  char                        storage_group;        // job-storage-group string
+  const char *                storage_group;        // job-storage-group string
 };
 
 
