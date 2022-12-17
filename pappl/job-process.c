@@ -543,7 +543,12 @@ _papplJobProcess(pappl_job_t *job)  // I - Job
     if (job->storage_disposition & PAPPL_STORAGE_DISPOSITION_STORE_ONLY)
     {
       // No output so just let it pass through
-      sleep(10);
+#ifdef DEBUG
+      sleep(1);
+#else
+      // Null operation
+      ;
+#endif
     }
     else if (filter)
     {
