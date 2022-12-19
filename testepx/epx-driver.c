@@ -12,6 +12,11 @@
 #include <pappl/base-private.h>
 #include <cups/dir.h>
 
+// feature flags
+//#define JOB_RELEASE
+#define JOB_STORAGE
+//#define JOB_PRINT_POLICY
+//#define JOB_PROOF_AND_SUSPEND
 
 //-----------------------------------------------------------------------------------------------------
 // Driver types...
@@ -232,33 +237,40 @@ epx_pappl_driver_cb(
   // printer-service-contact-col
   
   // Job Release
+#ifdef JOB_RELEASE
   if (false)
   {
     driver_data->features[driver_data->num_features++] = "job-release";
   }
+#endif
   
   // Job Storage
+#ifdef JOB_STORAGE
   if (true)
   {
     driver_data->features[driver_data->num_features++] = "job-storage";
     driver_data->storage_supported[0] = "job-storage-access";
     driver_data->storage_supported[1] = "job-storage-disposition";
-    driver_data->storage_access_supported = PAPPL_STORAGE_ACCESS_OWNER | PAPPL_STORAGE_ACCESS_PUBLIC;
-    driver_data->storage_disposition_supported = PAPPL_STORAGE_DISPOSITION_PRINT_AND_STORE | PAPPL_STORAGE_DISPOSITION_STORE_ONLY;
+    driver_data->storage_access_supported = PAPPL_ST_ACCESS_OWNER | PAPPL_ST_ACCESS_PUBLIC;
+    driver_data->storage_disposition_supported = PAPPL_ST_DISPOSITION_PRINT_AND_STORE | PAPPL_ST_DISPOSITION_STORE_ONLY;
   }
+#endif
   
+#ifdef JOB_PRINT_POLICY
   // Print Policy
   if (false)
   {
     driver_data->features[driver_data->num_features++] = "print-policy";
   }
+#endif
   
+#ifdef JOB_PROOF_AND_SUSPEND
   // Job Proof and Suspend
   if (false)
   {
     driver_data->features[driver_data->num_features++] = "proof-and-suspend";
   }
-  
+#endif
   
   papplLog(system, PAPPL_LOGLEVEL_INFO, "EPX Driver: epx_pappl_driver_cb() - completed successfully");
   return (true);
