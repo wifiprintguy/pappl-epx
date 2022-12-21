@@ -419,9 +419,9 @@ _papplSidesValue(const char *value)	// I - IPP "sides" keyword value
 //
 
 const char *                                            // O - IPP "job-storage-access" keyword value
-_papplStorageAccessString(pappl_storage_access_t value) // I - IPP "job-storage-access" bit value
+_papplStorageAccessString(pappl_st_access_t value) // I - IPP "job-storage-access" bit value
 {
-  return (_PAPPL_LOOKUP_STRING(value, pappl_storage_access));
+  return (_PAPPL_LOOKUP_STRING(value, pappl_st_access));
 }
 
 
@@ -429,10 +429,10 @@ _papplStorageAccessString(pappl_storage_access_t value) // I - IPP "job-storage-
 // '_papplStorageAccessValue()' - Return the enum value associated with an IPP "job-storage-access" keyword value.
 //
 
-pappl_storage_access_t                      // O - IPP "job-storage-access" bit value
+pappl_st_access_t                      // O - IPP "job-storage-access" bit value
 _papplStorageAccessValue(const char *value) // I - IPP "job-storage-access" keyword value
 {
-  return ((pappl_storage_access_t)_PAPPL_LOOKUP_VALUE(value, pappl_storage_access));
+  return ((pappl_st_access_t)_PAPPL_LOOKUP_VALUE(value, pappl_st_access));
 }
 
 
@@ -441,9 +441,9 @@ _papplStorageAccessValue(const char *value) // I - IPP "job-storage-access" keyw
 //
 
 const char *                                                      // O - IPP "job-storage-disposition" keyword value
-_papplStorageDispositionString(pappl_storage_disposition_t value) // I - IPP "job-storage-disposition" bit value
+_papplStorageDispositionString(pappl_st_disposition_t value) // I - IPP "job-storage-disposition" bit value
 {
-  return (_PAPPL_LOOKUP_STRING(value, pappl_storage_disposition));
+  return (_PAPPL_LOOKUP_STRING(value, pappl_st_disposition));
 }
 
 
@@ -451,10 +451,10 @@ _papplStorageDispositionString(pappl_storage_disposition_t value) // I - IPP "jo
 // '_papplStorageDispositionValue()' - Return the enum value associated with an IPP "job-storage-disposition" keyword value.
 //
 
-pappl_storage_disposition_t                            // O - IPP "job-storage-disposition" bit value
+pappl_st_disposition_t                            // O - IPP "job-storage-disposition" bit value
 _papplStorageDispositionValue(const char *value)  // I - IPP "job-storage-disposition" keyword value
 {
-  return ((pappl_storage_disposition_t)_PAPPL_LOOKUP_VALUE(value, pappl_storage_disposition));
+  return ((pappl_st_disposition_t)_PAPPL_LOOKUP_VALUE(value, pappl_st_disposition));
 }
 
 

@@ -204,20 +204,20 @@ enum pappl_sides_e      // IPP "sides" bit values
 };
 typedef unsigned pappl_sides_t;   // Bitfield for IPP "sides" values
 
-enum pappl_storage_access_e
+enum pappl_st_access_e
 {
-  PAPPL_STORAGE_ACCESS_GROUP    = 0x01, // 'group'
-  PAPPL_STORAGE_ACCESS_OWNER    = 0x02, // 'owner'
-  PAPPL_STORAGE_ACCESS_PUBLIC   = 0x04  // 'public'
+  PAPPL_ST_ACCESS_GROUP    = 0x01, // 'group'
+  PAPPL_ST_ACCESS_OWNER    = 0x02, // 'owner'
+  PAPPL_ST_ACCESS_PUBLIC   = 0x04  // 'public'
 };
-typedef unsigned pappl_storage_access_t;
+typedef unsigned pappl_st_access_t;
 
-enum pappl_storage_disposition_e
+enum pappl_st_disposition_e
 {
-  PAPPL_STORAGE_DISPOSITION_PRINT_AND_STORE = 0x01, // 'print-and-store'
-  PAPPL_STORAGE_DISPOSITION_STORE_ONLY      = 0x02  // 'store-only'
+  PAPPL_ST_DISPOSITION_PRINT_AND_STORE = 0x01, // 'print-and-store'
+  PAPPL_ST_DISPOSITION_STORE_ONLY      = 0x02  // 'store-only'
 };
-typedef unsigned pappl_storage_disposition_t;
+typedef unsigned pappl_st_disposition_t;
 
 enum pappl_uoptions_e     // USB gadget options
 {
@@ -418,11 +418,11 @@ struct pappl_pr_driver_data_s   // Printer driver data
   int                         num_features;                     // Number of "ipp-features-supported" values
   const char                  *features[PAPPL_MAX_VENDOR];      // "ipp-features-supported" values
 
-  pappl_storage_access_t      storage_access_supported;         // job-storage-access-supported bitfield (0 for none)
-  pappl_storage_disposition_t storage_disposition_supported;    // job-storage-disposition-supported bitfield (0 for none)
-  char                        *storage_group_supported[16];      // job-storage-group-supported - 16 groups possible
-  unsigned                    num_storage_supported;            // Number of keywords in "job-storage-supported"
-  char                        *storage_supported[6];            // job-storage-supported - 6 members possible
+  pappl_st_access_t      st_access_supported;         // job-storage-access-supported bitfield (0 for none)
+  pappl_st_disposition_t st_disposition_supported;    // job-storage-disposition-supported bitfield (0 for none)
+  char                        *st_group_supported[16];      // job-storage-group-supported - 16 groups possible
+  unsigned                    num_st_supported;            // Number of keywords in "job-storage-supported"
+  char                        *st_supported[6];            // job-storage-supported - 6 members possible
 
   int                         num_vendor;   // Number of vendor attributes
   const char                  *vendor[PAPPL_MAX_VENDOR]; // Vendor attribute names

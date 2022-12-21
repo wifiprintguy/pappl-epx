@@ -1,4 +1,4 @@
-//
+ //
 // Printer IPP processing for the Printer Application Framework
 //
 // Copyright © 2019-2022 by Michael R Sweet.
@@ -1589,7 +1589,7 @@ ipp_get_jobs(pappl_client_t *client)  // I - Client
     if ((job_comparison < 0 && job->state > job_state) || /* (job_comparison == 0 && job->state != job_state) || */
         (job_comparison > 0 && job->state < job_state) ||
         (username && job->username && strcasecmp(username, job->username)) ||
-        (job->storage_disposition && ! (job->storage_access == PAPPL_STORAGE_ACCESS_OWNER) )
+        (job->st_disposition && ! (job->st_access == PAPPL_ST_ACCESS_OWNER) )
        )
       continue;
 
@@ -1977,16 +1977,16 @@ valid_job_attributes(
     }
     else
     {
-      pappl_storage_access_t value = _papplStorageAccessValue(ippGetString(attr, 0, NULL)); // "job-storage-access" value
+      pappl_st_access_t value = _papplStorageAccessValue(ippGetString(attr, 0, NULL)); // "job-storage-access" value
 
       // If "job-storage-access" = 'group' then "job-storage-group" is required
-      if ( (value & PAPPL_STORAGE_ACCESS_GROUP) && NULL == ippFindAttribute(client->request, "job-storage-group", IPP_TAG_NAME))
+      if ( (value & PAPPL_ST_ACCESS_GROUP) && NULL == ippFindAttribute(client->request, "job-storage-group", IPP_TAG_NAME))
       {
         papplClientRespondIPPUnsupported(client, attr);
         valid = false;
       }
 
-      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.storage_access_supported))
+      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.st_access_supported))
       {
         papplClientRespondIPPUnsupported(client, attr);
         valid = false;
@@ -2001,8 +2001,8 @@ valid_job_attributes(
     }
     else
     {
-      pappl_storage_disposition_t value = _papplStorageDispositionValue(ippGetString(attr, 0, NULL)); // "job-storage-disposition" value
-      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.storage_disposition_supported))
+      pappl_st_disposition_t value = _papplStorageDispositionValue(ippGetString(attr, 0, NULL)); // "job-storage-disposition" value
+      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.st_disposition_supported))
       {
         papplClientRespondIPPUnsupported(client, attr);
         valid = false;

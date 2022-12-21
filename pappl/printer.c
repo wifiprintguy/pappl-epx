@@ -397,20 +397,20 @@ papplPrinterCreate(
   printer->cancel_after_time              = INT_MAX; // initial "job-cancel-after-default" value
   printer->pw_repertoire_configured       = PAPPL_PW_REPERTOIRE_IANA_UTF_8_ANY; // initial "job-password-repertoire-configured" value
   printer->release_action_default         = PAPPL_RELEASE_ACTION_NONE;
-  printer->storage_access_supported       = PAPPL_STORAGE_ACCESS_OWNER | PAPPL_STORAGE_ACCESS_PUBLIC;
-  printer->storage_disposition_supported  = PAPPL_STORAGE_DISPOSITION_STORE_ONLY | PAPPL_STORAGE_DISPOSITION_PRINT_AND_STORE;
-  printer->storage_group_supported        = false;
+  printer->st_access_supported            = PAPPL_ST_ACCESS_OWNER | PAPPL_ST_ACCESS_PUBLIC;
+  printer->st_disposition_supported       = PAPPL_ST_DISPOSITION_STORE_ONLY | PAPPL_ST_DISPOSITION_PRINT_AND_STORE;
+  printer->st_group_supported             = false;
   printer->which_jobs_supported           = PAPPL_WHICH_JOBS_ALL | PAPPL_WHICH_JOBS_COMPLETED | PAPPL_WHICH_JOBS_NOT_COMPLETED; // Always supported - not conditional on features
   
-  if (printer->storage_access_supported & PAPPL_STORAGE_ACCESS_OWNER)
+  if (printer->st_access_supported & PAPPL_ST_ACCESS_OWNER)
     printer->which_jobs_supported |= PAPPL_WHICH_JOBS_STORED_OWNER;
   
-  if (printer->storage_access_supported & PAPPL_STORAGE_ACCESS_PUBLIC)
+  if (printer->st_access_supported & PAPPL_ST_ACCESS_PUBLIC)
     printer->which_jobs_supported |= PAPPL_WHICH_JOBS_STORED_PUBLIC;
   
-  if (printer->storage_group_supported)
+  if (printer->st_group_supported)
   {
-    printer->storage_access_supported |= PAPPL_STORAGE_ACCESS_GROUP;
+    printer->st_access_supported |= PAPPL_ST_ACCESS_GROUP;
     printer->which_jobs_supported |= PAPPL_WHICH_JOBS_STORED_GROUP;
   }
   
@@ -608,29 +608,29 @@ papplPrinterCreate(
   ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_NAME), "job-sheets-supported", NULL, "none");
 
   // job-storage-supported
-  const char * job_storage_supported[3];
-  job_storage_supported[0] = "job-storage-access";
-  job_storage_supported[1] = "job-storage-disposition";
+  const char * job_st_supported[3];
+  job_st_supported[0] = "job-storage-access";
+  job_st_supported[1] = "job-storage-disposition";
   num_keywords = 2;
-  if (printer->storage_group_supported)
-    job_storage_supported[++num_keywords] = "job-storage-group";
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-supported", (cups_len_t)num_keywords, NULL, job_storage_supported);
+  if (printer->st_group_supported)
+    job_st_supported[++num_keywords] = "job-storage-group";
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-supported", (cups_len_t)num_keywords, NULL, job_st_supported);
 
   // job-storage-access-supported
-  char * job_storage_access_supported[3];
-  num_keywords = _papplLookupStrings(printer->storage_access_supported, 3, job_storage_access_supported, sizeof(pappl_storage_access) / sizeof(pappl_storage_access[0]), pappl_storage_access);
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-access-supported", (cups_len_t)num_keywords, NULL, job_storage_access_supported);
+  char * job_st_access_supported[3];
+  num_keywords = _papplLookupStrings(printer->st_access_supported, 3, job_st_access_supported, sizeof(pappl_st_access) / sizeof(pappl_st_access[0]), pappl_st_access);
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-access-supported", (cups_len_t)num_keywords, NULL, job_st_access_supported);
 
   // job-storage-disposition-supported
-  char * job_storage_disposition_supported[3];
-  num_keywords = _papplLookupStrings(printer->storage_disposition_supported, 3, job_storage_disposition_supported, sizeof(pappl_storage_disposition) / sizeof(pappl_storage_disposition[0]), pappl_storage_disposition);
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-disposition-supported", (cups_len_t)num_keywords, NULL, job_storage_disposition_supported);
+  char * job_st_disposition_supported[3];
+  num_keywords = _papplLookupStrings(printer->st_disposition_supported, 3, job_st_disposition_supported, sizeof(pappl_st_disposition) / sizeof(pappl_st_disposition[0]), pappl_st_disposition);
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-disposition-supported", (cups_len_t)num_keywords, NULL, job_st_disposition_supported);
 
   // job-storage-group-supported
-  if (printer->storage_group_supported)
+  if (printer->st_group_supported)
   {
-    const char * job_storage_group_supported[] = { "fake_group1", "fake_group2", "fake_group3"};
-    ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-group-supported", (cups_len_t)(sizeof(job_storage_group_supported) / sizeof(job_storage_group_supported[0])), NULL, job_storage_group_supported);
+    const char * job_st_group_supported[] = { "fake_group1", "fake_group2", "fake_group3"};
+    ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-group-supported", (cups_len_t)(sizeof(job_st_group_supported) / sizeof(job_st_group_supported[0])), NULL, job_st_group_supported);
   }
 
   if (_papplSystemFindMIMEFilter(system, "image/jpeg", "image/pwg-raster"))

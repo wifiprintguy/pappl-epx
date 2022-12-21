@@ -110,9 +110,9 @@ struct _pappl_printer_s     // Printer data
   time_t                          cancel_after_time;              // "job-cancel-after-default" as time_t
   pappl_pw_repertoire_t           pw_repertoire_configured;       // "job-password-repertoire-configured" value as enum
   pappl_release_action_t          release_action_default;         // "job-release-action-default" as enum
-  pappl_storage_access_t          storage_access_supported;       // "job-storage-access-supported" as enum
-  pappl_storage_disposition_t     storage_disposition_supported;  // "job-storage-disposition-supported" as enum
-  bool                            storage_group_supported;        // Indicates support for "job-storage-group"
+  pappl_st_access_t               st_access_supported;            // "job-storage-access-supported" as enum
+  pappl_st_disposition_t          st_disposition_supported;       // "job-storage-disposition-supported" as enum
+  bool                            st_group_supported;             // Indicates support for "job-storage-group"
   pappl_which_jobs_t              which_jobs_supported;           // "which-jobs-supported" as enum
 };
 
@@ -307,14 +307,14 @@ static const char * const pappl_sides[] =
   "two-sided-short-edge"
 };
 
-static const char * const pappl_storage_access[] =
+static const char * const pappl_st_access[] =
 {
   "group",
   "owner",
   "public"
 };
 
-static const char * const pappl_storage_disposition[] =
+static const char * const pappl_st_disposition[] =
 {
   "print-and-store",
   "store-only"
@@ -469,10 +469,10 @@ extern pappl_scaling_t  _papplScalingValue(const char *value) _PAPPL_PRIVATE;
 extern const char *_papplSidesString(pappl_sides_t value) _PAPPL_PRIVATE;
 extern pappl_sides_t  _papplSidesValue(const char *value) _PAPPL_PRIVATE;
 
-extern const char *_papplStorageAccessString(pappl_storage_access_t value) _PAPPL_PRIVATE;
+extern const char *_papplStorageAccessString(pappl_st_access_t value) _PAPPL_PRIVATE;
 extern pappl_sides_t  _papplStorageAccessValue(const char *value) _PAPPL_PRIVATE;
 
-extern const char *_papplStorageDispositionString(pappl_storage_disposition_t value) _PAPPL_PRIVATE;
+extern const char *_papplStorageDispositionString(pappl_st_disposition_t value) _PAPPL_PRIVATE;
 extern pappl_sides_t  _papplStorageDispositionValue(const char *value) _PAPPL_PRIVATE;
 
 extern const char *_papplSupplyColorString(pappl_supply_color_t value) _PAPPL_PRIVATE;

@@ -249,10 +249,10 @@ epx_pappl_driver_cb(
   if (true)
   {
     driver_data->features[driver_data->num_features++] = "job-storage";
-    driver_data->storage_supported[0] = "job-storage-access";
-    driver_data->storage_supported[1] = "job-storage-disposition";
-    driver_data->storage_access_supported = PAPPL_ST_ACCESS_OWNER | PAPPL_ST_ACCESS_PUBLIC;
-    driver_data->storage_disposition_supported = PAPPL_ST_DISPOSITION_PRINT_AND_STORE | PAPPL_ST_DISPOSITION_STORE_ONLY;
+    driver_data->st_supported[0] = "job-storage-access";
+    driver_data->st_supported[1] = "job-storage-disposition";
+    driver_data->st_access_supported = PAPPL_ST_ACCESS_OWNER | PAPPL_ST_ACCESS_PUBLIC;
+    driver_data->st_disposition_supported = PAPPL_ST_DISPOSITION_PRINT_AND_STORE | PAPPL_ST_DISPOSITION_STORE_ONLY;
   }
 #endif
   

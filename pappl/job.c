@@ -149,9 +149,9 @@ _papplJobCreate(
     // Get a pointer to the collection so we can dive into it
     ipp_t *col = ippGetCollection(attr, 0);
 
-    job->storage_access = _papplStorageAccessValue(ippGetString(ippFindAttribute(col, "job-storage-access", IPP_TAG_KEYWORD), 0, NULL));
-    job->storage_disposition = _papplStorageDispositionValue(ippGetString(ippFindAttribute(col, "job-storage-disposition", IPP_TAG_KEYWORD), 0, NULL));
-    job->storage_group = ippGetString(ippFindAttribute(col, "job-storage-group", IPP_TAG_NAME), 0, NULL);
+    job->st_access = _papplStorageAccessValue(ippGetString(ippFindAttribute(col, "job-storage-access", IPP_TAG_KEYWORD), 0, NULL));
+    job->st_disposition = _papplStorageDispositionValue(ippGetString(ippFindAttribute(col, "job-storage-disposition", IPP_TAG_KEYWORD), 0, NULL));
+    job->st_group = ippGetString(ippFindAttribute(col, "job-storage-group", IPP_TAG_NAME), 0, NULL);
   }
 
   // Add job description attributes and add to the jobs array...
@@ -830,7 +830,7 @@ _papplPrinterCleanJobsNoLock(
   // only thread enumerating and can use cupsArrayGetFirst/Last...
   for (job = (pappl_job_t *)cupsArrayGetFirst(printer->completed_jobs), cleantime = time(NULL) - 60, preserved = 0; job; job = (pappl_job_t *)cupsArrayGetNext(printer->completed_jobs))
   {
-    if (job->storage_disposition)
+    if (job->st_disposition)
     {
       // Skip to the next job
       continue;

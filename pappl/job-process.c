@@ -540,7 +540,7 @@ _papplJobProcess(pappl_job_t *job)  // I - Job
     if ((filter = _papplSystemFindMIMEFilter(job->system, job->format, job->printer->driver_data.format)) == NULL)
       filter =_papplSystemFindMIMEFilter(job->system, job->format, "image/pwg-raster");
 
-    if (job->storage_disposition & PAPPL_STORAGE_DISPOSITION_STORE_ONLY)
+    if (job->st_disposition == PAPPL_ST_DISPOSITION_STORE_ONLY)
     {
       // No output so just let it pass through
 #ifdef DEBUG
