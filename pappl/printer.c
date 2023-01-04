@@ -618,12 +618,12 @@ papplPrinterCreate(
 
   // job-storage-access-supported
   char * job_st_access_supported[3];
-  num_keywords = _papplLookupStrings(printer->st_access_supported, 3, job_st_access_supported, sizeof(pappl_st_access) / sizeof(pappl_st_access[0]), pappl_st_access);
+  num_keywords = _papplLookupStrings(printer->st_access_supported, 3, job_st_access_supported, sizeof(_pappl_st_access) / sizeof(_pappl_st_access[0]), _pappl_st_access);
   ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-access-supported", (cups_len_t)num_keywords, NULL, job_st_access_supported);
 
   // job-storage-disposition-supported
   char * job_st_disposition_supported[3];
-  num_keywords = _papplLookupStrings(printer->st_disposition_supported, 3, job_st_disposition_supported, sizeof(pappl_st_disposition) / sizeof(pappl_st_disposition[0]), pappl_st_disposition);
+  num_keywords = _papplLookupStrings(printer->st_disposition_supported, 3, job_st_disposition_supported, sizeof(_pappl_st_disposition) / sizeof(_pappl_st_disposition[0]), _pappl_st_disposition);
   ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-disposition-supported", (cups_len_t)num_keywords, NULL, job_st_disposition_supported);
 
   // job-storage-group-supported
@@ -744,7 +744,7 @@ papplPrinterCreate(
 
   // which-jobs-supported
   const char * which_jobs_supported[16];
-  num_keywords = _papplLookupStrings(printer->which_jobs_supported, 16, which_jobs_supported, sizeof(pappl_which_jobs) / sizeof(pappl_which_jobs[0]), pappl_which_jobs);
+  num_keywords = _papplLookupStrings(printer->which_jobs_supported, 16, which_jobs_supported, sizeof(_pappl_which_jobs) / sizeof(_pappl_which_jobs[0]), _pappl_which_jobs);
   ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "which-jobs-supported", num_keywords, NULL, which_jobs_supported);
     
 
