@@ -125,7 +125,7 @@
         ATTR charset attributes-charset utf-8
         ATTR language attributes-natural-language en
         ATTR uri printer-uri $uri
-        ATTR keyword requested-attributes 'job-release-action-default','job-spooling-supported','job-release-action-supported','job-password-encryption-supported','job-password-length-supported','job-password-repertiore-configured','job-password-repertiore-supported','job-password-supported'
+        ATTR keyword requested-attributes 'job-release-action-default','job-spooling-supported','job-release-action-supported','job-password-encryption-supported','job-password-length-supported','job-password-repertoire-configured','job-password-repertoire-supported','job-password-supported'
 
     STATUS successful-ok
     
@@ -138,8 +138,8 @@
 
     EXPECT job-password-encryption-supported    OF-TYPE keyword IN-GROUP printer-attributes-tag
     EXPECT job-password-length-supported        OF-TYPE rangeOfInteger IN-GROUP printer-attributes-tag
-    EXPECT job-password-repertiore-configured   OF-TYPE keyword IN-GROUP printer-attributes-tag
-    EXPECT job-password-repertiore-supported    OF-TYPE keyword IN-GROUP printer-attributes-tag
+    EXPECT job-password-repertoire-configured   OF-TYPE keyword IN-GROUP printer-attributes-tag
+    EXPECT job-password-repertoire-supported    OF-TYPE keyword IN-GROUP printer-attributes-tag
     EXPECT job-password-supported               OF-TYPE integer IN-GROUP printer-attributes-tag
 
 }
