@@ -109,7 +109,7 @@ struct _pappl_printer_s			// Printer data
   pappl_pr_usb_cb_t	usb_cb;			// USB processing callback, if any
   void			*usb_cbdata;		// USB processing callback data, if any
   time_t                          cancel_after_time;              // "job-cancel-after-default" as time_t
-  pappl_pw_repertoire_t           pw_repertoire_configured;       // "job-password-repertoire-configured" value as enum
+  pappl_pw_repertoire_t           pw_repertoire_configured;       // "job-password-repertoire-configured" as enum
   pappl_release_action_t          release_action_default;         // "job-release-action-default" as enum
   pappl_st_access_t               st_access_supported;            // "job-storage-access-supported" as enum
   pappl_st_disposition_t          st_disposition_supported;       // "job-storage-disposition-supported" as enum
