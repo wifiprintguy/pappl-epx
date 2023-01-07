@@ -908,7 +908,7 @@
 		3BD7EFCC2967F0EA00E38B25 /* testepx.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = testepx.h; sourceTree = "<group>"; };
 		3BD7EFCD2967F0EA00E38B25 /* epx-driver.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "epx-driver.c"; sourceTree = "<group>"; };
 		3BD7EFCE2967F0EA00E38B25 /* testepx.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = testepx.c; sourceTree = "<group>"; };
-		3BD7EFCF2967F0EA00E38B25 /* pwg5100.11.test */ = {isa = PBXFileReference; lastKnownFileType = text; path = pwg5100.11.test; sourceTree = "<group>"; };
+		3BD7EFCF2967F0EA00E38B25 /* pwg5100.11.test */ = {isa = PBXFileReference; lastKnownFileType = text; path = pwg5100.11.test; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.sh; };
 		3BD7EFD22967F17C00E38B25 /* libcups.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcups.xcodeproj; path = ../libcups/xcode/libcups.xcodeproj; sourceTree = "<group>"; };
 		3BD7F0282967F18100E38B25 /* libcups.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcups.xcodeproj; path = ../libcups/xcode/libcups.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
