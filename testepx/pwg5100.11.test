@@ -21,7 +21,7 @@
   STATUS successful-ok
 
   EXPECT "printer-service-contact-col"  OF-TYPE collection|unknown IN-GROUP printer-attributes-tag
-  EXPECT "printer-service-contact-col"  OF-TYPE collection IN-GROUP printer-attributes-tag DEFINE-MATCH HAVE_PRINTER_SERVICE_CONTACT_COL_COLLECTION
+  EXPECT "printer-service-contact-col"  OF-TYPE collection IN-GROUP printer-attributes-tag DEFINE-MATCH HAS_PRINTER_SERVICE_CONTACT_COL_COLLECTION
 }
 #########################################################
 {
@@ -37,15 +37,15 @@
   STATUS successful-ok
 
   EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-release' DEFINE-MATCH HAVE_JOB_RELEASE
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage' DEFINE-MATCH HAVE_JOB_STORAGE
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'print-policy' DEFINE-MATCH HAVE_PRINT_POLICY
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'proof-and-suspend' DEFINE-MATCH HAVE_PROOF_AND_SUSPEND
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'proof-print' DEFINE-MATCH HAVE_PROOF_PRINT
+  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-release' DEFINE-MATCH HAS_JOB_RELEASE
+  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage' DEFINE-MATCH HAS_JOB_STORAGE
+  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'print-policy' DEFINE-MATCH HAS_PRINT_POLICY
+  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'proof-and-suspend' DEFINE-MATCH HAS_PROOF_AND_SUSPEND
+  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'proof-print' DEFINE-MATCH HAS_PROOF_PRINT
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_PRINTER_SERVICE_CONTACT_COL_COLLECTION
+  SKIP-IF-NOT-DEFINED HAS_PRINTER_SERVICE_CONTACT_COL_COLLECTION
 
   NAME "[EPX2 2.1] printer-service-contact-col collection"
   OPERATION Get-Printer-Attributes
@@ -64,7 +64,7 @@
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_JOB_RELEASE
+  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE
 
   NAME "[EPX2 3.1] Job Release: Method Detection"
   OPERATION Get-Printer-Attributes
@@ -79,20 +79,20 @@
 
   EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-release'
 
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password' DEFINE-MATCH HAVE_JOB_RELEASE_JOB_PASSWORD
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press' DEFINE-MATCH HAVE_JOB_RELEASE_BUTTON_PRESS
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized' DEFINE-MATCH HAVE_JOB_RELEASE_OWNER_AUTHORIZED
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'none' DEFINE-MATCH HAVE_JOB_RELEASE_NONE
+  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password' DEFINE-MATCH HAS_JOB_RELEASE_JOB_PASSWORD
+  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press' DEFINE-MATCH HAS_JOB_RELEASE_BUTTON_PRESS
+  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized' DEFINE-MATCH HAS_JOB_RELEASE_OWNER_AUTHORIZED
+  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'none' DEFINE-MATCH HAS_JOB_RELEASE_NONE
 
   # Attempt to express that at least one of 'job-password' / 'button-press' / 'owner-authorized' must be supported?
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password' DEFINE-MATCH HAVE_JOB_RELEASE_REQ_MET
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press' DEFINE-MATCH HAVE_JOB_RELEASE_REQ_MET
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized' DEFINE-MATCH HAVE_JOB_RELEASE_REQ_MET
-  PASS-IF-DEFINED HAVE_JOB_RELEASE_REQ_MET
+  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password' DEFINE-MATCH HAS_JOB_RELEASE_REQ_MET
+  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press' DEFINE-MATCH HAS_JOB_RELEASE_REQ_MET
+  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized' DEFINE-MATCH HAS_JOB_RELEASE_REQ_MET
+  PASS-IF-DEFINED HAS_JOB_RELEASE_REQ_MET
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_JOB_RELEASE_BUTTON_PRESS
+  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
 
   NAME "[EPX2 3.2.1] Job Release: Button Press Method Requirements"
   OPERATION Get-Printer-Attributes
@@ -114,7 +114,7 @@
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_JOB_RELEASE_JOB_PASSWORD
+  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_JOB_PASSWORD
 
   NAME "[EPX2 3.3.1] Job Release: Password Method Requirements"
   OPERATION Get-Printer-Attributes
@@ -142,7 +142,7 @@
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_JOB_RELEASE_OWNER_AUTHORIZED
+  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_OWNER_AUTHORIZED
 
   NAME "[EPX2 3.4.1] Job Release: Owner Authorized Method Requirements"
   OPERATION Get-Printer-Attributes
@@ -171,7 +171,7 @@
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_PRINT_POLICY
+  SKIP-IF-NOT-DEFINED HAS_PRINT_POLICY
 
   NAME "[EPX2 4.1.1] Job Print Policy: REQUIRED attributes"
   OPERATION Get-Printer-Attributes
@@ -188,7 +188,7 @@
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_PRINT_POLICY
+  SKIP-IF-NOT-DEFINED HAS_PRINT_POLICY
 
   NAME "[EPX2 4.1.2] Job Print Policy: Get-User-Printer-Attributes"
   OPERATION Get-User-Printer-Attributes
@@ -206,27 +206,51 @@
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_JOB_STORAGE
+  SKIP-IF-NOT-DEFINED HAS_JOB_STORAGE
 
   NAME "[EPX2 5.1] Job Storage - Feature Detection"
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-  ATTR charset attributes-charset utf-8
-  ATTR language attributes-natural-language en
-  ATTR uri printer-uri $uri
-  ATTR keyword requested-attributes 'operations-supported'
+    ATTR charset attributes-charset utf-8
+    ATTR language attributes-natural-language en
+    ATTR uri printer-uri $uri
+    ATTR keyword requested-attributes 'job-storage-supported','job-storage-access-supported','job-storage-disposition-supported'
 
   STATUS successful-ok
+  
+  # Required attributes
+  EXPECT "job-storage-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
+  EXPECT "job-storage-access-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
+  EXPECT "job-storage-disposition-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
+  
+  # Detect optional attributes
+  EXPECT "job-storage-supported" OF-TYPE name IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage-group' DEFINE-MATCH HAS_JOB_STORAGE_GROUP
 
-  EXPECT job-storage-access-supported OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT job-storage-disposition-supported OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT job-storage-group-supported OF-TYPE name IN-GROUP printer-attributes-tag
-  EXPECT job-storage-supported OF-TYPE keyword IN-GROUP printer-attributes-tag
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_PROOF_AND_SUSPEND
+  SKIP-IF-NOT-DEFINED HAS_JOB_STORAGE_GROUP
+
+  NAME "[EPX2 5.1] Job Storage - Validate Group Feature Support"
+  OPERATION Get-Printer-Attributes
+
+  GROUP operation-attributes-tag
+    ATTR charset attributes-charset utf-8
+    ATTR language attributes-natural-language en
+    ATTR uri printer-uri $uri
+    ATTR keyword requested-attributes 'job-storage-supported','job-storage-access-supported','job-storage-group-supported'
+
+  STATUS successful-ok
+  
+  # Required attributes
+  EXPECT "job-storage-supported" OF-TYPE name IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage-group'
+  EXPECT "job-storage-access-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'group'
+  EXPECT "job-storage-group-supported" OF-TYPE name IN-GROUP printer-attributes-tag
+}
+#########################################################
+{
+  SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
 
   NAME "[EPX2 6.1] Job Proof and Suspend: REQUIRED attributes"
   OPERATION Get-Printer-Attributes
@@ -243,7 +267,7 @@
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_PROOF_AND_SUSPEND
+  SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
 
   NAME "[EPX2 6.2.1] Job Proof and Suspend - Create Proof Job"
   OPERATION Print-Job
@@ -268,7 +292,7 @@
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_PROOF_AND_SUSPEND
+  SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
 
   NAME "[EPX2 6.2.2] Job Proof and Suspend - Wait For 'processing-stopped'"
   OPERATION Get-Job-Attributes
@@ -292,7 +316,7 @@
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_PROOF_AND_SUSPEND
+  SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
 
   NAME "[EPX2 6.2.3] Job Proof and Suspend - Resume-Job"
   OPERATION Resume-Job
@@ -308,7 +332,7 @@
 }
 #########################################################
 {
-  SKIP-IF-NOT-DEFINED HAVE_PROOF_AND_SUSPEND
+  SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
 
   NAME "[EPX2 6.2.4] Job Proof and Suspend - Wait For terminal state"
   OPERATION Get-Job-Attributes
