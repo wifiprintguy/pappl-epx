@@ -186,10 +186,10 @@ typedef unsigned pappl_raster_type_t;	// Bitfield for IPP "pwg-raster-document-t
 
 typedef enum pappl_release_action_e
 {
-  PAPPL_RELEASE_ACTION_NONE   = 0x0000,           // 'none'
-  PAPPL_RELEASE_ACTION_BUTTON_PRESS = 0x0001,     // 'button-press'
-  PAPPL_RELEASE_ACTION_JOB_PASSWORD = 0x0002,     // 'job-password'
-  PAPPL_RELEASE_ACTION_OWNER_AUTHORIZED = 0x0003  // 'owner-authorized'
+  PAPPL_RELEASE_ACTION_NONE             = 0x0001, // 'none'
+  PAPPL_RELEASE_ACTION_BUTTON_PRESS     = 0x0002, // 'button-press'
+  PAPPL_RELEASE_ACTION_JOB_PASSWORD     = 0x0004, // 'job-password'
+  PAPPL_RELEASE_ACTION_OWNER_AUTHORIZED = 0x0008  // 'owner-authorized'
 } pappl_release_action_t;   // Bitfield for IPP "job-release-action" values
 
 enum pappl_scaling_e			// IPP "print-scaling" bit values
