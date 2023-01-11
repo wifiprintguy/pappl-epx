@@ -75,6 +75,7 @@ extern void		_papplJobProcessIPP(pappl_client_t *client) _PAPPL_PRIVATE;
 extern void		_papplJobProcessRaster(pappl_job_t *job, pappl_client_t *client) _PAPPL_PRIVATE;
 extern const char	*_papplJobReasonString(pappl_jreason_t reason) _PAPPL_PRIVATE;
 extern void		_papplJobReleaseNoLock(pappl_job_t *job, const char *username) _PAPPL_PRIVATE;
+extern void		_papplJobResumeNoLock(pappl_job_t *job, const char *username) _PAPPL_PRIVATE;
 extern void		_papplJobRemoveFile(pappl_job_t *job) _PAPPL_PRIVATE;
 extern void		_papplJobSetState(pappl_job_t *job, ipp_jstate_t state) _PAPPL_PRIVATE;
 extern void		_papplJobSubmitFile(pappl_job_t *job, const char *filename) _PAPPL_PRIVATE;

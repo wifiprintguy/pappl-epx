@@ -607,6 +607,64 @@ _papplJobReleaseNoLock(
 
 
 //
+// 'papplJobResume()' - Resume processing a stopped job.
+//
+// This function resumes processing a job that is in the 'processing-stopped' state.
+//
+
+bool          // O - `true` on success, `false` on failure
+papplJobResume(pappl_job_t *job,      // I - Job
+               const char  *username) // I - User that released the job or `NULL` for none/system
+{
+  bool ret = false;      // Return value
+
+
+  // Range check input
+  if (!job)
+    return (false);
+
+  // Lock the job and printer...
+  _papplRWLockRead(job->printer);
+  _papplRWLockWrite(job);
+
+  // Only resume a job if it is in the 'processing-stopped' state...
+  if (job->state == IPP_JSTATE_STOPPED)
+  {
+    // Do the release...
+    _papplJobResumeNoLock(job, username);
+    ret = true;
+  }
+
+  // Unlock and return...
+  _papplRWUnlock(job);
+  _papplRWUnlock(job->printer);
+
+  _papplPrinterCheckJobs(job->printer);
+
+  return (ret);
+}
+
+
+//
+// '_papplJobResumeNoLock()' - Resume processing a stopped job without locking.
+//
+
+void
+_papplJobResumeNoLock(
+    pappl_job_t *job,       // I - Job
+    const char  *username)  // I - User that released the job or `NULL` for none/system
+{
+
+  // Move the job back to the processing state from the processing-stopped state
+  job->state         = IPP_JSTATE_PROCESSING;
+  job->state_reasons &= (pappl_jreason_t)(~PAPPL_JREASON_JOB_HOLD_UNTIL_SPECIFIED); // TODO What if anything needs to be cleared
+
+  if (username)
+    _papplSystemAddEventNoLock(job->system, job->printer, job, PAPPL_EVENT_JOB_STATE_CHANGED, "Job released by '%s'.", username);
+}
+
+
+//
 // '_papplJobRemoveFile()' - Remove a file in spool directory
 //
 

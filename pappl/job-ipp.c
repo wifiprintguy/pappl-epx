@@ -36,6 +36,7 @@ static void		ipp_close_job(pappl_client_t *client);
 static void		ipp_get_job_attributes(pappl_client_t *client);
 static void		ipp_hold_job(pappl_client_t *client);
 static void		ipp_release_job(pappl_client_t *client);
+static void    ipp_resume_job(pappl_client_t *client);
 static void		ipp_send_document(pappl_client_t *client);
 
 
@@ -413,6 +414,10 @@ _papplJobProcessIPP(
     case IPP_OP_SEND_DOCUMENT :
 	ipp_send_document(client);
 	break;
+
+    case IPP_OP_RESUME_JOB :
+  ipp_resume_job(client);
+  break;
 
     default :
         if (client->system->op_cb && (client->system->op_cb)(client, client->system->op_cbdata))
@@ -857,3 +862,34 @@ ipp_send_document(
   if (have_data)
     _papplJobCopyDocumentData(client, job);
 }
+
+//
+// 'ipp_resume_job()' - Resume a job.
+//
+
+static void
+ipp_resume_job(pappl_client_t *client)  // I - Client
+{
+  pappl_job_t  *job = client->job;  // Job information
+
+
+  // Authorize access...
+  if (!_papplPrinterIsAuthorized(client))
+    return;
+
+  // Get the job...
+  if (job)
+  {
+    if (papplJobRelease(job, client->username))
+      papplClientRespondIPP(client, IPP_STATUS_OK, "Job resumed.");
+    else
+      papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job not stopped.");
+  }
+  else
+  {
+    // Not found...
+    papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_FOUND, "Job does not exist.");
+  }
+}
+
+
