@@ -736,9 +736,6 @@ papplPrinterCreate(
   // printer-uuid
   ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_TAG_URI, "printer-uuid", NULL, uuid);
 
-  // proof-copies-supported
-  ippAddRange(printer->attrs, IPP_TAG_PRINTER, "proof-copies-supported", 1, INT_MAX);
-
   // requesting-user-uri-supported
   ippAddBoolean(printer->attrs, IPP_TAG_PRINTER, "requesting-user-uri-supported", 1);
 
