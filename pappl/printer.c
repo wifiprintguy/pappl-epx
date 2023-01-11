@@ -162,7 +162,8 @@ papplPrinterCreate(
     IPP_OP_RELEASE_JOB,
     IPP_OP_HOLD_NEW_JOBS,
     IPP_OP_RELEASE_HELD_NEW_JOBS,
-    IPP_OP_RESUME_JOB
+    IPP_OP_RESUME_JOB,
+    IPP_OP_GET_USER_PRINTER_ATTRIBUTES
   };
   static const char * const charset[] =	// charset-supported values
   {

@@ -40,6 +40,7 @@ static void		ipp_disable_printer(pappl_client_t *client);
 static void		ipp_enable_printer(pappl_client_t *client);
 static void		ipp_get_jobs(pappl_client_t *client);
 static void		ipp_get_printer_attributes(pappl_client_t *client);
+static void		ipp_get_user_printer_attributes(pappl_client_t *client);
 static void		ipp_hold_new_jobs(pappl_client_t *client);
 static void		ipp_identify_printer(pappl_client_t *client);
 static void		ipp_pause_printer(pappl_client_t *client);
@@ -857,6 +858,10 @@ _papplPrinterProcessIPP(
 	ipp_get_printer_attributes(client);
 	break;
 
+    case IPP_OP_GET_USER_PRINTER_ATTRIBUTES :
+      ipp_get_user_printer_attributes(client);
+      break;
+      
     case IPP_OP_SET_PRINTER_ATTRIBUTES :
 	ipp_set_printer_attributes(client);
 	break;
@@ -1626,6 +1631,44 @@ ipp_get_printer_attributes(
   pappl_printer_t	*printer = client->printer;
 					// Printer
 
+
+  if (!printer->device_in_use && !printer->processing_job && (time(NULL) - printer->status_time) > 1 && printer->driver_data.status_cb)
+  {
+    // Update printer status...
+    (printer->driver_data.status_cb)(printer);
+    printer->status_time = time(NULL);
+  }
+
+  // Send the attributes...
+  ra = ippCreateRequestedArray(client->request);
+
+  papplClientRespondIPP(client, IPP_STATUS_OK, NULL);
+
+  _papplRWLockRead(printer->system);
+  _papplRWLockRead(printer);
+  _papplPrinterCopyAttributesNoLock(printer, client, ra, ippGetString(ippFindAttribute(client->request, "document-format", IPP_TAG_MIMETYPE), 0, NULL));
+  _papplRWUnlock(printer);
+  _papplRWUnlock(printer->system);
+
+  cupsArrayDelete(ra);
+}
+
+
+//
+// 'ipp_get_user_printer_attributes()' - Get the attributes for a printer object given a particular user.
+//
+
+static void
+ipp_get_user_printer_attributes(
+    pappl_client_t *client)    // I - Client
+{
+  cups_array_t    *ra;    // Requested attributes array
+  pappl_printer_t  *printer = client->printer;
+          // Printer
+
+  // Authorize access...
+  if (!_papplPrinterIsAuthorized(client))
+    return;
 
   if (!printer->device_in_use && !printer->processing_job && (time(NULL) - printer->status_time) > 1 && printer->driver_data.status_cb)
   {
