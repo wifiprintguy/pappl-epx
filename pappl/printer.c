@@ -265,13 +265,6 @@ papplPrinterCreate(
     "none",
     "tls"
   };
-  static const char * const which_jobs[] =
-  {					// which-jobs-supported values
-    "completed",
-    "not-completed",
-    "all"
-  };
-
 
   // Range check input...
   if (!system || !printer_name || !driver_name || !device_uri)
