@@ -275,7 +275,7 @@ _papplJobCopyStateNoLock(
 
   if (!ra || cupsArrayFind(ra, "job-state-message"))
   {
-    if (job->message)
+    if (job->message && 0 < strlen(job->message))
     {
       ippAddString(ipp, group_tag, IPP_TAG_TEXT, "job-state-message", NULL, job->message);
     }
