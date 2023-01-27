@@ -532,13 +532,14 @@ _papplJobProcess(pappl_job_t *job)	// I - Job
 {
   _pappl_mime_filter_t	*filter;	// Filter for printing
 
-
   // Start processing the job...
   if (start_job(job))
   {
     // Do file-specific conversions...
     if ((filter = _papplSystemFindMIMEFilter(job->system, job->format, job->printer->driver_data.format)) == NULL)
+    {
       filter =_papplSystemFindMIMEFilter(job->system, job->format, "image/pwg-raster");
+    }
 
     if (job->st_disposition == PAPPL_ST_DISPOSITION_STORE_ONLY)
     {
@@ -563,7 +564,8 @@ _papplJobProcess(pappl_job_t *job)	// I - Job
     else
     {
       // Abort a job we can't process...
-      papplLogJob(job, PAPPL_LOGLEVEL_ERROR, "Unable to process job with format '%s'.", job->format);
+      papplJobSetMessage(job, "Unable to process job with format '%s'.", job->format);
+      papplLogJob(job, PAPPL_LOGLEVEL_ERROR, "%s", job->message);
       job->state = IPP_JSTATE_ABORTED;
     }
   }
