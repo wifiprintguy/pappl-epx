@@ -170,7 +170,8 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
                              cupsGetOption("spool-directory", (cups_len_t)optionCount, options),  // I - Spool directory or `NULL` for default
                              logfile ? logfile : "-",                                             // I - Log file or `NULL` for default
                              loglevel,                                                            // I - Log level
-                             cupsGetOption("auth-service", (cups_len_t)optionCount, options),     // I - PAM authentication service or `NULL` for none
+                             "cups",                                                              // I - Forcing the CUPS PAM authentication service
+//                             cupsGetOption("auth-service", (cups_len_t)optionCount, options),     // I - PAM authentication service or `NULL` for none
                              false);                                                              // I - Only support TLS connections?
   
   if (system == NULL)
@@ -180,7 +181,7 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
   papplSystemSetHostName(system, hostname); // TODO: Why is this even needed?
   
   // Set up the driver
-  papplSystemAddMIMEFilter(system, "application/pdf", "application/pdf", epx_pappl_mime_filter_cb, data);
+  papplSystemAddMIMEFilter(system, "application/pdf", "image/pwg-raster", epx_pappl_mime_filter_cb, data);
   papplSystemSetPrinterDrivers(system, (int)(sizeof(epx_drivers) / sizeof(epx_drivers[0])), epx_drivers, epx_pappl_autoadd_cb, /*create_cb*/NULL, epx_pappl_driver_cb, whoami);
   
   papplSystemSetFooterHTML(system, FOOTER_HTML);
