@@ -59,8 +59,8 @@
   STATUS successful-ok
 
   EXPECT printer-service-contact-col  OF-TYPE collection IN-GROUP printer-attributes-tag
-  EXPECT printer-service-contact-col/contact-name  OF-TYPE name IN-GROUP printer-attributes-tag
-  EXPECT printer-service-contact-col/contact-uri  OF-TYPE uri IN-GROUP printer-attributes-tag
+  EXPECT printer-service-contact-col/contact-name  OF-TYPE name
+  EXPECT printer-service-contact-col/contact-uri  OF-TYPE uri
 }
 #########################################################
 {
