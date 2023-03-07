@@ -211,17 +211,23 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
   {
     papplLog(system, PAPPL_LOGLEVEL_INFO, "Printer \"%s\" NOT found - making a new printer...\n", PRINTER_NAME);
     firstPrinter = papplPrinterCreate(system, 0, PRINTER_NAME, epx_drivers[0].name, epx_drivers[0].device_id, OUTPUT_LOCATION);
-    if (NULL == firstPrinter)
-      papplLog(system, PAPPL_LOGLEVEL_ERROR, "Printer \"%s\" NOT created - ERRNO = %d.\n", PRINTER_NAME, errno);
-    else
+    if (NULL != firstPrinter)
+    {
       papplLog(system, PAPPL_LOGLEVEL_INFO, "Printer \"%s\" created.\n", PRINTER_NAME);
+
+      // Add stuff using papplPrinterXXXX()
+      papplPrinterSetServiceContact(firstPrinter, &contact);
+    }
+    else
+    {
+      papplLog(system, PAPPL_LOGLEVEL_ERROR, "Printer \"%s\" NOT created - ERRNO = %d.\n", PRINTER_NAME, errno);
+    }
     
   }
   else
   {
     papplLog(system, PAPPL_LOGLEVEL_INFO, "Printer \"%s\" found.\n", PRINTER_NAME);
   }
-  
   
   return (system);
 }
