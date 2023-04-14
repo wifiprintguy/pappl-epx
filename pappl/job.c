@@ -981,3 +981,35 @@ papplSystemCleanJobs(
 
   _papplRWUnlock(system);
 }
+
+void
+pappJobStart(
+             pappl_job_t *job,        // I - Job
+             pappl_jreason_t remove)  // I - enums of "job-state-reasons" keywords to remove
+{
+  // Range check input
+  if (!job)
+    return;
+
+  if (IPP_JSTATE_STOPPED == job->state)
+  {
+    _papplJobSetState(job, IPP_JSTATE_PROCESSING);
+    job->state_reasons &= ~remove;
+  }
+}
+
+void
+pappJobStop(
+            pappl_job_t *job,     // I - Job
+            pappl_jreason_t add)  // I - enums of "job-state-reasons" keywords to add
+{
+  // Range check input
+  if (!job)
+    return;
+
+  if (IPP_JSTATE_PROCESSING == job->state)
+  {
+    job->state_reasons |= add;
+    _papplJobSetState(job, IPP_JSTATE_STOPPED);
+  }
+}

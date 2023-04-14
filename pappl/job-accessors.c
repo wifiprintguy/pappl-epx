@@ -231,6 +231,62 @@ papplJobGetState(pappl_job_t *job)	// I - Job
 
 
 //
+// 'papplJobGetStateString()' - Get the current job state as a string value.
+//
+// This function returns the current job processing state, which is represented
+// as an enumeration:
+//
+// - `aborted`: Job has been aborted by the system due to an error.
+// - `canceled`: Job has been canceled by a user.
+// - `completed`: Job has finished printing.
+// - `held`: Job is being held for some reason, typically because
+//   the document data is being received.
+// - `pending`: Job is queued and waiting to be printed.
+// - `processing`: Job is being printed.
+// - `stopped`: Job is paused, typically when the printer is not
+//   ready.
+//
+
+const char *				// O - IPP "job-state" value as a string
+papplJobGetStateString(pappl_job_t *job)	// I - Job
+{
+  ipp_jstate_t state = papplJobGetState(job);
+  
+  switch (state)
+  {
+    case IPP_JSTATE_CANCELED:
+      return "canceled";
+      break;
+      
+    case IPP_JSTATE_COMPLETED:
+      return "completed";
+      break;
+      
+    case IPP_JSTATE_HELD:
+      return "held";
+      break;
+      
+    case IPP_JSTATE_PENDING:
+      return "pending";
+      break;
+      
+    case IPP_JSTATE_PROCESSING:
+      return "processing";
+      break;
+      
+    case IPP_JSTATE_STOPPED:
+      return "stopped";
+      break;
+
+    case IPP_JSTATE_ABORTED:
+    default:
+      return "aborted";
+      break;
+  }
+}
+
+
+//
 // 'papplJobGetTimeCompleted()' - Get the job completion time, if any.
 //
 // This function returns the date and time when the job reached the completed,

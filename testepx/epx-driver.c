@@ -376,7 +376,9 @@ epx_rendjob(
   (void)options;
   (void)device;
   
-  papplLogJob(job, PAPPL_LOGLEVEL_INFO, "EPX Driver: Ending Job '%s': %s", papplJobGetName(job), papplJobGetFilename(job));
+  papplLogJob(job, PAPPL_LOGLEVEL_INFO, "EPX Driver: Ending Job '%s' - status == %s",
+	      papplJobGetName(job),
+	      papplJobGetStateString(job));
   
   cupsRasterClose(pwg->ras);
   
@@ -460,10 +462,18 @@ epx_rendpage(
   ipp_attribute_t *proof_copies = papplJobGetAttribute(job, "proof-copies");
   if (NULL != proof_copies)
   {
-    int result = papplJobGetImpressionsCompleted(job) % + ippGetInteger(proof_copies, 0);
-    if (0 == result)
-      //      _papplJobSetState(job, IPP_JSTATE_STOPPED);
-      ;
+    int proofCopiesNumber = ippGetInteger(proof_copies, 0);
+    int impressionsCompleted = papplJobGetImpressionsCompleted(job);
+    int numPages = papplJobGetImpressions(job);
+    if (impressionsCompleted == (proofCopiesNumber * numPages) - 1)
+    {
+      pappJobStop(job, PAPPL_JREASON_JOB_SUSPENDED_FOR_APPROVAL);
+      
+      papplLogJob(job, PAPPL_LOGLEVEL_INFO, "EPX Driver: Stopping Processing Job  '%s' (%d) - %d proof copies reached",
+                  papplJobGetName(job),
+                  papplJobGetID(job),
+                  proofCopiesNumber);
+    }
   }
   return (true);
 }
