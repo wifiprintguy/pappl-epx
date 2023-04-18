@@ -389,6 +389,25 @@ void
 _papplJobProcessIPP(
     pappl_client_t *client)		// I - Client
 {
+  ipp_attribute_t *attr = NULL;
+  
+  // Get the requesting-user-name, document format, and name...
+  if (client->username[0])
+    ;
+  else if ((attr = ippFindAttribute(client->request, "requesting-user-name", IPP_TAG_NAME)) != NULL)
+  {
+    const char *username = ippGetString(attr, 0, NULL);
+    size_t usernamelen = strlen(username);
+    papplCopyString(client->username, ippGetString(attr, 0, NULL), usernamelen);
+  }
+  else
+  {
+    const char *username = "guest";
+    size_t usernamelen = strlen(username);
+   papplCopyString(client->username, username, usernamelen);
+  }
+
+  
   switch (ippGetOperation(client->request))
   {
     case IPP_OP_CANCEL_JOB :
@@ -416,12 +435,12 @@ _papplJobProcessIPP(
 	break;
 
     case IPP_OP_RESUME_JOB :
-  ipp_resume_job(client);
-  break;
+	ipp_resume_job(client);
+	break;
 
     default :
-        if (client->system->op_cb && (client->system->op_cb)(client, client->system->op_cbdata))
-          break;
+	if (client->system->op_cb && (client->system->op_cb)(client, client->system->op_cbdata))
+	  break;
 
 	papplClientRespondIPP(client, IPP_STATUS_ERROR_OPERATION_NOT_SUPPORTED, "Operation not supported.");
 	break;
@@ -880,7 +899,7 @@ ipp_resume_job(pappl_client_t *client)  // I - Client
   // Get the job...
   if (job)
   {
-    if (papplJobRelease(job, client->username))
+    if (papplJobResume(job, client->username))
       papplClientRespondIPP(client, IPP_STATUS_OK, "Job resumed.");
     else
       papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job not stopped.");
