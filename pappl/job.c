@@ -656,7 +656,7 @@ _papplJobResumeNoLock(
 {
 
   // Move the job back to the processing state from the processing-stopped state
-  job->state         = IPP_JSTATE_PROCESSING;
+  _papplJobSetState(job, IPP_JSTATE_PROCESSING);
   job->state_reasons &= (pappl_jreason_t)(~PAPPL_JREASON_JOB_HOLD_UNTIL_SPECIFIED); // TODO What if anything needs to be cleared
 
   if (username)
@@ -995,6 +995,7 @@ pappJobStart(
   {
     _papplJobSetState(job, IPP_JSTATE_PROCESSING);
     job->state_reasons &= ~remove;
+    _papplSystemAddEventNoLock(job->system, job->printer, job, PAPPL_EVENT_JOB_STATE_CHANGED, NULL);
   }
 }
 
@@ -1011,5 +1012,6 @@ pappJobStop(
   {
     job->state_reasons |= add;
     _papplJobSetState(job, IPP_JSTATE_STOPPED);
+    _papplSystemAddEventNoLock(job->system, job->printer, job, PAPPL_EVENT_JOB_STATE_CHANGED, NULL);
   }
 }
