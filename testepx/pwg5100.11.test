@@ -54,7 +54,7 @@
     ATTR charset attributes-charset utf-8
     ATTR language attributes-natural-language en
     ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'printer-service-contact-col'
+    ATTR keyword requested-attributes "printer-service-contact-col"
 
   STATUS successful-ok
 
@@ -73,21 +73,22 @@
     ATTR charset attributes-charset utf-8
     ATTR language attributes-natural-language en
     ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'ipp-features-supported','job-release-action-supported'
+    ATTR keyword requested-attributes "ipp-features-supported","operations-supported","job-release-action-supported"
 
   STATUS successful-ok
 
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-release'
+  EXPECT "ipp-features-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-release'
+  EXPECT "operations-supported" OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 0x000D # Release-Job
 
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password' DEFINE-MATCH HAS_JOB_RELEASE_JOB_PASSWORD
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press' DEFINE-MATCH HAS_JOB_RELEASE_BUTTON_PRESS
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized' DEFINE-MATCH HAS_JOB_RELEASE_OWNER_AUTHORIZED
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'none' DEFINE-MATCH HAS_JOB_RELEASE_NONE
+  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password' DEFINE-MATCH HAS_JOB_RELEASE_JOB_PASSWORD
+  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press' DEFINE-MATCH HAS_JOB_RELEASE_BUTTON_PRESS
+  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized' DEFINE-MATCH HAS_JOB_RELEASE_OWNER_AUTHORIZED
+  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'none' DEFINE-MATCH HAS_JOB_RELEASE_NONE
 
   # Attempt to express that at least one of 'job-password' / 'button-press' / 'owner-authorized' must be supported?
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password' DEFINE-MATCH HAS_JOB_RELEASE_REQ_MET
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press' DEFINE-MATCH HAS_JOB_RELEASE_REQ_MET
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized' DEFINE-MATCH HAS_JOB_RELEASE_REQ_MET
+  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password' DEFINE-MATCH HAS_JOB_RELEASE_REQ_MET
+  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press' DEFINE-MATCH HAS_JOB_RELEASE_REQ_MET
+  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized' DEFINE-MATCH HAS_JOB_RELEASE_REQ_MET
   PASS-IF-DEFINED HAS_JOB_RELEASE_REQ_MET
 }
 #########################################################
@@ -209,7 +210,7 @@
 
   STATUS successful-ok
 
-  EXPECT operations-supported OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 0x0066 # Get-User-Printer-Attributes
+  EXPECT "operations-supported" OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 0x0066 # Get-User-Printer-Attributes
 }
 #########################################################
 {
@@ -227,7 +228,7 @@
 
   STATUS successful-ok
 
-  EXPECT 'document-format-supported' OF-TYPE mimeMediaType IN-GROUP printer-attributes-tag
+  EXPECT "document-format-supported" OF-TYPE mimeMediaType IN-GROUP printer-attributes-tag
 }
 #########################################################
 {
@@ -281,10 +282,10 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'operations-supported','proof-copies-supported','job-spooling-supported'
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'operations-supported','proof-copies-supported','job-spooling-supported'
 
   STATUS successful-ok
 
@@ -294,6 +295,7 @@
   EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool' DEFINE-MATCH HAS_SPOOLING
 }
 #########################################################
+DEFINE PROOF_COPIES_2 2
 {
   SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
   SKIP-IF-NOT-DEFINED HAS_SPOOLING
@@ -302,24 +304,24 @@
   OPERATION Print-Job
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR name requesting-user-name $user
-    ATTR mimeMediaType document-format $filetype
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR name "requesting-user-name" $user
+    ATTR mimeMediaType "document-format" $filetype
 
   GROUP job-attributes-tag
     ATTR name "job-name" "Job Proof and Suspend Test $filename $job-id"
-    ATTR integer copies 5
-    ATTR integer proof-copies 2
+    ATTR integer "copies" 5
+    ATTR integer "proof-copies" $PROOF_COPIES_2
 
   FILE $filename
 
   STATUS successful-ok
 
-  EXPECT job-id OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1
-  EXPECT job-id OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1 DEFINE-MATCH HAS_ACCEPTED_PROOF_JOB
-  EXPECT job-uri OF-TYPE uri IN-GROUP job-attributes-tag COUNT 1
+  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1
+  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1 DEFINE-MATCH HAS_ACCEPTED_PROOF_JOB
+  EXPECT "job-uri" OF-TYPE uri IN-GROUP job-attributes-tag COUNT 1
 }
 #########################################################
 {
@@ -330,21 +332,20 @@
   OPERATION Get-Job-Attributes
   
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR naturalLanguage attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR integer job-id $job-id
-    ATTR name requesting-user-name $user
+    ATTR charset "attributes-charset" utf-8
+    ATTR naturalLanguage "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR integer "job-id" $job-id
+    ATTR name "requesting-user-name" $user
 
   STATUS successful-ok
 
-  EXPECT proof-print OF-TYPE collection IN-GROUP job-attributes-tag COUNT 1
-  EXPECT proof-print/proof-print-copies OF-TYPE integer WITH-VALUE 1 COUNT 1
-  EXPECT proof-print/media OF-TYPE keyword WITH-VALUE letterhead COUNT 1
   # Expecting the Job to be processed to produce the number of "proof-copies"
   # and then the Job is placed in the 'processing-stopped' state (6)
-  EXPECT job-state OF-TYPE unknown|enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE =6 REPEAT-NO-MATCH REPEAT-LIMIT 30
-  DISPLAY job-state
+  EXPECT "proof-copies" OF-TYPE integer WITH-VALUE $PROOF_COPIES_2 COUNT 1
+  EXPECT "job-impressions-completed" OF-TYPE integer WITH-VALUE $PROOF_COPIES
+  EXPECT "job-state" OF-TYPE unknown|enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE =6 REPEAT-NO-MATCH REPEAT-LIMIT 30
+  DISPLAY "job-state"
 }
 #########################################################
 {
@@ -378,12 +379,10 @@
 
   STATUS successful-ok
 
-  EXPECT proof-print OF-TYPE collection IN-GROUP job-attributes-tag COUNT 1
-  EXPECT proof-print/proof-print-copies OF-TYPE integer WITH-VALUE 1 COUNT 1
-  EXPECT proof-print/media OF-TYPE keyword WITH-VALUE letterhead COUNT 1
+  EXPECT "proof-copies" OF-TYPE integer WITH-VALUE $PROOF_COPIES_2 COUNT 1
   # Expecting the Job to be processed to produce the number of "proof-copies"
   # and then the Job is placed in the 'processing-stopped' state (6)
-  EXPECT job-state OF-TYPE unknown|enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE >6 REPEAT-NO-MATCH REPEAT-LIMIT 30
-  DISPLAY job-state
+  EXPECT "job-state" OF-TYPE unknown|enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE >6 REPEAT-NO-MATCH REPEAT-LIMIT 30
+  DISPLAY "job-state"
 }
 #########################################################
