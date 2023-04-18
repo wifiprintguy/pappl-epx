@@ -20,8 +20,7 @@ Header search paths (keep /usr/local/ at the end so that older SDK versions don'
 Library search paths (keep /usr/local/ at the end so that older SDK versions don't get selected first):
 ../libcups /opt/homebrew/Cellar/openssl@3/3.0.7/lib /opt/homebrew/Cellar/libpng/1.6.38/lib /opt/homebrew/Cellar/jpeg/9e/lib /opt/homebrew/Cellar/libusb/1.0.26/lib /usr/local/lib
 
-Libraries and Frameworks:
-* Remove the TBD reference to libcups.dylib and libcupsimage.dylib, and add a reference to /Users/smitty/source/GitHub/openprinting/libcups/cups/libcups.3.3.dylib
+Also update the "libcups.xcodeproj" to include the same header and library search paths above, but omitting "../libcups" (for obvious reasons).
 
 testepx target
 * Add the testepx folder
