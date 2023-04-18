@@ -465,7 +465,7 @@ epx_rendpage(
     int proofCopiesNumber = ippGetInteger(proof_copies, 0);
     int impressionsCompleted = papplJobGetImpressionsCompleted(job);
     int numPages = papplJobGetImpressions(job);
-    if (impressionsCompleted == (proofCopiesNumber * numPages) - 1)
+    if (impressionsCompleted == (proofCopiesNumber * numPages))
     {
       pappJobStop(job, PAPPL_JREASON_JOB_SUSPENDED_FOR_APPROVAL);
       
@@ -473,6 +473,8 @@ epx_rendpage(
                   papplJobGetName(job),
                   papplJobGetID(job),
                   proofCopiesNumber);
+
+      sleep(5);
     }
   }
   return (true);
