@@ -214,9 +214,6 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
     if (NULL != firstPrinter)
     {
       papplLog(system, PAPPL_LOGLEVEL_INFO, "Printer \"%s\" created.\n", PRINTER_NAME);
-
-      // Add stuff using papplPrinterXXXX()
-      papplPrinterSetServiceContact(firstPrinter, &contact);
     }
     else
     {
@@ -227,6 +224,13 @@ pappl_system_t *epx_system_cb(int           optionCount,   // I - Number of opti
   else
   {
     papplLog(system, PAPPL_LOGLEVEL_INFO, "Printer \"%s\" found.\n", PRINTER_NAME);
+  }
+  
+  if (NULL != firstPrinter)
+  {
+    // Add stuff using papplPrinterXXXX() regardless of whether it is new or old cause some of this stuff evaporates
+    papplPrinterSetServiceContact(firstPrinter, &contact);
+
   }
   
   return (system);
