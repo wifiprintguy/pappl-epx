@@ -13,10 +13,10 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'printer-service-contact-col'
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'printer-service-contact-col'
 
   STATUS successful-ok
 
@@ -29,19 +29,19 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'ipp-features-supported'
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'ipp-features-supported'
 
   STATUS successful-ok
 
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-release' DEFINE-MATCH HAS_JOB_RELEASE
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage' DEFINE-MATCH HAS_JOB_STORAGE
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'print-policy' DEFINE-MATCH HAS_PRINT_POLICY
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'proof-and-suspend' DEFINE-MATCH HAS_PROOF_AND_SUSPEND
-  EXPECT ipp-features-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'proof-print' DEFINE-MATCH HAS_PROOF_PRINT
+  EXPECT "ipp-features-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
+  EXPECT "ipp-features-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-release' DEFINE-MATCH HAS_JOB_RELEASE
+  EXPECT "ipp-features-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage' DEFINE-MATCH HAS_JOB_STORAGE
+  EXPECT "ipp-features-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'print-policy' DEFINE-MATCH HAS_PRINT_POLICY
+  EXPECT "ipp-features-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'proof-and-suspend' DEFINE-MATCH HAS_PROOF_AND_SUSPEND
+  EXPECT "ipp-features-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'proof-print' DEFINE-MATCH HAS_PROOF_PRINT
 }
 #########################################################
 {
@@ -51,16 +51,16 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes "printer-service-contact-col"
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'printer-service-contact-col'
 
   STATUS successful-ok
 
-  EXPECT printer-service-contact-col  OF-TYPE collection IN-GROUP printer-attributes-tag
-  EXPECT printer-service-contact-col/contact-name  OF-TYPE name
-  EXPECT printer-service-contact-col/contact-uri  OF-TYPE uri
+  EXPECT "printer-service-contact-col"  OF-TYPE collection IN-GROUP printer-attributes-tag
+  EXPECT "printer-service-contact-col/contact-name"  OF-TYPE name
+  EXPECT "printer-service-contact-col/contact-uri"  OF-TYPE uri
 }
 #########################################################
 {
@@ -70,10 +70,10 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes "ipp-features-supported","operations-supported","job-release-action-supported"
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'ipp-features-supported','operations-supported','job-release-action-supported'
 
   STATUS successful-ok
 
@@ -99,19 +99,19 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'job-release-action-default','job-spooling-supported','job-release-action-supported'
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'job-release-action-default','job-spooling-supported','job-release-action-supported'
 
   STATUS successful-ok
 
   # These are common to all methods other than 'none'
-  EXPECT job-release-action-default OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
-  EXPECT job-spooling-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
+  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
+  EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
 
   # These are specific to this particular sub-feature
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press'
+  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press'
 }
 #########################################################
 {
@@ -121,11 +121,11 @@
   OPERATION Print-Job
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR name requesting-user-name $user
-    ATTR mimeMediaType document-format $filetype
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR name "requesting-user-name" $user
+    ATTR mimeMediaType "document-format" $filetype
 
   GROUP job-attributes-tag
     ATTR name "job-name" "Job Release Button Press Test $job-id $filename"
@@ -135,8 +135,8 @@
 
   STATUS successful-ok
 
-  EXPECT job-id OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1
-  EXPECT job-uri OF-TYPE uri IN-GROUP job-attributes-tag COUNT 1
+  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1
+  EXPECT "job-uri" OF-TYPE uri IN-GROUP job-attributes-tag COUNT 1
 }
 #########################################################
 {
@@ -146,25 +146,25 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'job-release-action-default','job-spooling-supported','job-release-action-supported','job-password-encryption-supported','job-password-length-supported','job-password-repertoire-configured','job-password-repertoire-supported','job-password-supported'
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'job-release-action-default','job-spooling-supported','job-release-action-supported','job-password-encryption-supported','job-password-length-supported','job-password-repertoire-configured','job-password-repertoire-supported','job-password-supported'
 
   STATUS successful-ok
 
   # These are common to all methods other than 'none'
-  EXPECT job-release-action-default OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
-  EXPECT job-spooling-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
+  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
+  EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
 
   # These are specific to this particular sub-feature
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password'
+  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password'
 
-  EXPECT job-password-encryption-supported    OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT job-password-length-supported        OF-TYPE rangeOfInteger IN-GROUP printer-attributes-tag
-  EXPECT job-password-repertoire-configured   OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT job-password-repertoire-supported    OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT job-password-supported               OF-TYPE integer IN-GROUP printer-attributes-tag
+  EXPECT "job-password-encryption-supported"    OF-TYPE keyword IN-GROUP printer-attributes-tag
+  EXPECT "job-password-length-supported"        OF-TYPE rangeOfInteger IN-GROUP printer-attributes-tag
+  EXPECT "job-password-repertoire-configured"   OF-TYPE keyword IN-GROUP printer-attributes-tag
+  EXPECT "job-password-repertoire-supported"    OF-TYPE keyword IN-GROUP printer-attributes-tag
+  EXPECT "job-password-supported"               OF-TYPE integer IN-GROUP printer-attributes-tag
 }
 #########################################################
 {
@@ -174,26 +174,26 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'job-release-action-default','job-spooling-supported','job-release-action-supported','uri-authentication-supported'
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'job-release-action-default','job-spooling-supported','job-release-action-supported','uri-authentication-supported'
 
   STATUS successful-ok
 
   # These are common to all methods other than 'none'
-  EXPECT job-release-action-default OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
-  EXPECT job-spooling-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
+  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
+  EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
 
   # These are specific to this particular sub-feature
-  EXPECT job-release-action-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized'
+  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized'
 
   # TODO: Do we require some types of auth or disallow others?
-  EXPECT uri-authentication-supported OF-TYPE keyword IN-GROUP printer-attributes-tag
+  EXPECT "uri-authentication-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
 
   # These are common to all methods other than 'none'
-  EXPECT job-release-action-default OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
-  EXPECT job-spooling-supported OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
+  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
+  EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
 }
 #########################################################
 {
@@ -203,10 +203,10 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'operations-supported'
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'operations-supported'
 
   STATUS successful-ok
 
@@ -220,11 +220,11 @@
   OPERATION Get-User-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR name requesting-user-name $user
-    ATTR keyword requested-attributes 'document-format-supported'
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR name "requesting-user-name" $user
+    ATTR keyword "requested-attributes" 'document-format-supported'
 
   STATUS successful-ok
 
@@ -238,10 +238,10 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'job-storage-supported','job-storage-access-supported','job-storage-disposition-supported'
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'job-storage-supported','job-storage-access-supported','job-storage-disposition-supported'
 
   STATUS successful-ok
   
@@ -262,10 +262,10 @@
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
-    ATTR keyword requested-attributes 'job-storage-supported','job-storage-access-supported','job-storage-group-supported'
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR keyword "requested-attributes" 'job-storage-supported','job-storage-access-supported','job-storage-group-supported'
 
   STATUS successful-ok
   
@@ -289,7 +289,7 @@
 
   STATUS successful-ok
 
-  EXPECT 'operations-supported' OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 0x002F # Resume-Job
+  EXPECT "operations-supported"   OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 0x002F # Resume-Job
   EXPECT "proof-copies-supported" OF-TYPE rangeOfInteger IN-GROUP printer-attributes-tag
   EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
   EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool' DEFINE-MATCH HAS_SPOOLING
@@ -355,11 +355,11 @@ DEFINE PROOF_COPIES_2 2
   OPERATION Resume-Job
 
   GROUP operation-attributes-tag
-    ATTR charset attributes-charset utf-8
-    ATTR language attributes-natural-language en
-    ATTR uri printer-uri $uri
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
     ATTR integer job-id $job-id
-    ATTR name requesting-user-name $user
+    ATTR name "requesting-user-name" $user
 
   STATUS successful-ok
 }
@@ -375,7 +375,7 @@ DEFINE PROOF_COPIES_2 2
     ATTR naturalLanguage attributes-natural-language en
     ATTR uri printer-uri $uri
     ATTR integer job-id $job-id
-    ATTR name requesting-user-name $user
+    ATTR name "requesting-user-name" $user
 
   STATUS successful-ok
 
