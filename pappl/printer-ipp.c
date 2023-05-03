@@ -1677,14 +1677,59 @@ ipp_get_user_printer_attributes(
     printer->status_time = time(NULL);
   }
 
-  // Send the attributes...
+  // Get the list of requested attributes
   ra = ippCreateRequestedArray(client->request);
-
+    
+  // Create the response which will be sent when the printer and system are unlocked below
   papplClientRespondIPP(client, IPP_STATUS_OK, NULL);
 
   _papplRWLockRead(printer->system);
   _papplRWLockRead(printer);
   _papplPrinterCopyAttributesNoLock(printer, client, ra, ippGetString(ippFindAttribute(client->request, "document-format", IPP_TAG_MIMETYPE), 0, NULL));
+  
+  // Filter the attributes according to user
+  // This has to be done here in between the lock and unlock because
+  // once they are unlocked the client and/or system will send the response
+  // TODO: Validate this belief
+  papplLogPrinter(client->printer, PAPPL_LOGLEVEL_INFO, "GUPA for user: \"%s\"", client->username); // ALWAYS EMPTY!!!
+  ipp_attribute_t *targetAttr;
+  
+  // TODO: DO NOT use the IPP_CONST_TAG macro in an ippFindAttribute() call - the search will always fail
+  targetAttr = ippFindAttribute(client->response, "sides-default", IPP_TAG_KEYWORD);
+  if (NULL != targetAttr)
+  {
+    ippDeleteAttribute(client->response, targetAttr);
+    ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "sides-default", NULL, "two-sided-long-edge");
+  }
+
+  targetAttr = ippFindAttribute(client->response, "sides-supported", IPP_TAG_KEYWORD);
+  if (NULL != targetAttr)
+  {
+    ippDeleteAttribute(client->response, targetAttr);
+    ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "sides-supported", NULL, "two-sided-long-edge");
+  }
+
+  targetAttr = ippFindAttribute(client->response, "color-supported", IPP_TAG_BOOLEAN);
+  if (NULL != targetAttr)
+  {
+    ippDeleteAttribute(client->response, targetAttr);
+    ippAddBoolean(client->response, IPP_TAG_PRINTER, "color-supported", false);
+  }
+
+  targetAttr = ippFindAttribute(client->response, "print-quality-default", IPP_TAG_ENUM);
+  if (NULL != targetAttr)
+  {
+    ippDeleteAttribute(client->response, targetAttr);
+    ippAddInteger(client->response, IPP_TAG_PRINTER, IPP_TAG_ENUM, "print-quality-default", IPP_QUALITY_DRAFT);
+  }
+  
+  targetAttr = ippFindAttribute(client->response, "print-quality-supported", IPP_TAG_ENUM);
+  if (NULL != targetAttr)
+  {
+    ippDeleteAttribute(client->response, targetAttr);
+    ippAddInteger(client->response, IPP_TAG_PRINTER, IPP_TAG_ENUM, "print-quality-supported", IPP_QUALITY_DRAFT);
+  }
+  
   _papplRWUnlock(printer);
   _papplRWUnlock(printer->system);
 
