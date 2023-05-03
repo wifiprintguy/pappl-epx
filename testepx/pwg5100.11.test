@@ -7,7 +7,11 @@
 #  ./ipptool -f FILENAME printer-uri pwg5100.11.test
 #
 
-#########################################################
+################################################################################
+
+#---------------------------- REQUIRED ATTRIBUTES -----------------------------#
+
+################################################################################
 {
   NAME "[EPX2 1.1] Required Attributes"
   OPERATION Get-Printer-Attributes
@@ -23,7 +27,7 @@
   EXPECT "printer-service-contact-col"  OF-TYPE collection|unknown IN-GROUP printer-attributes-tag
   EXPECT "printer-service-contact-col"  OF-TYPE collection IN-GROUP printer-attributes-tag DEFINE-MATCH HAS_PRINTER_SERVICE_CONTACT_COL_COLLECTION
 }
-#########################################################
+################################################################################
 {
   NAME "[EPX2 1.2] Feature Detection"
   OPERATION Get-Printer-Attributes
@@ -43,7 +47,11 @@
   EXPECT "ipp-features-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'proof-and-suspend' DEFINE-MATCH HAS_PROOF_AND_SUSPEND
   EXPECT "ipp-features-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'proof-print' DEFINE-MATCH HAS_PROOF_PRINT
 }
-#########################################################
+################################################################################
+
+#------------------------ printer-service-contact-col -------------------------#
+
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_PRINTER_SERVICE_CONTACT_COL_COLLECTION
 
@@ -62,7 +70,11 @@
   EXPECT "printer-service-contact-col/contact-name"  OF-TYPE name
   EXPECT "printer-service-contact-col/contact-uri"  OF-TYPE uri
 }
-#########################################################
+################################################################################
+
+#-------------------------------- JOB RELEASE ---------------------------------#
+
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE
 
@@ -91,7 +103,7 @@
   EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized' DEFINE-MATCH HAS_JOB_RELEASE_REQ_MET
   PASS-IF-DEFINED HAS_JOB_RELEASE_REQ_MET
 }
-#########################################################
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
 
@@ -113,7 +125,7 @@
   # These are specific to this particular sub-feature
   EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'button-press'
 }
-#########################################################
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
 
@@ -138,7 +150,7 @@
   EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1
   EXPECT "job-uri" OF-TYPE uri IN-GROUP job-attributes-tag COUNT 1
 }
-#########################################################
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_JOB_PASSWORD
 
@@ -166,7 +178,7 @@
   EXPECT "job-password-repertoire-supported"    OF-TYPE keyword IN-GROUP printer-attributes-tag
   EXPECT "job-password-supported"               OF-TYPE integer IN-GROUP printer-attributes-tag
 }
-#########################################################
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_OWNER_AUTHORIZED
 
@@ -192,10 +204,14 @@
   EXPECT "uri-authentication-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
 
   # These are common to all methods other than 'none'
-  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
+  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM "job-release-action-supported" COUNT 1
   EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
 }
-#########################################################
+################################################################################
+
+#----------------------------- JOB PRINT POLICY -------------------------------#
+
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_PRINT_POLICY
 
@@ -212,7 +228,7 @@
 
   EXPECT "operations-supported" OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 0x0066 # Get-User-Printer-Attributes
 }
-#########################################################
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_PRINT_POLICY
 
@@ -224,13 +240,20 @@
     ATTR language "attributes-natural-language" en
     ATTR uri "printer-uri" $uri
     ATTR name "requesting-user-name" $user
-    ATTR keyword "requested-attributes" 'document-format-supported'
+    ATTR keyword "requested-attributes" 'document-format-supported','sides-supported','sides-default','color-supported','print-quality-supported'
 
   STATUS successful-ok
 
   EXPECT "document-format-supported" OF-TYPE mimeMediaType IN-GROUP printer-attributes-tag
+  EXPECT "sides-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'two-sided-long-edge'
+  EXPECT "sides-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM "sides-supported" COUNT 1
+  EXPECT "color-supported" OF-TYPE boolean IN-GROUP printer-attributes-tag WITH-VALUE false
 }
-#########################################################
+################################################################################
+
+#-------------------------------- JOB STORAGE ---------------------------------#
+
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_JOB_STORAGE
 
@@ -245,20 +268,25 @@
 
   STATUS successful-ok
   
-  # Required attributes
-  EXPECT "job-storage-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT "job-storage-access-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT "job-storage-disposition-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
+  # Required attributes and values
+  EXPECT "job-storage-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage-access'
+  EXPECT "job-storage-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage-disposition'
+  EXPECT "job-storage-access-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'public'
+  EXPECT "job-storage-access-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner'
+  EXPECT "job-storage-disposition-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'print-and-store'
+  EXPECT "job-storage-disposition-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'store-only'
   
-  # Detect optional attributes
+  # Detect optional features
   EXPECT "job-storage-supported" OF-TYPE name IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage-group' DEFINE-MATCH HAS_JOB_STORAGE_GROUP
+  EXPECT "job-storage-access-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'group' DEFINE-MATCH HAS_JOB_STORAGE_GROUP
+
 
 }
-#########################################################
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_JOB_STORAGE_GROUP
 
-  NAME "[EPX2 5.1] Job Storage - Validate Group Feature Support"
+  NAME "[EPX2 5.2] Job Storage - Validate Group Feature Support"
   OPERATION Get-Printer-Attributes
 
   GROUP operation-attributes-tag
@@ -274,7 +302,106 @@
   EXPECT "job-storage-access-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'group'
   EXPECT "job-storage-group-supported" OF-TYPE name IN-GROUP printer-attributes-tag
 }
-#########################################################
+################################################################################
+{
+  SKIP-IF-NOT-DEFINED HAS_JOB_STORAGE
+
+  NAME "[EPX2 5.3.1] Job Storage - Created public 'print-and-store' Job"
+  OPERATION Print-Job
+
+  GROUP operation-attributes-tag
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR name "requesting-user-name" $user
+    ATTR mimeMediaType "document-format" $filetype
+
+  GROUP job-attributes-tag
+    ATTR name "job-name" "Job Storage Test $filename $job-id"
+    ATTR collection "job-storage"
+    {
+      MEMBER keyword "job-storage-access" 'public'
+      MEMBER keyword "job-storage-disposition" 'print-and-store'
+    }
+
+  FILE $filename
+
+  MONITOR-PRINTER-STATE $uri {
+    EXPECT printer-state WITH-VALUE '3'
+  }
+
+  STATUS successful-ok
+
+  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1
+  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1 DEFINE-MATCH HAS_ACCEPTED_STORED_JOB_1
+  EXPECT "job-uri" OF-TYPE uri IN-GROUP job-attributes-tag COUNT 1
+}
+################################################################################
+{
+  SKIP-IF-NOT-DEFINED HAS_ACCEPTED_STORED_JOB_1
+
+  NAME "[EPX2 5.3.2] Job Storage - Check Stored Job"
+  OPERATION Get-Job-Attributes
+  
+  GROUP operation-attributes-tag
+    ATTR charset "attributes-charset" utf-8
+    ATTR naturalLanguage "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR integer "job-id" $job-id
+    ATTR name "requesting-user-name" $user
+
+  STATUS successful-ok
+
+  # Expecting the Job to be processed to produce the number of "proof-copies"
+  # and then the Job is placed in the 'processing-stopped' state (6)
+  EXPECT "job-impressions-completed" OF-TYPE integer WITH-VALUE $PROOF_COPIES
+  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE $job-id DEFINE-MATCH STORED_JOB_1_JOB_ID
+  EXPECT "job-state" OF-TYPE enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE =9 REPEAT-NO-MATCH REPEAT-LIMIT 30
+  DISPLAY "job-state"
+}
+################################################################################
+{
+  SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
+
+  NAME "[EPX2 5.3.3] Job Storage - Resubmit-Job"
+  OPERATION Resubmit-Job
+
+  GROUP operation-attributes-tag
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR integer job-id $STORED_JOB_1_JOB_ID
+    ATTR name "requesting-user-name" $user
+
+  STATUS successful-ok
+}
+################################################################################
+{
+  SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
+
+  NAME "[EPX2 5.3.4] Job Proof and Suspend - Wait For terminal state"
+  OPERATION Get-Job-Attributes
+
+  GROUP operation-attributes-tag
+    ATTR charset attributes-charset utf-8
+    ATTR naturalLanguage attributes-natural-language en
+    ATTR uri printer-uri $uri
+    ATTR integer job-id $job-id
+    ATTR name "requesting-user-name" $user
+
+  STATUS successful-ok
+
+  EXPECT "proof-copies" OF-TYPE integer WITH-VALUE $PROOF_COPIES_2 COUNT 1
+  # Expecting the Job to be processed to produce the number of "proof-copies"
+  # and then the Job is placed in the 'processing-stopped' state (6)
+  EXPECT "job-state" OF-TYPE unknown|enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE >6 REPEAT-NO-MATCH REPEAT-LIMIT 30
+  DISPLAY "job-state"
+}
+################################################################################
+
+#--------------------------- JOB PROOF AND SUSPEND ----------------------------#
+
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
 
@@ -294,8 +421,10 @@
   EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
   EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool' DEFINE-MATCH HAS_SPOOLING
 }
-#########################################################
+################################################################################
+
 DEFINE PROOF_COPIES_2 2
+
 {
   SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
   SKIP-IF-NOT-DEFINED HAS_SPOOLING
@@ -323,7 +452,7 @@ DEFINE PROOF_COPIES_2 2
   EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1 DEFINE-MATCH HAS_ACCEPTED_PROOF_JOB
   EXPECT "job-uri" OF-TYPE uri IN-GROUP job-attributes-tag COUNT 1
 }
-#########################################################
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
   SKIP-IF-NOT-DEFINED HAS_ACCEPTED_PROOF_JOB
@@ -347,7 +476,7 @@ DEFINE PROOF_COPIES_2 2
   EXPECT "job-state" OF-TYPE unknown|enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE =6 REPEAT-NO-MATCH REPEAT-LIMIT 30
   DISPLAY "job-state"
 }
-#########################################################
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
 
@@ -363,7 +492,7 @@ DEFINE PROOF_COPIES_2 2
 
   STATUS successful-ok
 }
-#########################################################
+################################################################################
 {
   SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
 
@@ -385,4 +514,5 @@ DEFINE PROOF_COPIES_2 2
   EXPECT "job-state" OF-TYPE unknown|enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE >6 REPEAT-NO-MATCH REPEAT-LIMIT 30
   DISPLAY "job-state"
 }
-#########################################################
+################################################################################
+
