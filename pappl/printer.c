@@ -157,7 +157,6 @@ papplPrinterCreate(
     IPP_OP_CANCEL_MY_JOBS,
     IPP_OP_CLOSE_JOB,
     IPP_OP_IDENTIFY_PRINTER,
-    IPP_OP_GET_USER_PRINTER_ATTRIBUTES,
     IPP_OP_HOLD_JOB,
     IPP_OP_RELEASE_JOB,
     IPP_OP_HOLD_NEW_JOBS,
@@ -311,8 +310,10 @@ papplPrinterCreate(
     }
   }
   else
+  {
     papplCopyString(resource, "/ipp/print", sizeof(resource));
-
+  }
+  
   // Make sure the printer doesn't already exist...
   if ((printer = papplSystemFindPrinter(system, resource, 0, NULL)) != NULL)
   {
@@ -620,12 +621,12 @@ papplPrinterCreate(
   // job-storage-access-supported
   char * job_st_access_supported_keywords[3];
   num_keywords = _papplLookupStrings(printer->st_access_supported, 3, job_st_access_supported_keywords, sizeof(_pappl_st_access) / sizeof(_pappl_st_access[0]), _pappl_st_access);
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-access-supported", (cups_len_t)num_keywords, NULL, job_st_access_supported_keywords);
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-access-supported", (cups_len_t)num_keywords, NULL, (const char * const *)job_st_access_supported_keywords);
 
   // job-storage-disposition-supported
   char * job_st_disposition_supported_keywords[3];
   num_keywords = _papplLookupStrings(printer->st_disposition_supported, 3, job_st_disposition_supported_keywords, sizeof(_pappl_st_disposition) / sizeof(_pappl_st_disposition[0]), _pappl_st_disposition);
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-disposition-supported", (cups_len_t)num_keywords, NULL, job_st_disposition_supported_keywords);
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-disposition-supported", (cups_len_t)num_keywords, NULL, (const char * const *)job_st_disposition_supported_keywords);
 
   // job-storage-group-supported
   if (printer->st_group_supported)
