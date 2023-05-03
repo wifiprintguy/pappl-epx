@@ -240,7 +240,7 @@
     ATTR language "attributes-natural-language" en
     ATTR uri "printer-uri" $uri
     ATTR name "requesting-user-name" $user
-    ATTR keyword "requested-attributes" 'document-format-supported','sides-supported','sides-default','color-supported','print-quality-supported'
+    ATTR keyword "requested-attributes" 'document-format-supported','sides-supported','sides-default','color-supported','print-quality-supported','print-quality-default'
 
   STATUS successful-ok
 
@@ -248,6 +248,7 @@
   EXPECT "sides-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'two-sided-long-edge'
   EXPECT "sides-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM "sides-supported" COUNT 1
   EXPECT "color-supported" OF-TYPE boolean IN-GROUP printer-attributes-tag WITH-VALUE false
+  EXPECT "print-quality-default" OF-TYPE enum IN-GROUP printer-attributes-tag WITH-VALUE 3 # draft
 }
 ################################################################################
 
