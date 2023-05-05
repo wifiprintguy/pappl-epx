@@ -299,9 +299,9 @@
   STATUS successful-ok
   
   # Required attributes
-  EXPECT "job-storage-supported" OF-TYPE name IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage-group'
+  EXPECT "job-storage-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-storage-group'
   EXPECT "job-storage-access-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'group'
-  EXPECT "job-storage-group-supported" OF-TYPE name IN-GROUP printer-attributes-tag
+  EXPECT "job-storage-group-supported" OF-TYPE name IN-GROUP printer-attributes-tag WITH-DISTINCT-VALUES
 }
 ################################################################################
 {
