@@ -226,11 +226,50 @@ epx_pappl_driver_cb(
   
   // Enable all new non-deprecated EPX features
   driver_data->num_features = 0;
-  driver_data->features[driver_data->num_features++] = "job-release";
-  driver_data->features[driver_data->num_features++] = "job-storage";
-  driver_data->features[driver_data->num_features++] = "print-policy";
-  driver_data->features[driver_data->num_features++] = "proof-and-suspend";
-  // driver_data->features[driver_data->num_features++] = "proof-print";
+  bool 	jobRelease = true,
+  	jobStorage = true,
+  	jobPrintPolicy = true,
+  	jobProofAndSuspend = true,
+  	jobProofPrint = false;
+
+  if (jobRelease)
+  {
+    driver_data->features[driver_data->num_features++] = "job-release";
+  }
+  
+  if (jobStorage)
+  {
+    driver_data->features[driver_data->num_features++] = "job-storage";
+
+    driver_data->num_st_supported = 0;
+    driver_data->st_supported[driver_data->num_st_supported++] = "job-storage-access";
+    driver_data->st_supported[driver_data->num_st_supported++] = "job-storage-disposition";
+    driver_data->st_disposition_supported = PAPPL_ST_DISPOSITION_PRINT_AND_STORE | PAPPL_ST_DISPOSITION_STORE_ONLY;
+    driver_data->st_access_supported = PAPPL_ST_ACCESS_OWNER | PAPPL_ST_ACCESS_PUBLIC;
+    bool jobStorageGroup = true;
+    driver_data->num_st_group_supported = 0;
+    if (jobStorageGroup)
+    {
+      driver_data->st_supported[driver_data->num_st_supported++] = "job-storage-group";
+      driver_data->st_access_supported |= PAPPL_ST_ACCESS_GROUP;
+      driver_data->st_group_supported[driver_data->num_st_group_supported++] = "admin";
+    }
+  }
+  
+  if (jobPrintPolicy)
+  {
+    driver_data->features[driver_data->num_features++] = "print-policy";
+  }
+  
+  if (jobProofAndSuspend)
+  {
+    driver_data->features[driver_data->num_features++] = "proof-and-suspend";
+  }
+  
+  if (jobProofPrint)
+  {
+    driver_data->features[driver_data->num_features++] = "proof-print";
+  }
   
   // Set finishings and output bins
   driver_data->finishings         = PAPPL_FINISHINGS_NONE;
