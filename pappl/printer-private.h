@@ -111,9 +111,6 @@ struct _pappl_printer_s			// Printer data
   time_t                          cancel_after_time;              // "job-cancel-after-default" as time_t
   pappl_pw_repertoire_t           pw_repertoire_configured;       // "job-password-repertoire-configured" as enum
   pappl_release_action_t          release_action_default;         // "job-release-action-default" as enum
-  pappl_st_access_t               st_access_supported;            // "job-storage-access-supported" as enum
-  pappl_st_disposition_t          st_disposition_supported;       // "job-storage-disposition-supported" as enum
-  bool                            st_group_supported;             // Indicates support for "job-storage-group"
   pappl_which_jobs_t              which_jobs_supported;           // "which-jobs-supported" as enum
 };
 
