@@ -2089,51 +2089,51 @@ valid_job_attributes(
     }
   }
 
-    if ((attr = ippFindAttribute(client->request, "job-storage", IPP_TAG_BEGIN_COLLECTION)) != NULL)
+  if ((attr = ippFindAttribute(client->request, "job-storage", IPP_TAG_BEGIN_COLLECTION)) != NULL)
+  {
+    // Get a pointer to the collection so we can dive into it
+    ipp_t *col = ippGetCollection(attr, 0);
+
+    if (NULL == (attr = ippFindAttribute(col, "job-storage-access", IPP_TAG_KEYWORD)))
     {
-        // Get a pointer to the collection so we can dive into it
-        ipp_t *col = ippGetCollection(attr, 0);
-        
-        if (NULL == (attr = ippFindAttribute(col, "job-storage-access", IPP_TAG_KEYWORD)))
-        {
-            // Required member
-            papplClientRespondIPPUnsupported(client, attr);
-            valid = false;
-        }
-        else
-        {
-            pappl_st_access_t value = _papplStorageAccessValue(ippGetString(attr, 0, NULL)); // "job-storage-access" value
-            
-            // If "job-storage-access" = 'group' then "job-storage-group" is required
-            if ( (value & PAPPL_ST_ACCESS_GROUP) && NULL == ippFindAttribute(client->request, "job-storage-group", IPP_TAG_NAME))
-            {
-                papplClientRespondIPPUnsupported(client, attr);
-                valid = false;
-            }
-            
-            if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.st_access_supported))
-            {
-                papplClientRespondIPPUnsupported(client, attr);
-                valid = false;
-            }
-        }
-        
-        if (NULL == (attr = ippFindAttribute(col, "job-storage-disposition", IPP_TAG_KEYWORD)))
-        {
-            // Required member
-            papplClientRespondIPPUnsupported(client, attr);
-            valid = false;
-        }
-        else
-        {
-            pappl_st_disposition_t value = _papplStorageDispositionValue(ippGetString(attr, 0, NULL)); // "job-storage-disposition" value
-            if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.st_disposition_supported))
-            {
-                papplClientRespondIPPUnsupported(client, attr);
-                valid = false;
-            }
-        }
+      // Required member
+      papplClientRespondIPPUnsupported(client, attr);
+      valid = false;
     }
+    else
+    {
+      pappl_st_access_t value = _papplStorageAccessValue(ippGetString(attr, 0, NULL)); // "job-storage-access" value
+
+      // If "job-storage-access" = 'group' then "job-storage-group" is required
+      if ( (value & PAPPL_ST_ACCESS_GROUP) && NULL == ippFindAttribute(client->request, "job-storage-group", IPP_TAG_NAME))
+      {
+	papplClientRespondIPPUnsupported(client, attr);
+	valid = false;
+      }
+
+      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.st_access_supported))
+      {
+	papplClientRespondIPPUnsupported(client, attr);
+	valid = false;
+      }
+    }
+
+    if (NULL == (attr = ippFindAttribute(col, "job-storage-disposition", IPP_TAG_KEYWORD)))
+    {
+      // Required member
+      papplClientRespondIPPUnsupported(client, attr);
+      valid = false;
+    }
+    else
+    {
+      pappl_st_disposition_t value = _papplStorageDispositionValue(ippGetString(attr, 0, NULL)); // "job-storage-disposition" value
+      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.st_disposition_supported))
+      {
+	papplClientRespondIPPUnsupported(client, attr);
+	valid = false;
+      }
+    }
+  }
 
 
   if ((attr = ippFindAttribute(client->request, "media", IPP_TAG_ZERO)) != NULL)
