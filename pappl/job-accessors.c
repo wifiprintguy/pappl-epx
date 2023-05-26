@@ -86,7 +86,7 @@ papplJobGetData(pappl_job_t *job)	// I - Job
 
 
 //
-// 'papplJobGetJobFilename()' - Get the job's filename.
+// 'papplJobGetFilename()' - Get the job's filename.
 //
 // This function returns the filename for the job's document data.
 //
