@@ -307,7 +307,7 @@
 {
   SKIP-IF-NOT-DEFINED HAS_JOB_STORAGE
 
-  NAME "[EPX2 5.3.1] Job Storage - Created public 'print-and-store' Job"
+  NAME "[EPX2 5.3.1] Job Storage - Create public 'print-and-store' Job"
   OPERATION Print-Job
 
   GROUP operation-attributes-tag
@@ -362,7 +362,7 @@
 }
 ################################################################################
 {
-  SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
+  SKIP-IF-NOT-DEFINED HAS_ACCEPTED_STORED_JOB_1
 
   NAME "[EPX2 5.3.3] Job Storage - Resubmit-Job"
   OPERATION Resubmit-Job
@@ -371,16 +371,16 @@
     ATTR charset "attributes-charset" utf-8
     ATTR language "attributes-natural-language" en
     ATTR uri "printer-uri" $uri
-    ATTR integer job-id $STORED_JOB_1_JOB_ID
+    ATTR integer job-id $job-id
     ATTR name "requesting-user-name" $user
 
   STATUS successful-ok
 }
 ################################################################################
 {
-  SKIP-IF-NOT-DEFINED HAS_PROOF_AND_SUSPEND
+  SKIP-IF-NOT-DEFINED HAS_ACCEPTED_STORED_JOB_1
 
-  NAME "[EPX2 5.3.4] Job Proof and Suspend - Wait For terminal state"
+  NAME "[EPX2 5.3.4] Job Storage - Wait For terminal state"
   OPERATION Get-Job-Attributes
 
   GROUP operation-attributes-tag
@@ -392,10 +392,9 @@
 
   STATUS successful-ok
 
-  EXPECT "proof-copies" OF-TYPE integer WITH-VALUE $PROOF_COPIES_2 COUNT 1
-  # Expecting the Job to be processed to produce the number of "proof-copies"
-  # and then the Job is placed in the 'processing-stopped' state (6)
+  EXPECT !"job-storage" OF-TYPE collection
   EXPECT "job-state" OF-TYPE unknown|enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE >6 REPEAT-NO-MATCH REPEAT-LIMIT 30
+  EXPECT "job-state-reasons" OF-TYPE keyword IN-GROUP job-attributes-tag
   DISPLAY "job-state"
 }
 ################################################################################
