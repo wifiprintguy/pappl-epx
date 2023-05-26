@@ -193,6 +193,223 @@ _papplJobCreate(
 
 
 //
+// '_papplJobCopy()' - Create a copy of an existing Job object.
+//
+
+pappl_job_t *						// O - Job
+_papplJobCopy(
+    pappl_client_t  *client,				// I - Client creating the new Job
+    pappl_job_t	    *parent_job)			// I - Existing Job to be copied
+{
+  ipp_t			*request_attrs;			// Job creation attributes or `NULL` for none
+  pappl_job_t	    	*new_job;			// New copy
+  ipp_attribute_t	*attr;				// Job attribute
+  char			new_job_printer_uri[1024],	// job-printer-uri value
+  			new_job_uri[1024],		// job-uri value
+  			new_job_uuid[64],		// job-uuid value
+  			*new_job_name;			// New job-name value
+  pappl_printer_t	*printer;			// printer of parent_job
+
+  if (NULL == client)
+  {
+    papplLog(NULL, PAPPL_LOGLEVEL_ERROR, "client is NULL (%s)", strerror(errno));
+    return (NULL);
+  }
+  request_attrs = client->request;
+
+  if (NULL == parent_job)
+  {
+    papplLog(client->system, PAPPL_LOGLEVEL_ERROR, "parent_job is NULL (%s)", strerror(errno));
+    return (NULL);
+  }
+  
+  printer = parent_job->printer;
+  _papplRWLockWrite(printer);
+  
+  if (printer->max_active_jobs > 0 && (int)cupsArrayGetCount(printer->active_jobs) >= printer->max_active_jobs)
+  {
+    _papplRWUnlock(printer);
+    return (NULL);
+  }
+  
+  // Allocate and initialize the new job object...
+  if ((new_job = calloc(1, sizeof(pappl_job_t))) == NULL)
+  {
+    papplLog(printer->system, PAPPL_LOGLEVEL_ERROR, "Unable to allocate memory for job: %s", strerror(errno));
+    _papplRWUnlock(printer);
+    return (NULL);
+  }
+  
+  pthread_rwlock_init(&new_job->rwlock, NULL);
+  
+  new_job->attrs   = ippNew();
+  new_job->fd      = -1;
+  new_job->format  = parent_job->format;
+  new_job->printer = printer;
+  new_job->state   = IPP_JSTATE_HELD;
+  new_job->system  = printer->system;
+  new_job->created = time(NULL);
+  
+  // Found the parent Job so copy parent attributes first then replace parent's attributes with
+  // ones supplied in request_attrs
+  if (ippCopyAttributes(new_job->attrs, parent_job->attrs, false, NULL, NULL))
+  {
+    
+    if (NULL != (attr = ippFindAttribute(new_job->attrs, "job-id", IPP_TAG_INTEGER)) )
+    {
+      // Set "parent-job-id" using the old Job's "job-id"
+      ippAddInteger(new_job->attrs, IPP_TAG_JOB, IPP_TAG_INTEGER, "parent-job-id", ippGetInteger(attr, 0) );
+      // remove the existing "job-id"
+      ippDeleteAttribute(new_job->attrs, attr);
+    }
+    
+    if (NULL != (attr = ippFindAttribute(new_job->attrs, "job-storage", IPP_TAG_BEGIN_COLLECTION)) )
+      ippDeleteAttribute(new_job->attrs, attr);
+    
+    if (NULL != (attr = ippFindAttribute(new_job->attrs, "job-uuid", IPP_TAG_URI)) )
+    {
+      // Set "parent-job-uuid" using the old Job's "job-id"
+      ippAddString(new_job->attrs, IPP_TAG_JOB, IPP_TAG_URI, "parent-job-uuid", NULL, ippGetString(attr, 0, NULL) );
+      // remove the existing "job-uuid"
+      ippDeleteAttribute(new_job->attrs, attr);
+    }
+    
+    if (NULL != (attr = ippFindAttribute(new_job->attrs, "job-uri", IPP_TAG_URI)) )
+      ippDeleteAttribute(new_job->attrs, attr);
+    
+    if (NULL != (attr = ippFindAttribute(new_job->attrs, "job-printer-uri", IPP_TAG_URI)) )
+      ippDeleteAttribute(new_job->attrs, attr);
+    
+    if (NULL != (attr = ippFindAttribute(new_job->attrs, "job-originating-user-name", IPP_TAG_NAME)) )
+      ippDeleteAttribute(new_job->attrs, attr);
+  }
+  else
+  {
+    papplLog(printer->system, PAPPL_LOGLEVEL_ERROR, "Unable to copy parent job attrs to new job (%s)", strerror(errno));
+    _papplRWUnlock(printer);
+    return (NULL);
+  }
+  
+  // Override job's settings with parameters to this function
+  new_job_name = calloc(1024, sizeof(char));
+  snprintf(new_job_name, sizeof(new_job_name), "%s-copy-%d-%s", parent_job->name, new_job->job_id, ippTimeToDate(new_job->created));
+  new_job->name    = new_job_name;
+  
+  if (request_attrs)
+  {
+    // Copy all of the requested job attributes to override those already present
+    const char	*hold_until;		// "job-hold-until" value
+    time_t	hold_until_time;	// "job-hold-until-time" value
+    
+    // Loop through attrs attributes and copy or update job->attrs as needed...
+    for (ipp_attribute_t *thisAttr = ippGetFirstAttribute(request_attrs); NULL == thisAttr; thisAttr = ippGetNextAttribute(request_attrs))
+    {
+      if (NULL != (attr = ippFindAttribute(new_job->attrs, ippGetName(thisAttr), ippGetValueTag(thisAttr))))
+      {
+	// Delete existing attribute if present
+	ippDeleteAttribute(new_job->attrs, attr);
+      }
+      
+      // Add the missing attribute
+      ippCopyAttribute(new_job->attrs, attr, false);
+      ippSetGroupTag(new_job->attrs, &attr, IPP_TAG_JOB);
+    }
+    hold_until      = ippGetString(ippFindAttribute(request_attrs, "job-hold-until", IPP_TAG_KEYWORD), 0, NULL);
+    hold_until_time = ippDateToTime(ippGetDate(ippFindAttribute(request_attrs, "job-hold-until-time", IPP_TAG_DATE), 0));
+    
+    if ((hold_until && strcmp(hold_until, "no-hold")) || hold_until_time)
+      _papplJobHoldNoLock(new_job, NULL, hold_until, hold_until_time);
+    
+    if (NULL != (attr = ippFindAttribute(new_job->attrs, "job-name", IPP_TAG_NAME)) )
+      ippDeleteAttribute(new_job->attrs, attr);
+    ippAddString(new_job->attrs, IPP_TAG_JOB, IPP_TAG_NAME, "job-name", NULL, new_job->name);
+    
+    if (NULL != (attr = ippFindAttribute(new_job->attrs, "job-originating-user-name", IPP_TAG_NAME)))
+      ippDeleteAttribute(new_job->attrs, attr);
+    new_job->username = client->username;
+    ippAddString(new_job->attrs, IPP_TAG_JOB, IPP_TAG_NAME, "job-originating-user-name", NULL, new_job->username);
+
+    if ((attr = ippFindAttribute(new_job->attrs, "job-impressions", IPP_TAG_INTEGER)) != NULL)
+      new_job->impressions = ippGetInteger(attr, 0);
+    
+    if ((attr = ippFindAttribute(request_attrs, "job-storage", IPP_TAG_BEGIN_COLLECTION)) != NULL)
+    {
+      // Get a pointer to the collection so we can dive into it
+      ipp_t *col = ippGetCollection(attr, 0);
+      
+      new_job->st_access = _papplStorageAccessValue(ippGetString(ippFindAttribute(col, "job-storage-access", IPP_TAG_KEYWORD), 0, NULL));
+      new_job->st_disposition = _papplStorageDispositionValue(ippGetString(ippFindAttribute(col, "job-storage-disposition", IPP_TAG_KEYWORD), 0, NULL));
+      new_job->st_group = ippGetString(ippFindAttribute(col, "job-storage-group", IPP_TAG_NAME), 0, NULL);
+    }
+    
+    // Add job description attributes and add to the jobs array...
+    new_job->job_id = printer->next_job_id ++;
+    
+    if ((attr = ippFindAttribute(request_attrs, "printer-uri", IPP_TAG_URI)) != NULL)
+    {
+      papplCopyString(new_job_printer_uri, ippGetString(attr, 0, NULL), sizeof(new_job_printer_uri));
+      
+      snprintf(new_job_uri, sizeof(new_job_uri), "%s/%d", ippGetString(attr, 0, NULL), new_job->job_id);
+    }
+    else
+    {
+      httpAssembleURI(HTTP_URI_CODING_ALL, new_job_printer_uri, sizeof(new_job_printer_uri), "ipps", NULL, printer->system->hostname, printer->system->port, printer->resource);
+      httpAssembleURIf(HTTP_URI_CODING_ALL, new_job_uri, sizeof(new_job_uri), "ipps", NULL, printer->system->hostname, printer->system->port, "%s/%d", printer->resource, new_job->job_id);
+    }
+    
+    _papplSystemMakeUUID(printer->system, printer->name, new_job->job_id, new_job_uuid, sizeof(new_job_uuid));
+    
+    ippAddInteger(new_job->attrs, IPP_TAG_JOB, IPP_TAG_INTEGER, "job-id", new_job->job_id);
+    ippAddString(new_job->attrs, IPP_TAG_JOB, IPP_TAG_URI, "job-uri", NULL, new_job_uri);
+    ippAddString(new_job->attrs, IPP_TAG_JOB, IPP_TAG_URI, "job-uuid", NULL, new_job_uuid);
+    ippAddString(new_job->attrs, IPP_TAG_JOB, IPP_TAG_URI, "job-printer-uri", NULL, new_job_printer_uri);
+  }
+  
+  
+  // Copy the Job data too
+  
+  if (NULL != parent_job->filename && 0 < strnlen(parent_job->filename, sizeof(parent_job->filename)))
+  {
+    // Copy the job file...
+    int		oldfd,		// Old job file
+		newfd;		// New job file
+    char	new_job_file_name[1024],	// Job filename
+		buffer[8192];	// Copy buffer
+    ssize_t	bytes;		// Bytes read...
+
+    if ((oldfd = open(parent_job->filename, O_RDONLY | O_BINARY)) >= 0)
+    {
+      if ((newfd = papplJobOpenFile(new_job, new_job_file_name, sizeof(new_job_file_name), printer->system->directory, NULL, "w")) >= 0)
+      {
+	while ((bytes = read(oldfd, buffer, sizeof(buffer))) > 0)
+	  write(newfd, buffer, (size_t)bytes);
+
+	close(oldfd);
+	close(newfd);
+
+	// Submit the job for processing...
+	_papplJobSubmitFile(new_job, new_job_file_name);
+      }
+
+      close(oldfd);
+    }
+
+  }
+  
+  
+  cupsArrayAdd(printer->active_jobs, new_job);
+
+  _papplRWUnlock(printer);
+
+  papplSystemAddEvent(printer->system, printer, new_job, PAPPL_EVENT_JOB_CREATED, NULL);
+
+  _papplSystemConfigChanged(printer->system);
+
+  return (new_job);
+}
+
+
+//
 // 'papplJobCreateWithFile()' - Create a job with a local file.
 //
 // This function creates a new print job with a local file.  The "num_options"
@@ -676,8 +893,13 @@ _papplJobRemoveFile(pappl_job_t *job)	// I - Job
   const char *tempdir = papplGetTempDir();
 					// Location of temporary files
   size_t templen = strlen(tempdir);	// Length of temporary directory
-
-
+  
+  if (job->st_disposition > 0)
+  {
+    // Preserve the file
+    return;
+  }
+  
   // Only remove the file if it is in spool or temporary directory...
   if (job->filename)
   {
