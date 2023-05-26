@@ -396,6 +396,7 @@ _papplJobCopy(
 
   }
   
+  // TODO: Job is still not processing - what to add here?
   
   cupsArrayAdd(printer->active_jobs, new_job);
 
