@@ -545,7 +545,7 @@ ipp_find_drivers(
 {
   http_status_t	auth_status;		// Authorization status
   const char	*device_id;		// Device ID
-  int		num_dids = 0;		// Number of key/value pairs
+  size_t		num_dids = 0;		// Number of key/value pairs
   cups_option_t	*dids = NULL;		// Device ID key/value pairs
   const char	*driver_name = NULL,	// Matching driver name, if any
 		*cmd = NULL,		// Command set from device ID
@@ -584,7 +584,7 @@ ipp_find_drivers(
     else
     {
       // Filter using device ID matching...
-      num_dids = papplDeviceParseID(device_id, &dids);
+      num_dids = (size_t)papplDeviceParseID(device_id, &dids);
 
       if ((cmd = cupsGetOption("COMMAND SET", num_dids, dids)) == NULL)
         cmd = cupsGetOption("CMD", num_dids, dids);
@@ -608,14 +608,14 @@ ipp_find_drivers(
     else if (num_dids > 0)
     {
       // Compare device ID values...
-      int		num_dids2;	// Number of device ID key/value pairs
+      size_t		num_dids2;	// Number of device ID key/value pairs
       cups_option_t	*dids2;		// Device ID key/value pairs
       const char	*cmd2,		// Command set from device ID
 			*make2,		// Make from device ID
 			*model2;	// Model from device ID
       bool		match = true;	// Do we have a match?
 
-      num_dids2 = papplDeviceParseID(driver->device_id, &dids2);
+      num_dids2 = (size_t)papplDeviceParseID(driver->device_id, &dids2);
 
       if ((cmd2 = cupsGetOption("COMMAND SET", num_dids2, dids2)) == NULL)
         cmd2 = cupsGetOption("CMD", num_dids2, dids2);
