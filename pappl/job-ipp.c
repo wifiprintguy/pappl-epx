@@ -36,8 +36,9 @@ static void		ipp_close_job(pappl_client_t *client);
 static void		ipp_get_job_attributes(pappl_client_t *client);
 static void		ipp_hold_job(pappl_client_t *client);
 static void		ipp_release_job(pappl_client_t *client);
-static void    ipp_resume_job(pappl_client_t *client);
+static void		ipp_resume_job(pappl_client_t *client);
 static void		ipp_send_document(pappl_client_t *client);
+static void		ipp_resubmit_job(pappl_client_t *client);
 
 
 //
@@ -436,6 +437,10 @@ _papplJobProcessIPP(
 
     case IPP_OP_RESUME_JOB :
 	ipp_resume_job(client);
+	break;
+
+    case IPP_OP_RESUBMIT_JOB :
+	ipp_resubmit_job(client);
 	break;
 
     default :
@@ -910,5 +915,39 @@ ipp_resume_job(pappl_client_t *client)  // I - Client
     papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_FOUND, "Job does not exist.");
   }
 }
+
+
+//
+// 'ipp_resubmit_job()' - Copy a completed Job and print the new Job.
+//
+
+static void
+ipp_resubmit_job(
+    pappl_client_t *client)		// I - Client
+{
+  pappl_job_t	*job,			// Original job
+		*newJob = NULL;		// New Job
+  cups_array_t	*ra;			// requested-attributes
+
+
+  // Authorize access...
+  if (!_papplPrinterIsAuthorized(client))
+    return;
+
+  if (!client->job || NULL == (job = papplPrinterFindJob(client->printer, client->job->job_id)))
+  {
+    papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_FOUND, "Job not found.");
+    return;
+  }
+
+  newJob = _papplJobCopy(client, job);
+   
+  papplClientRespondIPP(client, IPP_STATUS_OK, NULL);
+
+  ra = ippCreateRequestedArray(client->request);
+  _papplJobCopyAttributesNoLock(newJob, client, ra);
+  cupsArrayDelete(ra);
+}
+
 
 
