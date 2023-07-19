@@ -39,6 +39,8 @@ static void		ipp_release_job(pappl_client_t *client);
 static void		ipp_resume_job(pappl_client_t *client);
 static void		ipp_send_document(pappl_client_t *client);
 static void		ipp_resubmit_job(pappl_client_t *client);
+static bool 		ipp_resubmit_job_copy_callback(void *context, ipp_t *dst, ipp_attribute_t *attr);
+
 
 
 //
@@ -394,12 +396,15 @@ _papplJobProcessIPP(
   
   // Get the requesting-user-name, document format, and name...
   if (client->username[0])
+  {
+    // I guess it got set already from somwhere else...
     ;
+  }
   else if ((attr = ippFindAttribute(client->request, "requesting-user-name", IPP_TAG_NAME)) != NULL)
   {
     const char *username = ippGetString(attr, 0, NULL);
     size_t usernamelen = strlen(username);
-    papplCopyString(client->username, ippGetString(attr, 0, NULL), usernamelen);
+    papplCopyString(client->username, ippGetString(attr, 0, NULL), usernamelen + 1);
   }
   else
   {
@@ -925,7 +930,7 @@ static void
 ipp_resubmit_job(
     pappl_client_t *client)		// I - Client
 {
-  pappl_job_t	*job,			// Original job
+  pappl_job_t	*original_job,		// Original job
 		*newJob = NULL;		// New Job
   cups_array_t	*ra;			// requested-attributes
 
@@ -934,13 +939,13 @@ ipp_resubmit_job(
   if (!_papplPrinterIsAuthorized(client))
     return;
 
-  if (!client->job || NULL == (job = papplPrinterFindJob(client->printer, client->job->job_id)))
+  if (!client->job || NULL == (original_job = papplPrinterFindJob(client->printer, client->job->job_id)))
   {
     papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_FOUND, "Job not found.");
     return;
   }
 
-  newJob = _papplJobCopy(client, job);
+  newJob = _papplJobCopy(client, original_job, ipp_resubmit_job_copy_callback, NULL);
    
   papplClientRespondIPP(client, IPP_STATUS_OK, NULL);
 
@@ -950,4 +955,20 @@ ipp_resubmit_job(
 }
 
 
+bool ipp_resubmit_job_copy_callback(void *context, ipp_t *dst, ipp_attribute_t *attr)
+{
+  
+  (void)context;
+  (void)dst;
+  
+//  ipp_tag_t group = ippGetGroupTag(attr);
+  const char *name = ippGetName(attr);
+  
+  if (NULL == name) return (false);
+  if (!strcmp(name, "job-storage")) return (false);
+  if (!strcmp(name, "job-id")) return (false);
+  if (!strcmp(name, "job-uuid")) return (false);
+
+  return true;
+}
 
