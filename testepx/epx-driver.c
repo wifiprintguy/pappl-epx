@@ -513,8 +513,8 @@ epx_rendpage(
                   papplJobGetID(job),
                   proofCopiesNumber);
 
-      sleep(5);
     }
+    sleep(5); // Slow the whole thing down
   }
   return (true);
 }
