@@ -1,5 +1,5 @@
 #
-# Check a printer for conformance with PWG 5100.11-2023 (EPX)
+# Test Printer conformance with PWG 5100.11-2023 (EPX)
 #
 #
 # Usage:
@@ -129,26 +129,66 @@
 {
   SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
 
-  NAME "[EPX2 3.2.2] Job Release: Create Button Press Release Job"
-  OPERATION Print-Job
+  NAME "[EPX2 3.2.2] Job Release: Create-Job Button Press Release"
+  OPERATION Create-Job
 
   GROUP operation-attributes-tag
     ATTR charset "attributes-charset" utf-8
     ATTR language "attributes-natural-language" en
     ATTR uri "printer-uri" $uri
     ATTR name "requesting-user-name" $user
-    ATTR mimeMediaType "document-format" $filetype
 
   GROUP job-attributes-tag
-    ATTR name "job-name" "Job Release Button Press Test $job-id $filename"
+    ATTR name "job-name" "[EPX2 3.2.2] Job Release Button Press Test $job-id $filename"
     ATTR keyword "job-release-action" 'button-press'
-
-  FILE $filename
 
   STATUS successful-ok
 
   EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1
   EXPECT "job-uri" OF-TYPE uri IN-GROUP job-attributes-tag COUNT 1
+}
+################################################################################
+{
+  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
+
+  NAME "[EPX2 3.2.3] Job Release: Send-Document Button Press Release"
+  OPERATION Send-Document
+
+  GROUP operation-attributes-tag
+    ATTR charset "attributes-charset" utf-8
+    ATTR language "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR integer "job-id" $job-id
+    ATTR name "requesting-user-name" $user
+    ATTR mimeMediaType "document-format" $filetype
+    ATTR boolean last-document true
+
+  FILE $filename
+
+  STATUS successful-ok
+  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE $job-id
+  EXPECT "job-state" OF-TYPE enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE =4
+}
+################################################################################
+{
+  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
+
+  NAME "[EPX2 3.2.4] Job Release: Check New Release Job"
+  OPERATION Get-Job-Attributes
+  
+  GROUP operation-attributes-tag
+    ATTR charset "attributes-charset" utf-8
+    ATTR naturalLanguage "attributes-natural-language" en
+    ATTR uri "printer-uri" $uri
+    ATTR integer "job-id" $job-id
+    ATTR name "requesting-user-name" $user
+
+  STATUS successful-ok
+
+  # Expecting the Job to be still in the 'pending-held' state
+  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE $job-id
+  EXPECT "job-state" OF-TYPE enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE =4 REPEAT-NO-MATCH REPEAT-LIMIT 30
+  DISPLAY "job-state"
 }
 ################################################################################
 {
