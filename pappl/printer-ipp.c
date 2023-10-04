@@ -1,7 +1,7 @@
 //
 // Printer IPP processing for the Printer Application Framework
 //
-// Copyright © 2019-2022 by Michael R Sweet.
+// Copyright © 2019-2023 by Michael R Sweet.
 // Copyright © 2010-2019 by Apple Inc.
 //
 // Licensed under Apache License v2.0.  See the file "LICENSE" for more
@@ -112,8 +112,38 @@ _papplPrinterCopyAttributesNoLock(
   if (!ra || cupsArrayFind(ra, "job-release-action-default"))
     ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-release-action-default", NULL, _papplReleaseActionString(printer->release_action_default));
 
+  if (printer->max_preserved_jobs > 0)
+  {
+    static const char * const job_retain_until[] =
+    {					// job-retain-until-supported values
+      "day-time",
+      "evening",
+      "indefinite",
+      "night",
+      "no-hold",
+      "second-shift",
+      "third-shift",
+      "weekend"
+    };
+
+    if (!ra || cupsArrayFind(ra, "job-retain-until-default"))
+      ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-retain-until-default", NULL, "none");
+
+    if (!ra || cupsArrayFind(ra, "job-retain-until-interval-default"))
+      ippAddOutOfBand(client->response, IPP_TAG_PRINTER, IPP_TAG_NOVALUE, "job-retain-until-interval-default");
+
+    if (!ra || cupsArrayFind(ra, "job-retain-until-interval-supported"))
+      ippAddRange(client->response, IPP_TAG_PRINTER, "job-retain-until-interval-supported", 0, 86400);
+
+    if (!ra || cupsArrayFind(ra, "job-retain-until-supported"))
+      ippAddStrings(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-retain-until-supported", (cups_len_t)(sizeof(job_retain_until) / sizeof(job_retain_until[0])), NULL, job_retain_until);
+
+    if (!ra || cupsArrayFind(ra, "job-retain-until-time-supported"))
+      ippAddRange(client->response, IPP_TAG_PRINTER, "job-retain-until-time-supported", 0, 86400);
+  }
+
   if (!ra || cupsArrayFind(ra, "job-spooling-supported"))
-    ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-spooling-supported", NULL, printer->max_active_jobs == 1 ? "stream" : "spool");
+    ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-spooling-supported", NULL, (printer->max_active_jobs == 1 || (format && (!strcmp(format, "image/pwg-raster") || !strcmp(format, "image/urf")))) ? "stream" : "spool");
 
   if ((!ra || cupsArrayFind(ra, "label-mode-configured")) && data->mode_configured)
     ippAddString(client->response, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "label-mode-configured", NULL, _papplLabelModeString(data->mode_configured));
@@ -2007,7 +2037,7 @@ valid_job_attributes(
     }
 
     if (ippGetBoolean(attr, 0))
-      valid = true;
+      exact = true;
   }
 
   if ((attr = ippFindAttribute(client->request, "copies", IPP_TAG_ZERO)) != NULL)

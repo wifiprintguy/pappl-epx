@@ -1,7 +1,7 @@
 //
 // Public job header file for the Printer Application Framework
 //
-// Copyright © 2019-2022 by Michael R Sweet.
+// Copyright © 2019-2023 by Michael R Sweet.
 //
 // Licensed under Apache License v2.0.  See the file "LICENSE" for more
 // information.
@@ -67,6 +67,8 @@ extern void		papplJobDeletePrintOptions(pappl_pr_options_t *options);
 extern bool		papplJobFilterImage(pappl_job_t *job, pappl_device_t *device, pappl_pr_options_t *options, const unsigned char *pixels, int width, int height, int depth, int ppi, bool smoothing) _PAPPL_PUBLIC;
 
 extern ipp_attribute_t	*papplJobGetAttribute(pappl_job_t *job, const char *name) _PAPPL_PUBLIC;
+extern int		papplJobGetCopies(pappl_job_t *job) _PAPPL_PUBLIC;
+extern int		papplJobGetCopiesCompleted(pappl_job_t *job) _PAPPL_PUBLIC;
 extern void		*papplJobGetData(pappl_job_t *job) _PAPPL_PUBLIC;
 extern const char	*papplJobGetFilename(pappl_job_t *job) _PAPPL_PUBLIC;
 extern const char	*papplJobGetFormat(pappl_job_t *job) _PAPPL_PUBLIC;
@@ -91,13 +93,16 @@ extern bool		papplJobIsCanceled(pappl_job_t *job) _PAPPL_PUBLIC;
 extern int		papplJobOpenFile(pappl_job_t *job, char *fname, size_t fnamesize, const char *directory, const char *ext, const char *mode) _PAPPL_PUBLIC;
 
 extern bool		papplJobRelease(pappl_job_t *job, const char *username) _PAPPL_PUBLIC;
-extern bool		papplJobResume(pappl_job_t *job, const char *username) _PAPPL_PUBLIC;
+extern void		pappJobResume(pappl_job_t *job, pappl_jreason_t remove) _PAPPL_PUBLIC;
+extern bool		papplJobRetain(pappl_job_t *job, const char *username, const char *until, int until_interval, time_t until_time) _PAPPL_PUBLIC;
 
+extern void		papplJobSetCopiesCompleted(pappl_job_t *job, int add) _PAPPL_PUBLIC;
 extern void		papplJobSetData(pappl_job_t *job, void *data) _PAPPL_PUBLIC;
 extern void		papplJobSetImpressions(pappl_job_t *job, int impressions) _PAPPL_PUBLIC;
 extern void		papplJobSetImpressionsCompleted(pappl_job_t *job, int add) _PAPPL_PUBLIC;
 extern void		papplJobSetMessage(pappl_job_t *job, const char *message, ...) _PAPPL_PUBLIC _PAPPL_FORMAT(2,3);
 extern void		papplJobSetReasons(pappl_job_t *job, pappl_jreason_t add, pappl_jreason_t remove) _PAPPL_PUBLIC;
+extern void		pappJobSuspend(pappl_job_t *job, pappl_jreason_t add) _PAPPL_PUBLIC;
 
 extern void		pappJobStart(pappl_job_t *job, pappl_jreason_t remove) _PAPPL_PUBLIC;
 extern void		pappJobStop(pappl_job_t *job, pappl_jreason_t add) _PAPPL_PUBLIC;

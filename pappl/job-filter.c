@@ -78,7 +78,6 @@ papplJobFilterImage(
     bool		smoothing)	// I - `true` to smooth/interpolate the image, `false` for nearest-neighbor sampling
 {
   bool			started = false;// Have we started the job?
-  int			i;		// Looping var
   pappl_pr_driver_data_t driver_data;	// Printer driver data
   const unsigned char	*dither;	// Dither line
   int			ileft,		// Imageable left margin
@@ -359,8 +358,11 @@ papplJobFilterImage(
   pixend = pixels + width * height * depth;
 
   // Print every copy...
-  for (i = 0; i < options->copies; i ++)
+  while (papplJobGetCopiesCompleted(job) < papplJobGetCopies(job))
   {
+    if (papplJobGetState(job) != IPP_JSTATE_PROCESSING || papplJobIsCanceled(job))
+      break;
+
     if (!(driver_data.rstartpage_cb)(job, options, device, 1))
     {
       papplLogJob(job, PAPPL_LOGLEVEL_ERROR, "Unable to start raster page.");
@@ -564,6 +566,7 @@ papplJobFilterImage(
     }
 
     papplJobSetImpressionsCompleted(job, 1);
+    papplJobSetCopiesCompleted(job, 1);
   }
 
   // End the job...
@@ -855,7 +858,10 @@ _papplJobFilterPNG(
   if (png_get_bit_depth(pp, info) < 8)
   {
     // Expand 1, 2, and 4-bit values to 8 bits
-    png_set_packing(pp);
+    if (depth == 1)
+      png_set_expand_gray_1_2_4_to_8(pp);
+    else
+      png_set_packing(pp);
   }
   if (color_type & PNG_COLOR_MASK_PALETTE)
   {

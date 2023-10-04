@@ -1,7 +1,7 @@
 //
 // Main test suite file for the Printer Application Framework
 //
-// Copyright © 2020-2022 by Michael R Sweet.
+// Copyright © 2020-2023 by Michael R Sweet.
 //
 // Licensed under Apache License v2.0.  See the file "LICENSE" for more
 // information.
@@ -674,15 +674,14 @@ main(int  argc,				// I - Number of command-line arguments
   papplSystemSetWiFiCallbacks(system, test_wifi_join_cb, test_wifi_list_cb, test_wifi_status_cb, (void *)"testpappl");
   papplSystemAddLink(system, "Configuration", "/config", true);
   papplSystemSetFooterHTML(system,
-                           "Copyright &copy; 2020-2022 by Michael R Sweet. "
+                           "Copyright &copy; 2020-2023 by Michael R Sweet. "
                            "Provided under the terms of the <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache License 2.0</a>.");
   papplSystemSetNetworkCallbacks(system, test_network_get_cb, test_network_set_cb, (void *)"testnetwork");
   papplSystemSetSaveCallback(system, (pappl_save_cb_t)papplSystemSaveState, (void *)"testpappl.state");
   papplSystemSetVersions(system, (int)(sizeof(versions) / sizeof(versions[0])), versions);
   papplSystemAddStringsData(system, "/en.strings", "en", "\"/\" = \"This is a localized header for the system home page.\";\n\"/network\" = \"This is a localized header for the network configuration page.\";\n\"/printing\" = \"This is a localized header for all printing defaults pages.\";\n\"/Label_Printer/printing\" = \"This is a localized header for the label printer defaults page.\";\n");
 
-  if (access(outdir, 0))
-    mkdir(outdir, 0777);
+  mkdir(outdir, 0777);
 
   httpAssembleURIf(HTTP_URI_CODING_ALL, device_uri, sizeof(device_uri), "file", NULL, NULL, 0, "%s?ext=pwg", realpath(outdir, outdirname));
 
@@ -728,7 +727,7 @@ main(int  argc,				// I - Number of command-line arguments
 	printer = papplPrinterCreate(system, /* printer_id */0, "Label Printer", "pwg_4inch-203dpi-black_1", "MFG:PWG;MDL:Label Printer;", device_uri);
 	papplPrinterSetContact(printer, &contact);
 	papplPrinterSetDNSSDName(printer, "Label Printer");
-	papplPrinterSetGeoLocation(printer, "geo:46.4707,-80.9961");
+	// Not setting geo-location for label printer to ensure that DNS-SD works without a LOC record...
 	papplPrinterSetLocation(printer, "Test Lab 42");
 	papplPrinterSetOrganization(printer, "Lakeside Robotics");
       }
@@ -1055,15 +1054,15 @@ make_raster_file(ipp_t      *response,  // I - Printer attributes
   }
 
   // Make the raster context and details...
-#if CUPS_VERSION_MAJOR < 3
+#if CUPS_VERSION_MAJOR < 3 && CUPS_VERSION_MINOR < 5
   if (!cupsRasterInitPWGHeader(&header, media, type, xdpi, ydpi, "one-sided", NULL))
   {
-    testEndMessage(false, "unable to initialize raster context: %s", cupsRasterErrorString());
+    testEndMessage(false, "unable to initialize raster context: %s", cupsRasterGetErrorString());
     return (NULL);
   }
 
-#else // CUPS 3.0+
-  cups_size_t cups_media;		// CUPS media information
+#else // CUPS 2.5/CUPS 3.0+
+  cups_media_t cups_media;		// CUPS media information
 
   memset(&cups_media, 0, sizeof(cups_media));
   papplCopyString(cups_media.media, media->pwg, sizeof(cups_media.media));
@@ -1072,7 +1071,7 @@ make_raster_file(ipp_t      *response,  // I - Printer attributes
 
   if (!cupsRasterInitHeader(&header, &cups_media, /*optimize*/NULL, IPP_QUALITY_NORMAL, /*intent*/NULL, IPP_ORIENT_PORTRAIT, "one-sided", type, xdpi, ydpi, /*sheet_back*/NULL))
   {
-    testEndMessage(false, "unable to initialize raster context: %s", cupsRasterErrorString());
+    testEndMessage(false, "unable to initialize raster context: %s", cupsRasterGetErrorString());
     return (NULL);
   }
 #endif // CUPS_VERSION_MAJOR < 3
@@ -1101,7 +1100,7 @@ make_raster_file(ipp_t      *response,  // I - Printer attributes
     return (NULL);
   }
 
-  if ((fd = cupsTempFd(NULL, NULL, tempname, (cups_len_t)tempsize)) < 0)
+  if ((fd = cupsCreateTempFd(NULL, NULL, tempname, (cups_len_t)tempsize)) < 0)
   {
     testEndMessage(false, "unable to create temporary print file: %s", strerror(errno));
     free(line);
@@ -1110,7 +1109,7 @@ make_raster_file(ipp_t      *response,  // I - Printer attributes
 
   if ((ras = cupsRasterOpen(fd, CUPS_RASTER_WRITE_PWG)) == NULL)
   {
-    testEndMessage(false, "unable to open raster stream: %s", cupsRasterErrorString());
+    testEndMessage(false, "unable to open raster stream: %s", cupsRasterGetErrorString());
     close(fd);
     free(line);
     return (NULL);
@@ -2319,6 +2318,8 @@ test_api_printer(
 			set_int;	// Integer for ", set" call
   char			get_str[1024],	// Temporary string for "get" call
 			set_str[1024];	// Temporary string for ", set" call
+  const char		*get_ptr;	// Get string pointer
+  bool			expected_null;	// Expected NULL string value?
   static const char * const set_locations[10][2] =
   {
     // Some wonders of the ancient world (all north-eastern portion of globe...)
@@ -2473,13 +2474,21 @@ test_api_printer(
     testEnd(true);
 
   // papplPrinterGet/SetGeoLocation
+  expected_null = !strcmp(papplPrinterGetName(printer), "Label Printer");
+
   testBegin("api: papplPrinterGetGeoLocation");
-  if (!papplPrinterGetGeoLocation(printer, get_str, sizeof(get_str)))
+  get_ptr = papplPrinterGetGeoLocation(printer, get_str, sizeof(get_str));
+  if (get_ptr && expected_null)
+  {
+    testEndMessage(false, "got '%s', expected NULL", get_str);
+    pass = false;
+  }
+  else if (!get_ptr && !expected_null)
   {
     testEndMessage(false, "got NULL, expected 'geo:46.4707,-80.9961'");
     pass = false;
   }
-  else if (strcmp(get_str, "geo:46.4707,-80.9961"))
+  else if (get_ptr && strcmp(get_str, "geo:46.4707,-80.9961"))
   {
     testEndMessage(false, "got '%s', expected 'geo:46.4707,-80.9961'", get_str);
     pass = false;
@@ -2489,12 +2498,18 @@ test_api_printer(
 
   testBegin("api: papplPrinterGet/SetGeoLocation('bad-value')");
   papplPrinterSetGeoLocation(printer, "bad-value");
-  if (!papplPrinterGetGeoLocation(printer, get_str, sizeof(get_str)))
+  get_ptr = papplPrinterGetGeoLocation(printer, get_str, sizeof(get_str));
+  if (get_ptr && expected_null)
+  {
+    testEndMessage(false, "got '%s', expected NULL", get_str);
+    pass = false;
+  }
+  else if (!get_ptr && !expected_null)
   {
     testEndMessage(false, "got NULL, expected 'geo:46.4707,-80.9961'");
     pass = false;
   }
-  else if (strcmp(get_str, "geo:46.4707,-80.9961"))
+  else if (get_ptr && strcmp(get_str, "geo:46.4707,-80.9961"))
   {
     testEndMessage(false, "got '%s', expected 'geo:46.4707,-80.9961'", get_str);
     pass = false;
@@ -2773,7 +2788,7 @@ test_client(pappl_system_t *system)	// I - System
   testBegin("client: Connect to server");
   if ((http = connect_to_printer(system, false, uri, sizeof(uri))) == NULL)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     return (false);
   }
   else
@@ -2790,9 +2805,9 @@ test_client(pappl_system_t *system)	// I - System
 
   response = cupsDoRequest(http, request, "/ipp/system");
 
-  if (cupsLastError() != IPP_STATUS_OK)
+  if (cupsGetError() != IPP_STATUS_OK)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     ippDelete(response);
     goto done;
   }
@@ -2821,9 +2836,9 @@ test_client(pappl_system_t *system)	// I - System
 
   response = cupsDoRequest(http, request, "/ipp/system");
 
-  if (cupsLastError() != IPP_STATUS_OK)
+  if (cupsGetError() != IPP_STATUS_OK)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     ippDelete(response);
     goto done;
   }
@@ -2852,9 +2867,9 @@ test_client(pappl_system_t *system)	// I - System
 
   response = cupsDoRequest(http, request, "/");
 
-  if (cupsLastError() != IPP_STATUS_OK)
+  if (cupsGetError() != IPP_STATUS_OK)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     ippDelete(response);
     goto done;
   }
@@ -2883,9 +2898,9 @@ test_client(pappl_system_t *system)	// I - System
 
   supported = cupsDoRequest(http, request, "/ipp/print");
 
-  if (cupsLastError() != IPP_STATUS_OK)
+  if (cupsGetError() != IPP_STATUS_OK)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
   else
@@ -2917,9 +2932,9 @@ test_client(pappl_system_t *system)	// I - System
   subscription_id = ippGetInteger(ippFindAttribute(response, "notify-subscription-id", IPP_TAG_INTEGER), 0);
   ippDelete(response);
 
-  if (cupsLastError() != IPP_STATUS_OK)
+  if (cupsGetError() != IPP_STATUS_OK)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
   else if (subscription_id == 0)
@@ -2946,9 +2961,9 @@ test_client(pappl_system_t *system)	// I - System
   attr     = ippFindAttribute(response, "notify-events", IPP_TAG_KEYWORD);
   ippDelete(response);
 
-  if (cupsLastError() != IPP_STATUS_OK)
+  if (cupsGetError() != IPP_STATUS_OK)
   {
-    printf("FAIL(%s)\n", cupsLastErrorString());
+    printf("FAIL(%s)\n", cupsGetErrorString());
     goto done;
   }
   else if (!attr)
@@ -2979,9 +2994,9 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(response);
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
 
@@ -3007,9 +3022,9 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(response);
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
 
@@ -3023,9 +3038,9 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(cupsDoRequest(http, request, "/ipp/print"));
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
 
@@ -3043,14 +3058,14 @@ test_client(pappl_system_t *system)	// I - System
     job_state = (ipp_jstate_t)ippGetInteger(ippFindAttribute(response, "job-state", IPP_TAG_ENUM), 0);
     ippDelete(response);
 
-    if (cupsLastError() == IPP_STATUS_OK && job_state < IPP_JSTATE_CANCELED)
+    if (cupsGetError() == IPP_STATUS_OK && job_state < IPP_JSTATE_CANCELED)
       sleep(1);
   }
-  while (cupsLastError() == IPP_STATUS_OK && job_state < IPP_JSTATE_CANCELED);
+  while (cupsGetError() == IPP_STATUS_OK && job_state < IPP_JSTATE_CANCELED);
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
 
@@ -3077,9 +3092,9 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(response);
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
 
@@ -3093,9 +3108,9 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(cupsDoRequest(http, request, "/ipp/print"));
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
 
@@ -3113,14 +3128,14 @@ test_client(pappl_system_t *system)	// I - System
     job_state = (ipp_jstate_t)ippGetInteger(ippFindAttribute(response, "job-state", IPP_TAG_ENUM), 0);
     ippDelete(response);
 
-    if (cupsLastError() == IPP_STATUS_OK && job_state < IPP_JSTATE_CANCELED)
+    if (cupsGetError() == IPP_STATUS_OK && job_state < IPP_JSTATE_CANCELED)
       sleep(1);
   }
-  while (cupsLastError() == IPP_STATUS_OK && job_state < IPP_JSTATE_CANCELED);
+  while (cupsGetError() == IPP_STATUS_OK && job_state < IPP_JSTATE_CANCELED);
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
 
@@ -3136,9 +3151,9 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(cupsDoRequest(http, request, "/ipp/print"));
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
 
@@ -3153,7 +3168,7 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(cupsDoFileRequest(http, request, "/ipp/print", filename));
 
-  if (cupsLastError() == IPP_STATUS_OK)
+  if (cupsGetError() == IPP_STATUS_OK)
   {
     testEndMessage(false, "Job accepted but should have been rejected.");
     goto done;
@@ -3188,9 +3203,9 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(response);
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
   else if (job_state != IPP_JSTATE_HELD)
@@ -3230,9 +3245,9 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(response);
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
   else if (job_state != IPP_JSTATE_HELD)
@@ -3261,9 +3276,9 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(cupsDoRequest(http, request, "/ipp/print"));
 
-  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
 
@@ -3318,9 +3333,9 @@ test_client(pappl_system_t *system)	// I - System
 
   ippDelete(response);
 
-  if (cupsLastError() != IPP_STATUS_OK)
+  if (cupsGetError() != IPP_STATUS_OK)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
   else if (recv_events != (PAPPL_EVENT_JOB_COMPLETED | PAPPL_EVENT_JOB_CREATED | PAPPL_EVENT_JOB_PROGRESS | PAPPL_EVENT_JOB_STATE_CHANGED | PAPPL_EVENT_PRINTER_CONFIG_CHANGED | PAPPL_EVENT_PRINTER_STATE_CHANGED))
@@ -3342,10 +3357,10 @@ test_client(pappl_system_t *system)	// I - System
 
   if ((attr = ippFindAttribute(response, "smi55357-device-col", IPP_TAG_BEGIN_COLLECTION)) != NULL)
     testEndMessage(true, "%u devices found", (unsigned)ippGetCount(attr));
-  else if (cupsLastError() == IPP_STATUS_ERROR_NOT_FOUND)
+  else if (cupsGetError() == IPP_STATUS_ERROR_NOT_FOUND)
     testEndMessage(true, "no devices found");
   else
-    testEndMessage(false, "failed: %s", cupsLastErrorString());
+    testEndMessage(false, "failed: %s", cupsGetErrorString());
 
   ippDelete(response);
 
@@ -3359,7 +3374,7 @@ test_client(pappl_system_t *system)	// I - System
   if ((attr = ippFindAttribute(response, "smi55357-driver-col", IPP_TAG_BEGIN_COLLECTION)) != NULL)
     testEndMessage(true, "%u drivers found", (unsigned)ippGetCount(attr));
   else
-    testEndMessage(false, "failed: %s", cupsLastErrorString());
+    testEndMessage(false, "failed: %s", cupsGetErrorString());
 
   ippDelete(response);
 
@@ -3374,7 +3389,7 @@ test_client(pappl_system_t *system)	// I - System
   if ((attr = ippFindAttribute(response, "smi55357-driver-col", IPP_TAG_BEGIN_COLLECTION)) != NULL)
     testEndMessage(true, "%u drivers found", (unsigned)ippGetCount(attr));
   else
-    testEndMessage(false, "failed: %s", cupsLastErrorString());
+    testEndMessage(false, "failed: %s", cupsGetErrorString());
 
   ippDelete(response);
 
@@ -3388,10 +3403,10 @@ test_client(pappl_system_t *system)	// I - System
 
   if ((attr = ippFindAttribute(response, "smi55357-driver-col", IPP_TAG_BEGIN_COLLECTION)) != NULL)
     testEndMessage(false, "%u drivers found", (unsigned)ippGetCount(attr));
-  else if (cupsLastError() == IPP_STATUS_ERROR_NOT_FOUND)
+  else if (cupsGetError() == IPP_STATUS_ERROR_NOT_FOUND)
     testEndMessage(true, "no drivers found");
   else
-    testEndMessage(false, "failed: %s", cupsLastErrorString());
+    testEndMessage(false, "failed: %s", cupsGetErrorString());
 
   ippDelete(response);
 
@@ -3414,9 +3429,9 @@ test_client(pappl_system_t *system)	// I - System
   attr     = ippFindAttribute(response, "notify-events", IPP_TAG_KEYWORD);
   ippDelete(response);
 
-  if (cupsLastError() != IPP_STATUS_ERROR_NOT_FOUND)
+  if (cupsGetError() != IPP_STATUS_ERROR_NOT_FOUND)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
   else if (attr)
@@ -3491,7 +3506,7 @@ test_image_files(
   testBegin("%s: Connect to server", prompt);
   if ((http = connect_to_printer(system, true, uri, sizeof(uri))) == NULL)
   {
-    testEndMessage(false, "Unable to connect: %s", cupsLastErrorString());
+    testEndMessage(false, "Unable to connect: %s", cupsGetErrorString());
     return (false);
   }
 
@@ -3531,9 +3546,9 @@ test_image_files(
 
 	  response = cupsDoFileRequest(http, request, "/ipp/print", filename);
 
-	  if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+	  if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
 	  {
-	    testEndMessage(false, "%s", cupsLastErrorString());
+	    testEndMessage(false, "%s", cupsGetErrorString());
 	    ippDelete(response);
 	    httpClose(http);
 	    return (false);
@@ -3559,9 +3574,9 @@ test_image_files(
 
 	    response = cupsDoRequest(http, request, "/ipp/print");
 
-	    if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+	    if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
 	    {
-	      testEndMessage(false, "%s", cupsLastErrorString());
+	      testEndMessage(false, "%s", cupsGetErrorString());
 	      httpClose(http);
 	      ippDelete(response);
 	      return (false);
@@ -3715,7 +3730,7 @@ test_pwg_raster(pappl_system_t *system)	// I - System
   testBegin("pwg-raster: Connect to server");
   if ((http = connect_to_printer(system, false, uri, sizeof(uri))) == NULL)
   {
-    testEndMessage(false, "Unable to connect: %s", cupsLastErrorString());
+    testEndMessage(false, "Unable to connect: %s", cupsGetErrorString());
     return (false);
   }
   testEnd(true);
@@ -3729,9 +3744,9 @@ test_pwg_raster(pappl_system_t *system)	// I - System
 
   supported = cupsDoRequest(http, request, "/ipp/print");
 
-  if (cupsLastError() != IPP_STATUS_OK)
+  if (cupsGetError() != IPP_STATUS_OK)
   {
-    testEndMessage(false, "%s", cupsLastErrorString());
+    testEndMessage(false, "%s", cupsGetErrorString());
     goto done;
   }
 
@@ -3769,18 +3784,18 @@ test_pwg_raster(pappl_system_t *system)	// I - System
       ippAddString(request, IPP_TAG_JOB, IPP_TAG_KEYWORD, "print-color-mode", NULL, modes[i]);
 
       response = cupsDoFileRequest(http, request, "/ipp/print", filename);
-      if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+      if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
       {
         ippDelete(response);
         response = NULL;
         sleep(1);
       }
     }
-    while (cupsLastError() == IPP_STATUS_ERROR_BUSY);
+    while (cupsGetError() == IPP_STATUS_ERROR_BUSY);
 
-    if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+    if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
     {
-      testEndMessage(false, "Unable to print %s: %s", job_name, cupsLastErrorString());
+      testEndMessage(false, "Unable to print %s: %s", job_name, cupsGetErrorString());
       goto done;
     }
 
@@ -3805,9 +3820,9 @@ test_pwg_raster(pappl_system_t *system)	// I - System
 
       response = cupsDoRequest(http, request, "/ipp/print");
 
-      if (cupsLastError() >= IPP_STATUS_ERROR_BAD_REQUEST)
+      if (cupsGetError() >= IPP_STATUS_ERROR_BAD_REQUEST)
       {
-	testEndMessage(false, "Unable to get job state for '%s': %s", job_name, cupsLastErrorString());
+	testEndMessage(false, "Unable to get job state for '%s': %s", job_name, cupsGetErrorString());
         goto done;
       }
 
