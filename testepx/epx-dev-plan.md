@@ -8,26 +8,23 @@ EPX Prototyping Development Plan
 Xcode project Setup
 -------------------------------------
 
-Download static tarballs from the folowing dependencies into the \_DEPENDENCIES\_ directory, unpack, build, and update the references to the static libraries
-* openssl
-* libpng
-* libjpeg
-* libusb
-
-Header search paths (keep /usr/local/ at the end so that older SDK versions don't get selected first):
-. .. ../libcups /opt/homebrew/Cellar/openssl@3/3.0.7/include /opt/homebrew/Cellar/libpng/1.6.38/include /opt/homebrew/Cellar/jpeg/9e/include /opt/homebrew/Cellar/libusb/1.0.26/include/** /usr/local/include
-
-Library search paths (keep /usr/local/ at the end so that older SDK versions don't get selected first):
-../libcups /opt/homebrew/Cellar/openssl@3/3.0.7/lib /opt/homebrew/Cellar/libpng/1.6.38/lib /opt/homebrew/Cellar/jpeg/9e/lib /opt/homebrew/Cellar/libusb/1.0.26/lib /usr/local/lib
-
-Also update the "libcups.xcodeproj" to include the same header and library search paths above, but omitting "../libcups" (for obvious reasons).
-
-testepx target
-* Add the testepx folder
-* Copy the papplMainloop target to make a testepx target
-* Add the files from the folder to the new target
-* Copy the papplMainLoop scheme to make a testepx scheme
-* Edit the new scheme to provide the following arguments: server -o log-file=syslog -o log-level=debug
+* Install using Homebrew the folowing dependencies:
+  * openssl
+  * libpng
+  * libjpeg
+  * libusb
+* Open the Xcode project "pappl.xcodeproj", select it, and update the following fields in the "All" target:
+  * Header search paths (update as needed based on state of Homebrew, keep /usr/local/ at the end so that older SDK versions don't get selected first):
+. .. ../libcups /opt/homebrew/Cellar/openssl@3/3.1.3/include /opt/homebrew/Cellar/libpng/1.6.40/include /opt/homebrew/Cellar/jpeg/9e/include /opt/homebrew/Cellar/libusb/1.0.26/include/** /usr/local/include
+  * Library search paths (keep /usr/local/ at the end so that older SDK versions don't get selected first):
+../libcups /opt/homebrew/Cellar/openssl@3/3.1.3/lib /opt/homebrew/Cellar/libpng/1.6.40/lib /opt/homebrew/Cellar/jpeg/9e/lib /opt/homebrew/Cellar/libusb/1.0.26/lib /usr/local/lib
+* Open the Xcode project "libcups.xcodeproj" and update it to include the same header and library search paths above, but omit "../libcups" (for obvious reasons).
+* Create the "testepx" target
+  * Add the testepx folder
+  * Copy the papplMainloop target to make a testepx target
+  * Add the files from the folder to the new target
+  * Copy the papplMainLoop scheme to make a testepx scheme
+  * Edit the new scheme to provide the following arguments: server -o log-file=syslog -o log-level=debug
 
 Plan
 -------------------------------------
