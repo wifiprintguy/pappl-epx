@@ -192,61 +192,265 @@
 }
 ################################################################################
 {
-  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_JOB_PASSWORD
+  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
 
-  NAME "[EPX2 3.3.1] Job Release: Password Method Requirements"
-  OPERATION Get-Printer-Attributes
+  PAUSE "======== Go to the printer UI and release the Button Press Job. ========"
 
+  NAME "[EPX2 3.2.5] Job Release: Release Job at UI and await final state"
+  OPERATION Get-Job-Attributes
+  
   GROUP operation-attributes-tag
     ATTR charset "attributes-charset" utf-8
-    ATTR language "attributes-natural-language" en
+    ATTR naturalLanguage "attributes-natural-language" en
     ATTR uri "printer-uri" $uri
-    ATTR keyword "requested-attributes" 'job-release-action-default','job-spooling-supported','job-release-action-supported','job-password-encryption-supported','job-password-length-supported','job-password-repertoire-configured','job-password-repertoire-supported','job-password-supported'
+    ATTR integer "job-id" $job-id
+    ATTR name "requesting-user-name" $user
 
   STATUS successful-ok
 
-  # These are common to all methods other than 'none'
-  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
-  EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
-
-  # These are specific to this particular sub-feature
-  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password'
-
-  EXPECT "job-password-encryption-supported"    OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT "job-password-length-supported"        OF-TYPE rangeOfInteger IN-GROUP printer-attributes-tag
-  EXPECT "job-password-repertoire-configured"   OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT "job-password-repertoire-supported"    OF-TYPE keyword IN-GROUP printer-attributes-tag
-  EXPECT "job-password-supported"               OF-TYPE integer IN-GROUP printer-attributes-tag
+  # Expecting the Job to be in 'canceled', 'aborted' or 'completed' state
+  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE $job-id
+  EXPECT "job-state" OF-TYPE enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE >6 REPEAT-NO-MATCH REPEAT-LIMIT 90
+  DISPLAY "job-state"
 }
+
 ################################################################################
-{
-  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_OWNER_AUTHORIZED
+#{
+#  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_JOB_PASSWORD
+#
+#  NAME "[EPX2 3.3.1] Job Release: Password Method Requirements"
+#  OPERATION Get-Printer-Attributes
+#
+#  GROUP operation-attributes-tag
+#    ATTR charset "attributes-charset" utf-8
+#    ATTR language "attributes-natural-language" en
+#    ATTR uri "printer-uri" $uri
+#    ATTR keyword "requested-attributes" 'job-release-action-default','job-spooling-supported','job-release-action-supported','job-password-encryption-supported','job-password-length-supported','job-password-repertoire-configured','job-password-repertoire-supported','job-password-supported'
+#
+#  STATUS successful-ok
+#
+#  # These are common to all methods other than 'none'
+#  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
+#  EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
+#
+#  # These are specific to this particular sub-feature
+#  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'job-password'
+#
+#  EXPECT "job-password-encryption-supported"    OF-TYPE keyword IN-GROUP printer-attributes-tag
+#  EXPECT "job-password-length-supported"        OF-TYPE rangeOfInteger IN-GROUP printer-attributes-tag
+#  EXPECT "job-password-repertoire-configured"   OF-TYPE keyword IN-GROUP printer-attributes-tag
+#  EXPECT "job-password-repertoire-supported"    OF-TYPE keyword IN-GROUP printer-attributes-tag
+#  EXPECT "job-password-supported"               OF-TYPE integer IN-GROUP printer-attributes-tag
+#}
+#################################################################################
+#{
+#  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_JOB_PASSWORD
+#
+#  NAME "[EPX2 3.3.2] Job Release: Create-Job Password Release"
+#  OPERATION Create-Job
+#
+#  GROUP operation-attributes-tag
+#    ATTR charset "attributes-charset" utf-8
+#    ATTR language "attributes-natural-language" en
+#    ATTR uri "printer-uri" $uri
+#    ATTR name "requesting-user-name" $user
+#
+#  GROUP job-attributes-tag
+#    ATTR name "job-name" "[EPX2 3.2.2] Job Release Button Press Test $job-id $filename"
+#    ATTR keyword "job-release-action" 'password'
+#    ATTR octetString "job-password" 0x6900d3eea564a6541723d4e0573f77e7b09279a3c71758f6bab0bd50bd26771a # "epx" as SHA2-256
+#    ATTR keyword "job-password-encryption" 'sha2-256'
+#
+#  STATUS successful-ok
+#
+#  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1
+#  EXPECT "job-uri" OF-TYPE uri IN-GROUP job-attributes-tag COUNT 1
+#}
+#################################################################################
+#{
+#  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_JOB_PASSWORD
+#
+#  NAME "[EPX2 3.3.3] Job Release: Send-Document Password Release"
+#  OPERATION Send-Document
+#
+#  GROUP operation-attributes-tag
+#    ATTR charset "attributes-charset" utf-8
+#    ATTR language "attributes-natural-language" en
+#    ATTR uri "printer-uri" $uri
+#    ATTR integer "job-id" $job-id
+#    ATTR name "requesting-user-name" $user
+#    ATTR mimeMediaType "document-format" $filetype
+#    ATTR boolean last-document true
+#
+#  FILE $filename
+#
+#  STATUS successful-ok
+#  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE $job-id
+#  EXPECT "job-state" OF-TYPE enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE =4
+#}
+#################################################################################
+#{
+#  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
+#
+#  NAME "[EPX2 3.3.4] Job Release: Check New Password Release Job"
+#  OPERATION Get-Job-Attributes
+#  
+#  GROUP operation-attributes-tag
+#    ATTR charset "attributes-charset" utf-8
+#    ATTR naturalLanguage "attributes-natural-language" en
+#    ATTR uri "printer-uri" $uri
+#    ATTR integer "job-id" $job-id
+#    ATTR name "requesting-user-name" $user
+#
+#  STATUS successful-ok
+#
+#  # Expecting the Job to be still in the 'pending-held' state
+#  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE $job-id
+#  EXPECT "job-state" OF-TYPE enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE =4 REPEAT-NO-MATCH REPEAT-LIMIT 30
+#  DISPLAY "job-state"
+#}
+#################################################################################
+#{
+#  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
+#
+#  PAUSE "======== Go to the printer UI and release the Job. ========"
+#
+#  NAME "[EPX2 3.3.5] Job Release: Release Job at UI and await final state"
+#  OPERATION Get-Job-Attributes
+#  
+#  GROUP operation-attributes-tag
+#    ATTR charset "attributes-charset" utf-8
+#    ATTR naturalLanguage "attributes-natural-language" en
+#    ATTR uri "printer-uri" $uri
+#    ATTR integer "job-id" $job-id
+#    ATTR name "requesting-user-name" $user
+#
+#  STATUS successful-ok
+#
+#  # Expecting the Job to be in 'canceled', 'aborted' or 'completed' state
+#  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE $job-id
+#  EXPECT "job-state" OF-TYPE enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE >6 REPEAT-NO-MATCH REPEAT-LIMIT 90
+#  DISPLAY "job-state"
+#}
+#
+#################################################################################
+#{
+#  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_OWNER_AUTHORIZED
+#
+#  NAME "[EPX2 3.4.1] Job Release: Owner Authorized Method Requirements"
+#  OPERATION Get-Printer-Attributes
+#
+#  GROUP operation-attributes-tag
+#    ATTR charset "attributes-charset" utf-8
+#    ATTR language "attributes-natural-language" en
+#    ATTR uri "printer-uri" $uri
+#    ATTR keyword "requested-attributes" 'job-release-action-default','job-spooling-supported','job-release-action-supported','uri-authentication-supported'
+#
+#  STATUS successful-ok
+#
+#  # These are common to all methods other than 'none'
+#  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
+#  EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
+#
+#  # These are specific to this particular sub-feature
+#  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized'
+#
+#  # TODO: Do we require some types of auth or disallow others?
+#  EXPECT "uri-authentication-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
+#
+#  # These are common to all methods other than 'none'
+#  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM "job-release-action-supported" COUNT 1
+#  EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
+#}
+#################################################################################
+#{
+#  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_JOB_PASSWORD
+#
+#  NAME "[EPX2 3.4.2] Job Release: Create-Job Owner Authorized Release"
+#  OPERATION Create-Job
+#
+#  GROUP operation-attributes-tag
+#    ATTR charset "attributes-charset" utf-8
+#    ATTR language "attributes-natural-language" en
+#    ATTR uri "printer-uri" $uri
+#    ATTR name "requesting-user-name" $user
+#
+#  GROUP job-attributes-tag
+#    ATTR name "job-name" "[EPX2 3.2.2] Job Release Button Press Test $job-id $filename"
+#    ATTR keyword "job-release-action" 'owner-authorized' # get ready for authentication challenge
+#
+#  STATUS successful-ok
+#
+#  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE >0 COUNT 1
+#  EXPECT "job-uri" OF-TYPE uri IN-GROUP job-attributes-tag COUNT 1
+#}
+#################################################################################
+#{
+#  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_JOB_PASSWORD
+#
+#  NAME "[EPX2 3.4.3] Job Release: Send-Document Owner Authorized Release"
+#  OPERATION Send-Document
+#
+#  GROUP operation-attributes-tag
+#    ATTR charset "attributes-charset" utf-8
+#    ATTR language "attributes-natural-language" en
+#    ATTR uri "printer-uri" $uri
+#    ATTR integer "job-id" $job-id
+#    ATTR name "requesting-user-name" $user
+#    ATTR mimeMediaType "document-format" $filetype
+#    ATTR boolean last-document true
+#
+#  FILE $filename
+#
+#  STATUS successful-ok
+#  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE $job-id
+#  EXPECT "job-state" OF-TYPE enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE =4
+#}
+#################################################################################
+#{
+#  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
+#
+#  NAME "[EPX2 3.4.4] Job Release: Check New Owner Authorized Release Job"
+#  OPERATION Get-Job-Attributes
+#  
+#  GROUP operation-attributes-tag
+#    ATTR charset "attributes-charset" utf-8
+#    ATTR naturalLanguage "attributes-natural-language" en
+#    ATTR uri "printer-uri" $uri
+#    ATTR integer "job-id" $job-id
+#    ATTR name "requesting-user-name" $user
+#
+#  STATUS successful-ok
+#
+#  # Expecting the Job to be still in the 'pending-held' state
+#  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE $job-id
+#  EXPECT "job-state" OF-TYPE enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE =4 REPEAT-NO-MATCH REPEAT-LIMIT 30
+#  DISPLAY "job-state"
+#}
+#################################################################################
+#{
+#  SKIP-IF-NOT-DEFINED HAS_JOB_RELEASE_BUTTON_PRESS
+#
+#  PAUSE "======== Go to the printer UI and release the Job. ========"
+#
+#  NAME "[EPX2 3.4.5] Job Release: Release Job at UI and await final state"
+#  OPERATION Get-Job-Attributes
+#  
+#  GROUP operation-attributes-tag
+#    ATTR charset "attributes-charset" utf-8
+#    ATTR naturalLanguage "attributes-natural-language" en
+#    ATTR uri "printer-uri" $uri
+#    ATTR integer "job-id" $job-id
+#    ATTR name "requesting-user-name" $user
+#
+#  STATUS successful-ok
+#
+#  # Expecting the Job to be in 'canceled', 'aborted' or 'completed' state
+#  EXPECT "job-id" OF-TYPE integer IN-GROUP job-attributes-tag WITH-VALUE $job-id
+#  EXPECT "job-state" OF-TYPE enum IN-GROUP job-attributes-tag COUNT 1 WITH-VALUE >6 REPEAT-NO-MATCH REPEAT-LIMIT 90
+#  DISPLAY "job-state"
+#}
 
-  NAME "[EPX2 3.4.1] Job Release: Owner Authorized Method Requirements"
-  OPERATION Get-Printer-Attributes
-
-  GROUP operation-attributes-tag
-    ATTR charset "attributes-charset" utf-8
-    ATTR language "attributes-natural-language" en
-    ATTR uri "printer-uri" $uri
-    ATTR keyword "requested-attributes" 'job-release-action-default','job-spooling-supported','job-release-action-supported','uri-authentication-supported'
-
-  STATUS successful-ok
-
-  # These are common to all methods other than 'none'
-  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM job-release-action-supported COUNT 1
-  EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
-
-  # These are specific to this particular sub-feature
-  EXPECT "job-release-action-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'owner-authorized'
-
-  # TODO: Do we require some types of auth or disallow others?
-  EXPECT "uri-authentication-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag
-
-  # These are common to all methods other than 'none'
-  EXPECT "job-release-action-default" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE-FROM "job-release-action-supported" COUNT 1
-  EXPECT "job-spooling-supported" OF-TYPE keyword IN-GROUP printer-attributes-tag WITH-VALUE 'spool'
-}
 ################################################################################
 
 #----------------------------- JOB PRINT POLICY -------------------------------#
