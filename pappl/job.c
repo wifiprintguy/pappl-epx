@@ -13,6 +13,7 @@
 //
 
 #include "pappl-private.h"
+#include "job.h"
 
 
 //
@@ -111,6 +112,7 @@ _papplJobCreate(
     // Copy all of the job attributes...
     const char	*hold_until;		// "job-hold-until" value
     time_t	hold_until_time;	// "job-hold-until-time" value
+    pappl_release_action_t release_action;
 
     if ((attr = ippFindAttribute(attrs, "client-info", IPP_TAG_BEGIN_COLLECTION)) != NULL)
     {
@@ -130,6 +132,15 @@ _papplJobCreate(
 
     if ((hold_until && strcmp(hold_until, "no-hold")) || hold_until_time)
       _papplJobHoldNoLock(job, NULL, hold_until, hold_until_time);
+
+
+    release_action = _papplReleaseActionValue(ippGetString(ippFindAttribute(attrs, "job-release-action", IPP_TAG_KEYWORD), 0, NULL)); // "job-release-action" value
+    if (release_action)
+    {
+      job->release_action = release_action;
+      _papplJobHoldNoLock(job, NULL, "indefinite", 0);
+    }
+
 
     if (!format && ippGetOperation(attrs) != IPP_OP_CREATE_JOB)
     {
@@ -219,6 +230,9 @@ _papplJobCopy(
   size_t 		new_job_name_length = 1024;	// Length of new_job_name
   pappl_printer_t	*printer;			// printer of parent_job
   char			new_job_file_name[1024];	// Job filename
+
+  (void) new_job_printer_uri;
+  (void) new_job_uri;
 
   // Check parameters
   if (NULL == client)
@@ -747,64 +761,6 @@ _papplJobReleaseNoLock(
 
 
 //
-// 'papplJobResume()' - Resume processing a stopped job.
-//
-// This function resumes processing a job that is in the 'processing-stopped' state.
-//
-
-bool          // O - `true` on success, `false` on failure
-papplJobResume(pappl_job_t *job,      // I - Job
-               const char  *username) // I - User that released the job or `NULL` for none/system
-{
-  bool ret = false;      // Return value
-
-
-  // Range check input
-  if (!job)
-    return (false);
-
-  // Lock the job and printer...
-  _papplRWLockRead(job->printer);
-  _papplRWLockWrite(job);
-
-  // Only resume a job if it is in the 'processing-stopped' state...
-  if (job->state == IPP_JSTATE_STOPPED)
-  {
-    // Do the release...
-    _papplJobResumeNoLock(job, username);
-    ret = true;
-  }
-
-  // Unlock and return...
-  _papplRWUnlock(job);
-  _papplRWUnlock(job->printer);
-
-  _papplPrinterCheckJobs(job->printer);
-
-  return (ret);
-}
-
-
-//
-// '_papplJobResumeNoLock()' - Resume processing a stopped job without locking.
-//
-
-void
-_papplJobResumeNoLock(
-    pappl_job_t *job,       // I - Job
-    const char  *username)  // I - User that released the job or `NULL` for none/system
-{
-
-  // Move the job back to the processing state from the processing-stopped state
-  _papplJobSetState(job, IPP_JSTATE_PROCESSING);
-  job->state_reasons &= (pappl_jreason_t)(~PAPPL_JREASON_JOB_HOLD_UNTIL_SPECIFIED); // TODO What if anything needs to be cleared
-
-  if (username)
-    _papplSystemAddEventNoLock(job->system, job->printer, job, PAPPL_EVENT_JOB_STATE_CHANGED, "Job released by '%s'.", username);
-}
-
-
-//
 // '_papplJobRemoveFile()' - Remove a file in spool directory
 //
 
@@ -1299,36 +1255,54 @@ papplSystemCleanJobs(
   _papplRWUnlock(system);
 }
 
+//
+// 'papplJobResume()' - Resume processing of a job.
+//
+
 void
-pappJobStart(
-             pappl_job_t *job,        // I - Job
-             pappl_jreason_t remove)  // I - enums of "job-state-reasons" keywords to remove
+papplJobResume(pappl_job_t     *job,	// I - Job
+	      pappl_jreason_t remove)	// I - Reasons to remove from "job-state-reasons"
 {
-  // Range check input
+  // Range check input...
   if (!job)
     return;
 
-  if (IPP_JSTATE_STOPPED == job->state)
+  // Update state...
+  _papplRWLockWrite(job);
+
+  if (job->state == IPP_JSTATE_STOPPED) // 'processing-stopped'
   {
-    _papplJobSetState(job, IPP_JSTATE_PROCESSING);
+    job->state         = IPP_JSTATE_PROCESSING; // Resume-Job takes Job from 'processing-stopped' to 'processing' STD92
     job->state_reasons &= ~remove;
-    _papplSystemAddEventNoLock(job->system, job->printer, job, PAPPL_EVENT_JOB_STATE_CHANGED, NULL);
   }
+
+  _papplRWUnlock(job);
+
+  _papplPrinterCheckJobs(job->printer);
 }
 
+
+//
+// 'pappJobSuspend()' - Temporarily stop processing of a job.
+//
+
 void
-pappJobStop(
-            pappl_job_t *job,     // I - Job
-            pappl_jreason_t add)  // I - enums of "job-state-reasons" keywords to add
+papplJobSuspend(pappl_job_t     *job,	// I - Job
+	       pappl_jreason_t add)	// I - Reasons to add to "job-state-reasons"
 {
-  // Range check input
+  // Range check input...
   if (!job)
     return;
 
-  if (IPP_JSTATE_PROCESSING == job->state)
+  // Update state...
+  _papplRWLockWrite(job);
+
+  if (job->state < IPP_JSTATE_STOPPED)
   {
+    job->state         = IPP_JSTATE_STOPPED;
     job->state_reasons |= add;
-    _papplJobSetState(job, IPP_JSTATE_STOPPED);
-    _papplSystemAddEventNoLock(job->system, job->printer, job, PAPPL_EVENT_JOB_STATE_CHANGED, NULL);
   }
+
+  _papplRWUnlock(job);
 }
+

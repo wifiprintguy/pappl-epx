@@ -197,7 +197,9 @@ extern const char	*_papplPrinterReasonString(pappl_preason_t value) _PAPPL_PRIVA
 extern pappl_preason_t	_papplPrinterReasonValue(const char *value) _PAPPL_PRIVATE;
 
 extern const char	*_papplRasterTypeString(pappl_raster_type_t value) _PAPPL_PRIVATE;
+
 extern const char  *_papplReleaseActionString(pappl_release_action_t value) _PAPPL_PRIVATE;
+extern pappl_release_action_t _papplReleaseActionValue(const char *value) _PAPPL_PRIVATE;
 
 extern const char	*_papplScalingString(pappl_scaling_t value) _PAPPL_PRIVATE;
 extern pappl_scaling_t	_papplScalingValue(const char *value) _PAPPL_PRIVATE;

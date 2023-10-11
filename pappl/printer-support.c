@@ -648,6 +648,17 @@ _papplReleaseActionString(
 
 
 //
+// '_papplReleaseActionValue()' - Return the bit value associated with an IPP "job-release-action" keyword value.
+//
+
+pappl_release_action_t				// O - IPP "job-release-action" bit value
+_papplReleaseActionValue(const char *value)	// I - IPP "job-release-action" keyword value
+{
+  return ((pappl_release_action_t)_PAPPL_LOOKUP_VALUE(value, _pappl_release_actions));
+}
+
+
+//
 // '_papplScalingString()' - Return the keyword associated with an IPP "print-scaling" bit value.
 //
 

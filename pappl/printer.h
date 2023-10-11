@@ -184,13 +184,14 @@ enum pappl_raster_type_e		// IPP "pwg-raster-document-type-supported" bit values
 };
 typedef unsigned pappl_raster_type_t;	// Bitfield for IPP "pwg-raster-document-type-supported" values
 
-typedef enum pappl_release_action_e
+enum pappl_release_action_e
 {
   PAPPL_RELEASE_ACTION_NONE             = 0x0001, // 'none'
   PAPPL_RELEASE_ACTION_BUTTON_PRESS     = 0x0002, // 'button-press'
   PAPPL_RELEASE_ACTION_JOB_PASSWORD     = 0x0004, // 'job-password'
   PAPPL_RELEASE_ACTION_OWNER_AUTHORIZED = 0x0008  // 'owner-authorized'
-} pappl_release_action_t;   // Bitfield for IPP "job-release-action" values
+};
+typedef unsigned pappl_release_action_t; // Bitfield for IPP "job-release-action" values
 
 enum pappl_scaling_e			// IPP "print-scaling" bit values
 {
@@ -436,7 +437,9 @@ struct pappl_pr_driver_data_s		// Printer driver data
   char                        *st_group_supported[16];      // job-storage-group-supported - 16 groups possible
   unsigned                    num_st_supported;            // Number of keywords in "job-storage-supported"
   char                        *st_supported[6];            // job-storage-supported - 6 members possible
-
+  pappl_release_action_t release_action_default;   // "job-release-action-default" bitfield
+  pappl_release_action_t release_action_supported; // "job-release-action-supported" bitfield
+  
   int			num_vendor;		// Number of vendor attributes
   const char		*vendor[PAPPL_MAX_VENDOR];
 						// Vendor attribute names

@@ -13,7 +13,7 @@
 //
 
 #include "pappl-private.h"
-
+#include "job.h"
 
 //
 // Local type...
@@ -907,7 +907,18 @@ ipp_resume_job(pappl_client_t *client)  // I - Client
   // Get the job...
   if (job)
   {
-    if (papplJobResume(job, client->username))
+    pappl_jreason_t reasonsToClear =
+	PAPPL_JREASON_PRINTER_STOPPED |
+	PAPPL_JREASON_PRINTER_STOPPED_PARTLY |
+	PAPPL_JREASON_PROCESSING_TO_STOP_POINT |
+	PAPPL_JREASON_QUEUED_IN_DEVICE |
+	PAPPL_JREASON_WARNINGS_DETECTED |
+	PAPPL_JREASON_JOB_HOLD_UNTIL_SPECIFIED |
+	PAPPL_JREASON_JOB_SUSPENDED_FOR_APPROVAL;
+
+    papplJobResume(job, reasonsToClear);
+
+    if (IPP_JSTATE_PROCESSING == papplJobGetState(job))
       papplClientRespondIPP(client, IPP_STATUS_OK, "Job resumed.");
     else
       papplClientRespondIPP(client, IPP_STATUS_ERROR_NOT_POSSIBLE, "Job not stopped.");

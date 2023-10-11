@@ -235,6 +235,8 @@ epx_pappl_driver_cb(
   if (jobRelease)
   {
     driver_data->features[driver_data->num_features++] = "job-release";
+    driver_data->release_action_supported = PAPPL_RELEASE_ACTION_BUTTON_PRESS | PAPPL_RELEASE_ACTION_JOB_PASSWORD | PAPPL_RELEASE_ACTION_OWNER_AUTHORIZED;
+    driver_data->release_action_default = PAPPL_RELEASE_ACTION_NONE;
   }
   
   if (jobStorage)
@@ -506,7 +508,7 @@ epx_rendpage(
     int numPages = papplJobGetImpressions(job);
     if (impressionsCompleted == (proofCopiesNumber * numPages))
     {
-      pappJobStop(job, PAPPL_JREASON_JOB_SUSPENDED_FOR_APPROVAL);
+      papplJobSuspend(job, PAPPL_JREASON_JOB_SUSPENDED_FOR_APPROVAL);
       
       papplLogJob(job, PAPPL_LOGLEVEL_INFO, "EPX Driver: Stopping Processing Job  '%s' (%d) - %d proof copies reached",
                   papplJobGetName(job),

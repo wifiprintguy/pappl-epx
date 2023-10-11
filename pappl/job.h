@@ -21,34 +21,34 @@ extern "C" {
 
 enum pappl_jreason_e			// IPP "job-state-reasons" bit values
 {
-  PAPPL_JREASON_NONE = 0x00000000,			// 'none'
-  PAPPL_JREASON_ABORTED_BY_SYSTEM = 0x00000001,		// 'aborted-by-system'
-  PAPPL_JREASON_COMPRESSION_ERROR = 0x00000002,		// 'compression-error'
-  PAPPL_JREASON_DOCUMENT_FORMAT_ERROR = 0x00000004,	// 'document-format-error'
-  PAPPL_JREASON_DOCUMENT_PASSWORD_ERROR = 0x00000008,	// 'document-password-error'
-  PAPPL_JREASON_DOCUMENT_PERMISSION_ERROR = 0x00000010,	// 'document-permission-error'
-  PAPPL_JREASON_DOCUMENT_UNPRINTABLE_ERROR = 0x00000020,// 'document-unprintable-error'
-  PAPPL_JREASON_ERRORS_DETECTED = 0x00000040,		// 'errors-detected'
-  PAPPL_JREASON_JOB_CANCELED_AT_DEVICE = 0x00000080,	// 'job-canceled-at-device'
-  PAPPL_JREASON_JOB_CANCELED_BY_USER = 0x00000100,	// 'job-canceled-by-user'
-  PAPPL_JREASON_JOB_COMPLETED_SUCCESSFULLY = 0x00000200,// 'job-completed-successfully'
-  PAPPL_JREASON_JOB_COMPLETED_WITH_ERRORS = 0x00000400,	// 'job-completed-with-errors'
-  PAPPL_JREASON_JOB_COMPLETED_WITH_WARNINGS = 0x00000800,// 'job-completed-with-warnings'
-  PAPPL_JREASON_JOB_DATA_INSUFFICIENT = 0x00001000,	// 'job-data-insufficient'
-  PAPPL_JREASON_JOB_INCOMING = 0x000002000,		// 'job-incoming'
-  PAPPL_JREASON_JOB_PRINTING = 0x00004000,		// 'job-printing'
-  PAPPL_JREASON_JOB_QUEUED = 0x00008000,		// 'job-queued'
-  PAPPL_JREASON_JOB_SPOOLING = 0x00010000,		// 'job-spooling'
-  PAPPL_JREASON_PRINTER_STOPPED = 0x00020000,		// 'printer-stopped'
-  PAPPL_JREASON_PRINTER_STOPPED_PARTLY = 0x00040000,	// 'printer-stopped-partly'
-  PAPPL_JREASON_PROCESSING_TO_STOP_POINT = 0x00080000,	// 'processing-to-stop-point'
-  PAPPL_JREASON_QUEUED_IN_DEVICE = 0x00100000,		// 'queued-in-device'
-  PAPPL_JREASON_WARNINGS_DETECTED = 0x00200000,		// 'warnings-detected'
-  PAPPL_JREASON_JOB_HOLD_UNTIL_SPECIFIED = 0x00400000,	// 'job-hold-until-specified'
+  PAPPL_JREASON_NONE = 0x00000000,				// 'none'
+  PAPPL_JREASON_ABORTED_BY_SYSTEM = 0x00000001,			// 'aborted-by-system'
+  PAPPL_JREASON_COMPRESSION_ERROR = 0x00000002,			// 'compression-error'
+  PAPPL_JREASON_DOCUMENT_FORMAT_ERROR = 0x00000004,		// 'document-format-error'
+  PAPPL_JREASON_DOCUMENT_PASSWORD_ERROR = 0x00000008,		// 'document-password-error'
+  PAPPL_JREASON_DOCUMENT_PERMISSION_ERROR = 0x00000010,		// 'document-permission-error'
+  PAPPL_JREASON_DOCUMENT_UNPRINTABLE_ERROR = 0x00000020,	// 'document-unprintable-error'
+  PAPPL_JREASON_ERRORS_DETECTED = 0x00000040,			// 'errors-detected'
+  PAPPL_JREASON_JOB_CANCELED_AT_DEVICE = 0x00000080,		// 'job-canceled-at-device'
+  PAPPL_JREASON_JOB_CANCELED_BY_USER = 0x00000100,		// 'job-canceled-by-user'
+  PAPPL_JREASON_JOB_COMPLETED_SUCCESSFULLY = 0x00000200,	// 'job-completed-successfully'
+  PAPPL_JREASON_JOB_COMPLETED_WITH_ERRORS = 0x00000400,		// 'job-completed-with-errors'
+  PAPPL_JREASON_JOB_COMPLETED_WITH_WARNINGS = 0x00000800,	// 'job-completed-with-warnings'
+  PAPPL_JREASON_JOB_DATA_INSUFFICIENT = 0x00001000,		// 'job-data-insufficient'
+  PAPPL_JREASON_JOB_INCOMING = 0x000002000,			// 'job-incoming'
+  PAPPL_JREASON_JOB_PRINTING = 0x00004000,			// 'job-printing'
+  PAPPL_JREASON_JOB_QUEUED = 0x00008000,			// 'job-queued'
+  PAPPL_JREASON_JOB_SPOOLING = 0x00010000,			// 'job-spooling'
+  PAPPL_JREASON_PRINTER_STOPPED = 0x00020000,			// 'printer-stopped'
+  PAPPL_JREASON_PRINTER_STOPPED_PARTLY = 0x00040000,		// 'printer-stopped-partly'
+  PAPPL_JREASON_PROCESSING_TO_STOP_POINT = 0x00080000,		// 'processing-to-stop-point'
+  PAPPL_JREASON_QUEUED_IN_DEVICE = 0x00100000,			// 'queued-in-device'
+  PAPPL_JREASON_WARNINGS_DETECTED = 0x00200000,			// 'warnings-detected'
+  PAPPL_JREASON_JOB_HOLD_UNTIL_SPECIFIED = 0x00400000,		// 'job-hold-until-specified'
 
-  PAPPL_JREASON_JOB_CANCELED_AFTER_TIMEOUT = 0x00800000, // 'job-canceled-after-timeout'
-  PAPPL_JREASON_JOB_FETCHABLE = 0x01000000, // 'job-fetchable'
-  PAPPL_JREASON_JOB_SUSPENDED_FOR_APPROVAL = 0x02000000 // 'job-suspended-for-approval'
+  PAPPL_JREASON_JOB_CANCELED_AFTER_TIMEOUT = 0x00800000,	// 'job-canceled-after-timeout'
+  PAPPL_JREASON_JOB_FETCHABLE = 0x01000000, 			// 'job-fetchable'
+  PAPPL_JREASON_JOB_SUSPENDED_FOR_APPROVAL = 0x02000000 	// 'job-suspended-for-approval'
 
 };
 typedef unsigned int pappl_jreason_t;	// Bitfield for IPP "job-state-reasons" values
@@ -93,7 +93,7 @@ extern bool		papplJobIsCanceled(pappl_job_t *job) _PAPPL_PUBLIC;
 extern int		papplJobOpenFile(pappl_job_t *job, char *fname, size_t fnamesize, const char *directory, const char *ext, const char *mode) _PAPPL_PUBLIC;
 
 extern bool		papplJobRelease(pappl_job_t *job, const char *username) _PAPPL_PUBLIC;
-extern void		pappJobResume(pappl_job_t *job, pappl_jreason_t remove) _PAPPL_PUBLIC;
+extern void		papplJobResume(pappl_job_t *job, pappl_jreason_t remove) _PAPPL_PUBLIC;
 extern bool		papplJobRetain(pappl_job_t *job, const char *username, const char *until, int until_interval, time_t until_time) _PAPPL_PUBLIC;
 
 extern void		papplJobSetCopiesCompleted(pappl_job_t *job, int add) _PAPPL_PUBLIC;
@@ -102,10 +102,7 @@ extern void		papplJobSetImpressions(pappl_job_t *job, int impressions) _PAPPL_PU
 extern void		papplJobSetImpressionsCompleted(pappl_job_t *job, int add) _PAPPL_PUBLIC;
 extern void		papplJobSetMessage(pappl_job_t *job, const char *message, ...) _PAPPL_PUBLIC _PAPPL_FORMAT(2,3);
 extern void		papplJobSetReasons(pappl_job_t *job, pappl_jreason_t add, pappl_jreason_t remove) _PAPPL_PUBLIC;
-extern void		pappJobSuspend(pappl_job_t *job, pappl_jreason_t add) _PAPPL_PUBLIC;
-
-extern void		pappJobStart(pappl_job_t *job, pappl_jreason_t remove) _PAPPL_PUBLIC;
-extern void		pappJobStop(pappl_job_t *job, pappl_jreason_t add) _PAPPL_PUBLIC;
+extern void		papplJobSuspend(pappl_job_t *job, pappl_jreason_t add) _PAPPL_PUBLIC;
 
 
 #  ifdef __cplusplus

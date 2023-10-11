@@ -12,6 +12,7 @@
 //
 
 #include "pappl-private.h"
+#include "job.h"
 
 
 //
@@ -886,57 +887,6 @@ _papplJobProcessRaster(
   return;
 }
 
-
-//
-// 'pappJobResume()' - Resume processing of a job.
-//
-
-void
-pappJobResume(pappl_job_t     *job,	// I - Job
-              pappl_jreason_t remove)	// I - Reasons to remove from "job-state-reasons"
-{
-  // Range check input...
-  if (!job)
-    return;
-
-  // Update state...
-  _papplRWLockWrite(job);
-
-  if (job->state == IPP_JSTATE_STOPPED)
-  {
-    job->state         = IPP_JSTATE_PENDING;
-    job->state_reasons &= ~remove;
-  }
-
-  _papplRWUnlock(job);
-
-  _papplPrinterCheckJobs(job->printer);
-}
-
-
-//
-// 'pappJobSuspend()' - Temporarily stop processing of a job.
-//
-
-void
-pappJobSuspend(pappl_job_t     *job,	// I - Job
-               pappl_jreason_t add)	// I - Reasons to add to "job-state-reasons"
-{
-  // Range check input...
-  if (!job)
-    return;
-
-  // Update state...
-  _papplRWLockWrite(job);
-
-  if (job->state < IPP_JSTATE_STOPPED)
-  {
-    job->state         = IPP_JSTATE_STOPPED;
-    job->state_reasons |= add;
-  }
-
-  _papplRWUnlock(job);
-}
 
 
 //

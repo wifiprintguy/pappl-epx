@@ -2105,6 +2105,27 @@ valid_job_attributes(
     }
   }
 
+  if (NULL != (attr = ippFindAttribute(client->request, "job-release-action", IPP_TAG_KEYWORD)))
+  {
+    pappl_release_action_t value = _papplReleaseActionValue(ippGetString(attr, 0, NULL)); // "job-release-action" value
+    if (ippGetCount(attr) != 1)
+    {
+      papplClientRespondIPPUnsupported(client, attr);
+      valid = false;
+    }
+    else if (ippGetValueTag(attr) != IPP_TAG_KEYWORD)
+    {
+      papplClientRespondIPPUnsupported(client, attr);
+      valid = false;
+    }
+    else if (!(value & client->printer->driver_data.release_action_supported))
+    {
+      papplClientRespondIPPUnsupported(client, attr);
+      valid = false;
+    }
+  }
+
+
   if ((attr = ippFindAttribute(client->request, "job-sheets", IPP_TAG_ZERO)) != NULL)
   {
     if (ippGetCount(attr) != 1 || (ippGetValueTag(attr) != IPP_TAG_NAME && ippGetValueTag(attr) != IPP_TAG_NAMELANG && ippGetValueTag(attr) != IPP_TAG_KEYWORD) || (exact && strcmp(ippGetString(attr, 0, NULL), "none")))
