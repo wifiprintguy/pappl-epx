@@ -26,6 +26,13 @@ Xcode project Setup
   * Copy the papplMainLoop scheme to make a testepx scheme
   * Edit the new scheme to provide the following arguments: server -o log-file=syslog -o log-level=debug
 
+Testing
+-------------------------------------
+If the Xcode "testepx" scheme builds, then run it from there, and then execute this to test (fix the URI hostname or
+port number as needed):
+
+$ ipptool -vt 'ipp://localhost:8503/ipp/print/EPX_Test_Printer' -f ../libcups/examples/document-letter.pdf pwg5100.11.test
+
 Plan
 -------------------------------------
 * printer-service-contact-col
