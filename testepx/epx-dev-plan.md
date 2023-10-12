@@ -31,7 +31,7 @@ Testing
 If the Xcode "testepx" scheme builds, then run it from there, and then execute this to test (fix the URI hostname or
 port number as needed):
 
-$ ipptool -vt 'ipp://localhost:8503/ipp/print/EPX_Test_Printer' -f ../libcups/examples/document-letter.pdf pwg5100.11.test
+$ ipptool -vt 'ipp://localhost:8503/ipp/print/EPX_Test_Printer' -f ../libcups/examples/gray.jpg  pwg5100.11.test
 
 Plan
 -------------------------------------
