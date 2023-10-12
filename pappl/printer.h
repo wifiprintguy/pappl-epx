@@ -430,16 +430,6 @@ struct pappl_pr_driver_data_s		// Printer driver data
   int			num_features;		// Number of "ipp-features-supported" values
   const char		*features[PAPPL_MAX_VENDOR];
 						// "ipp-features-supported" values
-
-  pappl_st_access_t      st_access_supported;         // job-storage-access-supported bitfield (0 for none)
-  pappl_st_disposition_t st_disposition_supported;    // job-storage-disposition-supported bitfield (0 for none)
-  unsigned                    num_st_group_supported;            // Number of keywords in "job-storage-group"
-  char                        *st_group_supported[16];      // job-storage-group-supported - 16 groups possible
-  unsigned                    num_st_supported;            // Number of keywords in "job-storage-supported"
-  char                        *st_supported[6];            // job-storage-supported - 6 members possible
-  pappl_release_action_t release_action_default;   // "job-release-action-default" bitfield
-  pappl_release_action_t release_action_supported; // "job-release-action-supported" bitfield
-  
   int			num_vendor;		// Number of vendor attributes
   const char		*vendor[PAPPL_MAX_VENDOR];
 						// Vendor attribute names

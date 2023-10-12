@@ -235,27 +235,11 @@ epx_pappl_driver_cb(
   if (jobRelease)
   {
     driver_data->features[driver_data->num_features++] = "job-release";
-    driver_data->release_action_supported = PAPPL_RELEASE_ACTION_BUTTON_PRESS | PAPPL_RELEASE_ACTION_JOB_PASSWORD | PAPPL_RELEASE_ACTION_OWNER_AUTHORIZED;
-    driver_data->release_action_default = PAPPL_RELEASE_ACTION_NONE;
   }
   
   if (jobStorage)
   {
     driver_data->features[driver_data->num_features++] = "job-storage";
-
-    driver_data->num_st_supported = 0;
-    driver_data->st_supported[driver_data->num_st_supported++] = "job-storage-access";
-    driver_data->st_supported[driver_data->num_st_supported++] = "job-storage-disposition";
-    driver_data->st_disposition_supported = PAPPL_ST_DISPOSITION_PRINT_AND_STORE | PAPPL_ST_DISPOSITION_STORE_ONLY;
-    driver_data->st_access_supported = PAPPL_ST_ACCESS_OWNER | PAPPL_ST_ACCESS_PUBLIC;
-    bool jobStorageGroup = true;
-    driver_data->num_st_group_supported = 0;
-    if (jobStorageGroup)
-    {
-      driver_data->st_supported[driver_data->num_st_supported++] = "job-storage-group";
-      driver_data->st_access_supported |= PAPPL_ST_ACCESS_GROUP;
-      driver_data->st_group_supported[driver_data->num_st_group_supported++] = "admin";
-    }
   }
   
   if (jobPrintPolicy)
@@ -498,22 +482,20 @@ epx_rendpage(
     papplPrinterSetSupplies(printer, 5, supplies);
     papplPrinterSetReasons(printer, reasons, PAPPL_PREASON_DEVICE_STATUS);
   }
-  
-  // If the number of copies produced is equal to the number of proof copies then move the Job to the 'processing-stopped' state
-  ipp_attribute_t *proof_copies = papplJobGetAttribute(job, "proof-copies");
-  if (NULL != proof_copies)
+ 
+  int proofCopies = papplJobGetProofCopies(job);
+  if (proofCopies > 0)
   {
-    int proofCopiesNumber = ippGetInteger(proof_copies, 0);
     int impressionsCompleted = papplJobGetImpressionsCompleted(job);
     int numPages = papplJobGetImpressions(job);
-    if (impressionsCompleted == (proofCopiesNumber * numPages))
+    if (impressionsCompleted == (proofCopies * numPages))
     {
       papplJobSuspend(job, PAPPL_JREASON_JOB_SUSPENDED_FOR_APPROVAL);
       
       papplLogJob(job, PAPPL_LOGLEVEL_INFO, "EPX Driver: Stopping Processing Job  '%s' (%d) - %d proof copies reached",
                   papplJobGetName(job),
                   papplJobGetID(job),
-                  proofCopiesNumber);
+                  proofCopies);
 
     }
     sleep(5); // Slow the whole thing down

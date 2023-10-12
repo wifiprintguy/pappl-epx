@@ -108,10 +108,19 @@ struct _pappl_printer_s			// Printer data
   char			*usb_storage;		// USB storage gadget file, if any
   pappl_pr_usb_cb_t	usb_cb;			// USB processing callback, if any
   void			*usb_cbdata;		// USB processing callback data, if any
-  time_t                          cancel_after_time;              // "job-cancel-after-default" as time_t
-  pappl_pw_repertoire_t           pw_repertoire_configured;       // "job-password-repertoire-configured" as enum
-  pappl_release_action_t          release_action_default;         // "job-release-action-default" as enum
-  pappl_which_jobs_t              which_jobs_supported;           // "which-jobs-supported" as enum
+  time_t		cancel_after_time;	// "job-cancel-after-default" as time_t
+  pappl_pw_repertoire_t	pw_repertoire_configured;		// "job-password-repertoire-configured" as enum
+  pappl_release_action_t release_action_default;		// "job-release-action-default" bitfield
+  pappl_release_action_t release_action_supported;		// "job-release-action-supported" bitfield
+  pappl_which_jobs_t	which_jobs_supported;			// "which-jobs-supported" as enum
+  pappl_st_access_t	st_access_supported;			// job-storage-access-supported bitfield (0 for none)
+  pappl_st_disposition_t st_disposition_supported;		// job-storage-disposition-supported bitfield (0 for none)
+  unsigned		num_st_group_supported;			// Number of keywords in "job-storage-group"
+  char			*st_group_supported[16];		// job-storage-group-supported - 16 groups possible
+  unsigned		num_st_supported;			// Number of keywords in "job-storage-supported"
+  char			*st_supported[6];			// job-storage-supported - 6 members possible
+  int			proof_copies_min;			// proof-copies-supported - lower end of range
+  int			proof_copies_max;			// proof-copies-supported - upper end of range
 };
 
 

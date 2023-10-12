@@ -52,6 +52,7 @@ struct _pappl_job_s			// Job data
   pappl_st_disposition_t	st_disposition;	// job-storage-disposition enum
   const char *			st_group;	// job-storage-group string
   pappl_release_action_t	release_action;	// job-release-action
+  int			proof_copies;		// proof-copies
 };
 
 

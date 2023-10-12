@@ -400,14 +400,67 @@ papplPrinterCreate(
   printer->pw_repertoire_configured       = PAPPL_PW_REPERTOIRE_IANA_UTF_8_ANY; // initial "job-password-repertoire-configured" value
   printer->release_action_default         = PAPPL_RELEASE_ACTION_NONE;
   printer->which_jobs_supported           = PAPPL_WHICH_JOBS_ALL | PAPPL_WHICH_JOBS_COMPLETED | PAPPL_WHICH_JOBS_NOT_COMPLETED; // Always supported - not conditional on features
+  printer->proof_copies_min = 0;
+  printer->proof_copies_max = 0;
+  
+  // Enable all new non-deprecated EPX features
+  bool 	jobRelease = true,
+	jobStorage = true,
+	jobPrintPolicy = true,
+	jobProofAndSuspend = true,
+	jobProofPrint = false; // NEVER should this be 'true'
+  
+  if (jobRelease)
+  {
+//    driver_data->features[driver_data->num_features++] = "job-release";
+    printer->release_action_supported = PAPPL_RELEASE_ACTION_BUTTON_PRESS; // | PAPPL_RELEASE_ACTION_JOB_PASSWORD | PAPPL_RELEASE_ACTION_OWNER_AUTHORIZED;
+    printer->release_action_default = PAPPL_RELEASE_ACTION_NONE;
+  }
+  
+  if (jobStorage)
+  {
+//    driver_data->features[driver_data->num_features++] = "job-storage";
 
-  if (printer->driver_data.st_access_supported & PAPPL_ST_ACCESS_OWNER)
+    printer->num_st_supported = 0;
+    printer->st_supported[printer->num_st_supported++] = "job-storage-access";
+    printer->st_supported[printer->num_st_supported++] = "job-storage-disposition";
+    printer->st_disposition_supported = PAPPL_ST_DISPOSITION_PRINT_AND_STORE | PAPPL_ST_DISPOSITION_STORE_ONLY;
+    printer->st_access_supported = PAPPL_ST_ACCESS_OWNER | PAPPL_ST_ACCESS_PUBLIC;
+    bool jobStorageGroup = true;
+    printer->num_st_group_supported = 0;
+    if (jobStorageGroup)
+    {
+      printer->st_supported[printer->num_st_supported++] = "job-storage-group";
+      printer->st_access_supported |= PAPPL_ST_ACCESS_GROUP;
+      printer->st_group_supported[printer->num_st_group_supported++] = "admin";
+    }
+  }
+  
+  if (jobPrintPolicy)
+  {
+//    driver_data->features[driver_data->num_features++] = "print-policy";
+  }
+  
+  if (jobProofAndSuspend)
+  {
+//    driver_data->features[driver_data->num_features++] = "proof-and-suspend";
+    printer->proof_copies_min = 1;
+    printer->proof_copies_max = 999;
+  }
+  
+  if (jobProofPrint)
+  {
+//    driver_data->features[driver_data->num_features++] = "proof-print";
+  }
+
+  
+  if (printer->st_access_supported & PAPPL_ST_ACCESS_OWNER)
     printer->which_jobs_supported |= PAPPL_WHICH_JOBS_STORED_OWNER;
     
-  if (printer->driver_data.st_access_supported & PAPPL_ST_ACCESS_PUBLIC)
+  if (printer->st_access_supported & PAPPL_ST_ACCESS_PUBLIC)
     printer->which_jobs_supported |= PAPPL_WHICH_JOBS_STORED_PUBLIC;
     
-  if (printer->driver_data.st_access_supported & PAPPL_ST_ACCESS_GROUP)
+  if (printer->st_access_supported & PAPPL_ST_ACCESS_GROUP)
     printer->which_jobs_supported |= PAPPL_WHICH_JOBS_STORED_GROUP;
 
   if (!printer->name || !printer->dns_sd_name || !printer->resource || (device_id && !printer->device_id) || !printer->device_uri || !printer->driver_name || !printer->attrs)
@@ -525,21 +578,21 @@ papplPrinterCreate(
   ippAddString(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_NAME), "job-sheets-supported", NULL, "none");
 
   // job-storage-supported
-  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-supported", printer->driver_data.num_st_supported, NULL, (const char * const *)printer->driver_data.st_supported);
+  ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-supported", printer->num_st_supported, NULL, (const char * const *)printer->st_supported);
 
   // job-storage-access-supported
   char * job_st_access_supported_keywords[3];
-  num_keywords = _papplLookupStrings(printer->driver_data.st_access_supported, 3, job_st_access_supported_keywords, sizeof(_pappl_st_access) / sizeof(_pappl_st_access[0]), _pappl_st_access);
+  num_keywords = _papplLookupStrings(printer->st_access_supported, 3, job_st_access_supported_keywords, sizeof(_pappl_st_access) / sizeof(_pappl_st_access[0]), _pappl_st_access);
   ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-access-supported", (cups_len_t)num_keywords, NULL, (const char * const *)job_st_access_supported_keywords);
 
   // job-storage-disposition-supported
   char * job_st_disposition_supported_keywords[3];
-  num_keywords = _papplLookupStrings(printer->driver_data.st_disposition_supported, 3, job_st_disposition_supported_keywords, sizeof(_pappl_st_disposition) / sizeof(_pappl_st_disposition[0]), _pappl_st_disposition);
+  num_keywords = _papplLookupStrings(printer->st_disposition_supported, 3, job_st_disposition_supported_keywords, sizeof(_pappl_st_disposition) / sizeof(_pappl_st_disposition[0]), _pappl_st_disposition);
   ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_KEYWORD), "job-storage-disposition-supported", (cups_len_t)num_keywords, NULL, (const char * const *)job_st_disposition_supported_keywords);
 
   // job-storage-group-supported
-  if (0 < printer->driver_data.num_st_group_supported)
-    ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_NAME), "job-storage-group-supported", (cups_len_t)printer->driver_data.num_st_group_supported, NULL, (const char * const *)printer->driver_data.st_group_supported);
+  if (0 < printer->num_st_group_supported)
+    ippAddStrings(printer->attrs, IPP_TAG_PRINTER, IPP_CONST_TAG(IPP_TAG_NAME), "job-storage-group-supported", (cups_len_t)printer->num_st_group_supported, NULL, (const char * const *)printer->st_group_supported);
 
   if (_papplSystemFindMIMEFilter(system, "image/jpeg", "image/pwg-raster"))
   {

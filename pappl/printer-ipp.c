@@ -611,10 +611,12 @@ _papplPrinterCopyAttributesNoLock(
   {
     // Filter proof-copies-supported value based on the document format...
     // (no copy support for streaming raster formats)
+    int min = printer->proof_copies_min;
+    int max = printer->proof_copies_max;
     if (format && (!strcmp(format, "image/pwg-raster") || !strcmp(format, "image/urf")))
-      ippAddRange(client->response, IPP_TAG_PRINTER, "proof-copies-supported", 1, 1);
-    else
-      ippAddRange(client->response, IPP_TAG_PRINTER, "proof-copies-supported", 1, 999); // Make sure upper bounds is <= upper bounds for "copies-supported"
+      max = 1;
+
+    ippAddRange(client->response, IPP_TAG_PRINTER, "proof-copies-supported", min, max);
   }
 
   if (!ra || cupsArrayFind(ra, "queued-job-count"))
@@ -2118,7 +2120,7 @@ valid_job_attributes(
       papplClientRespondIPPUnsupported(client, attr);
       valid = false;
     }
-    else if (!(value & client->printer->driver_data.release_action_supported))
+    else if (!(value & client->printer->release_action_supported))
     {
       papplClientRespondIPPUnsupported(client, attr);
       valid = false;
@@ -2162,7 +2164,7 @@ valid_job_attributes(
 	valid = false;
       }
 
-      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.st_access_supported))
+      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->st_access_supported))
       {
 	papplClientRespondIPPUnsupported(client, attr);
 	valid = false;
@@ -2178,7 +2180,7 @@ valid_job_attributes(
     else
     {
       pappl_st_disposition_t value = _papplStorageDispositionValue(ippGetString(attr, 0, NULL)); // "job-storage-disposition" value
-      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->driver_data.st_disposition_supported))
+      if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_KEYWORD || !(value & client->printer->st_disposition_supported))
       {
 	papplClientRespondIPPUnsupported(client, attr);
 	valid = false;
@@ -2512,6 +2514,18 @@ valid_job_attributes(
 	  ippDeleteAttribute(client->request, attr);
 	}
       }
+    }
+  }
+
+  if ((attr = ippFindAttribute(client->request, "proof-copies", IPP_TAG_ZERO)) != NULL)
+  {
+    int value = ippGetInteger(attr, 0);	// "proof-copies" value
+
+    if (ippGetCount(attr) != 1 || ippGetValueTag(attr) != IPP_TAG_INTEGER ||
+	value < client->printer->proof_copies_min || value > client->printer->proof_copies_max)
+    {
+      papplClientRespondIPPUnsupported(client, attr);
+      valid = false;
     }
   }
 

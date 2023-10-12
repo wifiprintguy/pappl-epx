@@ -188,6 +188,11 @@ _papplJobCreate(
     httpAssembleURIf(HTTP_URI_CODING_ALL, job_uri, sizeof(job_uri), "ipps", NULL, printer->system->hostname, printer->system->port, "%s/%d", printer->resource, job->job_id);
   }
 
+  if (NULL != (attr = ippFindAttribute(attrs, "proof-copies", IPP_TAG_INTEGER)))
+    job->proof_copies = ippGetInteger(attr, 0);
+  else
+    job->proof_copies = 0;
+  
   _papplSystemMakeUUID(printer->system, printer->name, job->job_id, job_uuid, sizeof(job_uuid));
 
   ippAddInteger(job->attrs, IPP_TAG_JOB, IPP_TAG_INTEGER, "job-id", job->job_id);

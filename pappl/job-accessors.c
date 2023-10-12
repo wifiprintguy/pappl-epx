@@ -225,6 +225,22 @@ papplJobGetPrinter(pappl_job_t *job) 	// I - Job
 
 
 //
+// 'papplJobGetProofCopies()' - Get the number of proof copies
+//                                       for the job.
+//
+// This function returns the number of impressions that have been printed.  An
+// impression is one side of an output page.
+//
+
+int					// O - Number of proof copies to be made for the job
+papplJobGetProofCopies(
+    pappl_job_t *job)			// I - Job
+{
+  return (job ? job->proof_copies : 0);
+}
+
+
+//
 // 'papplJobGetReasons()' - Get the current job state reasons.
 //
 // This function returns the current job state reasons bitfield.
