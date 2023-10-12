@@ -108,10 +108,10 @@ Printer Description Attributes
 
 Job Status Attributes
 -------------------------------------
-job-release-action
-job-storage
-parent-job-id
-parent-job-uuid
+* job-release-action
+* job-storage
+* parent-job-id
+* parent-job-uuid
 
 
 Additional Values
